@@ -1,0 +1,423 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Colportor • Admin</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body class="bg">
+    <!-- Topbar -->
+    <header class="topbar">
+        <button id="menuBtn" class="icon" aria-label="Menu">☰</button>
+        <h1 class="title">Painel</h1>
+        <div class="spacer"></div>
+        <div class="topbar-actions">
+            <button id="openLeader" class="btn" title="Cadastrar líder">+ Líder</button>
+            <button id="openCreate" class="btn primary" title="Cadastrar novo colportor">+ Colportor</button>
+            <button id="logoutBtn" class="btn subtle" title="Sair do sistema">Sair</button>
+        </div>
+    </header>
+
+    <!-- Drawer -->
+    <aside id="drawer" class="drawer" aria-hidden="true">
+        <div class="drawer-header">
+            <h2>Menu</h2>
+            <button id="closeDrawer" class="icon" aria-label="Fechar">✕</button>
+        </div>
+        <nav class="drawer-nav">
+            <button id="openRegions" class="btn w-100" data-action="regions">Gerenciar Regiões (Admin)</button>
+            <button id="openLeader_fromDrawer" class="btn w-100" data-action="leader">Cadastrar Líder</button>
+            <button id="openLeaders_fromDrawer" class="btn w-100" data-action="leaders">Ver Líderes</button>
+            <button id="openCreate_fromDrawer" class="btn w-100" data-action="create">Cadastrar Colportor</button>
+            <button id="openApprove_fromDrawer" class="btn w-100" data-action="approve">Aprovar Líderes Pendentes</button>
+            <button id="openPacLeader_fromDrawer" class="btn w-100" data-action="pac-leader">Selecionar PAC (Líder)</button>
+            <button id="openPacAdmin_fromDrawer" class="btn w-100" data-action="pac-admin">Gerenciar PAC (Admin)</button>
+        </nav>
+    </aside>
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+
+    <main class="page">
+        <!-- KPIs -->
+        <section class="grid-cards">
+            <div class="kpi"><span class="lbl">Total</span><strong id="kpiTotal">—</strong></div>
+            <div class="kpi ok"><span class="lbl">Em dia</span><strong id="kpiOk">—</strong></div>
+            <div class="kpi warn"><span class="lbl">Aviso</span><strong id="kpiWarn">—</strong></div>
+            <div class="kpi danger"><span class="lbl">Vencido</span><strong id="kpiDanger">—</strong></div>
+        </section>
+
+        <!-- Leader: resumo PAC -->
+        <section class="card glass" id="leaderPacPanel" style="display: none;">
+            <h3 class="panel-title">Minhas solicitações PAC</h3>
+            <div class="kpis">
+                <div class="kpi">
+                    <span class="lbl">Aguardando</span>
+                    <strong id="lPacPend">—</strong>
+                </div>
+                <div class="kpi ok">
+                    <span class="lbl">Aprovadas</span>
+                    <strong id="lPacApr">—</strong>
+                </div>
+                <div class="kpi danger">
+                    <span class="lbl">Rejeitadas</span>
+                    <strong id="lPacRej">—</strong>
+                </div>
+            </div>
+            <div id="leaderPacList" class="list"></div>
+            <div class="muted" id="leaderPacEmpty" style="display: none;">
+                <div style="text-align: center; padding: 20px; color: #8a9ba8;">
+                    <div style="font-size: 24px; margin-bottom: 8px;">📋</div>
+                    <div>Nenhuma solicitação enviada ainda.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtros -->
+        <section class="filters card glass">
+            <h3 class="panel-title">Filtrar Colportores</h3>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="fCity">Cidade</label>
+                    <input id="fCity" placeholder="Ex.: Belém" />
+                </div>
+                <div class="field">
+                    <label for="fCpf">CPF</label>
+                    <input id="fCpf" placeholder="Somente números" />
+                </div>
+                <div class="field">
+                    <label for="fStatus">Status</label>
+                    <select id="fStatus">
+                        <option value="">Todos</option>
+                        <option value="EM DIA">EM DIA</option>
+                        <option value="AVISO">AVISO</option>
+                        <option value="VENCIDO">VENCIDO</option>
+                    </select>
+                </div>
+            </div>
+            <div class="actions">
+                <button id="applyFilters" class="btn primary">
+                    <span>🔍</span> Aplicar
+                </button>
+                <button id="clearFilters" class="btn">
+                    <span>🗑️</span> Limpar
+                </button>
+            </div>
+        </section>
+
+        <!-- Lista -->
+        <section class="card glass">
+            <!-- Desktop Table -->
+            <div class="table-wrap">
+                <table class="table table-fixed">
+                    <!-- larguras controladas -->
+                    <colgroup>
+                        <col style="width:64px" />   <!-- ID -->
+                        <col style="width:68px" />   <!-- Foto -->
+                        <col />                      <!-- Nome (flex) -->
+                        <col style="width:160px" />  <!-- CPF -->
+                        <col style="width:220px" />  <!-- Região -->
+                        <col style="width:160px" />  <!-- Cidade -->
+                        <col style="width:140px" />  <!-- Últ. Visita -->
+                        <col style="width:120px" />  <!-- Status -->
+                        <col style="width:150px" />  <!-- Ações -->
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Foto</th>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Região</th>
+                            <th>Cidade</th>
+                            <th>Últ. Visita</th>
+                            <th>Status</th>
+                            <th style="text-align:right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rows"><!-- via JS --></tbody>
+                </table>
+            </div>
+            
+            <!-- Mobile Cards -->
+            <div class="mobile-cards" id="mobileCards"></div>
+            
+            <div id="empty" class="empty" hidden>Nenhum colportor encontrado.</div>
+        </section>
+    </main>
+
+    <!-- Modal: Regiões -->
+    <div class="modal" id="regionsModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Gerenciar Regiões</h3>
+                <button class="icon close" id="closeRegions" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="grid-3">
+                    <div class="field">
+                        <label for="regCountry">País</label>
+                        <select id="regCountry"></select>
+                    </div>
+                    <div class="field">
+                        <label for="regName">Nova Região</label>
+                        <input id="regName" placeholder="Ex.: Norte" />
+                    </div>
+                    <div class="field">
+                        <label>&nbsp;</label>
+                        <button id="addRegion" class="btn primary w-100" type="button">Adicionar</button>
+                    </div>
+                </div>
+                <div class="list" id="regionsList"><!-- via JS --></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Selecionar PAC (Líder) -->
+    <div class="modal" id="pacLeaderModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Selecionar Colportores para o PAC</h3>
+                <button class="icon close" id="closePacLeader" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="toolbar">
+                    <div class="grid-3">
+                        <div class="field">
+                            <label for="pacStart">Início</label>
+                            <input id="pacStart" type="date" />
+                        </div>
+                        <div class="field">
+                            <label for="pacEnd">Fim</label>
+                            <input id="pacEnd" type="date" />
+                        </div>
+                        <div class="field">
+                            <label for="pacSearch">Buscar por nome/CPF</label>
+                            <input id="pacSearch" placeholder="digite para filtrar" />
+                        </div>
+                    </div>
+                    <div class="actions right">
+                        <button id="pacSelectAll" class="btn">Selecionar todos</button>
+                        <button id="pacClearAll" class="btn">Limpar seleção</button>
+                    </div>
+                </div>
+
+                <div class="muted" id="pacCounter">0 selecionados</div>
+                <div id="pacColportors" class="list scroll"></div>
+                <div class="actions sticky">
+                    <button id="submitPacLeader" class="btn primary w-100">Enviar seleção para aprovação</button>
+                </div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Gerenciar PAC (Admin) -->
+    <div class="modal" id="pacAdminModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Solicitações PAC</h3>
+                <button class="icon close" id="closePacAdmin" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="toolbar">
+                    <div class="grid-3">
+                    <div class="field">
+                        <label for="pacAdminCountry">País</label>
+                        <select id="pacAdminCountry"></select>
+                    </div>
+                    <div class="field">
+                        <label for="pacAdminRegion">Região</label>
+                        <select id="pacAdminRegion"></select>
+                    </div>
+                    <div class="field">
+                        <label for="pacStatus">Status</label>
+                        <select id="pacStatus">
+                            <option value="">Todos</option>
+                            <option value="Pending">Aguardando</option>
+                            <option value="Approved">Aprovado</option>
+                            <option value="Rejected">Rejeitado</option>
+                        </select>
+                    </div>
+                    </div>
+                    <div class="grid-2">
+                    <div class="field">
+                        <label for="pacFrom">De</label>
+                        <input id="pacFrom" type="date" />
+                    </div>
+                    <div class="field">
+                        <label for="pacTo">Até</label>
+                        <input id="pacTo" type="date" />
+                    </div>
+                    </div>
+                    <div class="actions right">
+                        <button id="applyPacFilters" class="btn primary">Filtrar</button>
+                        <button id="clearPacFilters" class="btn">Limpar</button>
+                    </div>
+                </div>
+                <div class="kpis" id="pacKpis">
+                    <div class="kpi"><span class="lbl">Pendentes</span><strong id="kpiPend">—</strong></div>
+                    <div class="kpi ok"><span class="lbl">Aprovados</span><strong id="kpiApr">—</strong></div>
+                    <div class="kpi danger"><span class="lbl">Rejeitados</span><strong id="kpiRej">—</strong></div>
+                </div>
+                <div id="pacAdminList" class="list"></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Cadastrar Colportor -->
+    <div class="modal" id="createModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Cadastrar Colportor</h3>
+                <button class="icon close" id="closeCreate" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <form id="createForm" class="form" novalidate>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="cFullName">Nome completo</label>
+                            <input id="cFullName" required />
+                        </div>
+                        <div class="field">
+                            <label for="cCpf">CPF</label>
+                            <input id="cCpf" required />
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="cCountry">País</label>
+                            <select id="cCountry" required></select>
+                        </div>
+                        <div class="field">
+                            <label for="cRegion">Região</label>
+                            <select id="cRegion" required></select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="cCity">Cidade</label>
+                            <input id="cCity" />
+                        </div>
+                        <div class="field">
+                            <label for="cPhoto">Foto</label>
+                            <input id="cPhoto" type="file" accept="image/*" />
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="cEmail">E-mail (login)</label>
+                            <input id="cEmail" type="email" required />
+                        </div>
+                        <div class="field">
+                            <label for="cPass">Senha</label>
+                            <input id="cPass" type="password" required />
+                        </div>
+                    </div>
+
+                    <button id="btnCreateColp" class="btn primary w-100" type="submit">
+                        Criar colportor
+                        <span class="spinner" hidden></span>
+                    </button>
+                </form>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Cadastrar Líder -->
+    <div class="modal" id="leaderModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Cadastrar Líder</h3>
+                <button class="icon close" id="closeLeader" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <form id="leaderForm" class="form" novalidate>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="lCountry">País</label>
+                            <select id="lCountry" required></select>
+                        </div>
+                        <div class="field">
+                            <label for="lRegion">Região</label>
+                            <select id="lRegion" required></select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="lEmail">E-mail (login)</label>
+                            <input id="lEmail" type="email" required />
+                        </div>
+                        <div class="field">
+                            <label for="lPass">Senha</label>
+                            <input id="lPass" type="password" required />
+                        </div>
+                    </div>
+
+                    <button id="btnCreateLeader" class="btn primary w-100" type="submit">
+                        Criar líder
+                        <span class="spinner" hidden></span>
+                    </button>
+                </form>
+                <div id="leaderError" class="muted" hidden>Não foi possível criar o líder.</div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Aprovar Líderes Pendentes -->
+    <div class="modal" id="approveModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Aprovar Líderes Pendentes</h3>
+                <button class="icon close" id="closeApprove" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div id="pendingList" class="list"></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Ver Líderes -->
+    <div class="modal" id="leadersModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Líderes</h3>
+                <button class="icon close" id="closeLeaders" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="grid-3" style="margin-bottom:12px">
+                    <div class="field">
+                        <label for="leadersCountry">País</label>
+                        <select id="leadersCountry"></select>
+                    </div>
+                    <div class="field">
+                        <label for="leadersRegion">Região</label>
+                        <select id="leadersRegion"></select>
+                    </div>
+                    <div class="field">
+                        <label for="leadersEmail">E-mail</label>
+                        <input id="leadersEmail" placeholder="filtrar por e-mail" />
+                    </div>
+                </div>
+                <div class="actions" style="margin-bottom:8px">
+                    <button id="applyLeaderFilters" class="btn primary">Filtrar</button>
+                    <button id="clearLeaderFilters" class="btn">Limpar</button>
+                </div>
+                <div id="leadersList" class="list"></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

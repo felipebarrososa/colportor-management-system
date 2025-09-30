@@ -1,0 +1,325 @@
+﻿:root {
+    --bg: #0f1115;
+    --card: rgba(255,255,255,.06);
+    --stroke: rgba(255,255,255,.08);
+    --txt: #e9eef5;
+    --muted: #97a3b6;
+    /* Verde igual ao app do colportor */
+    --primary: #14b86a;
+    --primary-2: #119a5a;
+    --danger: #ff6b6b;
+    --warn: #ffd166;
+    --ok: #95d5b2;
+    --shadow: 0 20px 40px rgba(0,0,0,.35);
+    --radius: 14px;
+}
+
+* {
+    box-sizing: border-box
+}
+
+html, body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    color: var(--txt);
+    background: var(--bg);
+    font: 16px/1.45 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif
+}
+
+/* mesmo background do colportor */
+.bg {
+    background: radial-gradient(1200px 600px at 12% -10%, #123020 0%, transparent 60%), radial-gradient(900px 420px at 88% 12%, #14324a 0%, transparent 60%), var(--bg);
+}
+
+.center-wrap {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 24px
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px)
+}
+
+.glass {
+    background: linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03))
+}
+
+.login-card {
+    width: min(520px,100%);
+    padding: 28px
+}
+
+.brand {
+    text-align: center;
+    margin-bottom: 18px
+}
+
+    .brand img {
+        width: 42px;
+        height: 42px;
+        opacity: .9
+    }
+
+    .brand h1 {
+        margin: .5rem 0 .25rem;
+        font-size: 20px
+    }
+
+.muted {
+    color: var(--muted);
+    font-size: 14px
+}
+
+.form .field {
+    margin-bottom: 14px
+}
+
+.form label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px
+}
+
+.form input, .form select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--stroke);
+    background: rgba(0,0,0,.25);
+    color: var(--txt);
+    outline: none
+}
+
+    .form input::placeholder {
+        color: #8290a1
+    }
+
+.btn {
+    appearance: none;
+    border: 1px solid var(--stroke);
+    background: rgba(255,255,255,.04);
+    color: var(--txt);
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer
+}
+
+    .btn:hover {
+        background: rgba(255,255,255,.08)
+    }
+
+    .btn.primary {
+        background: linear-gradient(180deg,var(--primary),var(--primary-2));
+        border-color: transparent;
+        color: #04110a;
+        font-weight: 700
+    }
+
+        .btn.primary:hover {
+            filter: brightness(1.05)
+        }
+
+    .btn.link {
+        background: transparent;
+        border: none;
+        color: var(--primary);
+        padding: 6px 0
+    }
+
+    .btn[disabled] {
+        opacity: .6;
+        cursor: not-allowed
+    }
+
+.w-100 {
+    width: 100%
+}
+
+.alt-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 10px
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #0000;
+    border-left-color: #0006;
+    border-right-color: #0006;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+    animation: spin .7s linear infinite
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(1turn)
+    }
+}
+
+.grid-2, .grid-3 {
+    display: grid;
+    gap: 14px
+}
+
+.grid-2 {
+    grid-template-columns: 1fr 1fr
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3,1fr)
+}
+
+@media (max-width:800px) {
+    .grid-2, .grid-3 {
+        grid-template-columns: 1fr
+    }
+}
+
+.icon {
+    background: transparent;
+    border: none;
+    color: var(--txt);
+    cursor: pointer;
+    font-size: 18px
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 30
+}
+
+    .modal[aria-hidden="false"] {
+        display: block
+    }
+
+/* garante que o dialog fique acima do backdrop */
+.modal-dialog {
+    position: relative;
+    z-index: 2;
+    margin: 8vh auto;
+    width: min(760px,92vw);
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px)
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--stroke)
+}
+
+.modal-body {
+    padding: 14px
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: #0008;
+    backdrop-filter: blur(2px);
+    z-index: 1
+}
+
+.title {
+    margin: 0;
+    font-size: 16px
+}
+
+
+/* ---------- Dashboard polish ---------- */
+.panel-title {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: #cfe7da;
+    font-weight: 700
+}
+
+/* tabela melhorada */
+.table-wrap {
+    max-height: 70vh;
+    overflow: auto;
+    border-radius: 12px
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(20,24,32,.8);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--stroke);
+    z-index: 1
+}
+
+.table tbody tr {
+    transition: background .15s ease
+}
+
+    .table tbody tr:hover {
+        background: rgba(255,255,255,.04)
+    }
+
+.table td:last-child {
+    text-align: right
+}
+
+/* estado vazio */
+.empty {
+    padding: 14px;
+    border-top: 1px dashed var(--stroke);
+    color: var(--muted);
+    text-align: center
+}
+
+/* pills de status (mesmo padrão da carteira) */
+.pill {
+    padding: .35rem .6rem;
+    border-radius: 999px;
+    font-weight: 700
+}
+
+    .pill.EM\ DIA {
+        background: #0f2d1f;
+        color: #19da86;
+        border: 1px solid #1d7a55
+    }
+
+    .pill.AVISO {
+        background: #2d250f;
+        color: #ffd369;
+        border: 1px solid #8a6a1a
+    }
+
+    .pill.VENCIDO {
+        background: #2d0f11;
+        color: #ff8a9a;
+        border: 1px solid #8a1a27
+    }
+
+/* botões de ação pequenos na tabela */
+.btn.sm {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px
+}

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Colportor • Login</title>
+
+    <!-- mantém seu caminho atual -->
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="bg">
+    <main class="center-wrap">
+        <section class="card glass login-card" aria-labelledby="appTitle">
+            <div class="brand">
+                <img src="https://cdn.simpleicons.org/dotnet" alt=".NET" />
+                <h1 id="appTitle">Identificação do Colportor</h1>
+                <p class="muted">Acesse o painel administrativo ou sua carteira</p>
+            </div>
+
+            <!-- LOGIN -->
+            <form id="loginForm" class="form" novalidate>
+                <div class="field">
+                    <label for="email">E-mail</label>
+                    <input id="email" name="email" type="email" required autocomplete="username" placeholder="voce@exemplo.com" />
+                </div>
+                <div class="field">
+                    <label for="password">Senha</label>
+                    <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+                </div>
+                <button class="btn primary w-100" type="submit" id="loginBtn">
+                    Entrar <span class="spinner" hidden></span>
+                </button>
+            </form>
+
+            <div class="alt-actions">
+                <!-- Removido: botão de cadastrar colportor -->
+                <button class="btn link" id="openLeader" type="button">Cadastrar Líder (Admin)</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL: Cadastrar Líder -->
+    <div class="modal" id="registerModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Cadastrar Líder</h3>
+                <button class="icon close" id="closeRegister" aria-label="Fechar">✕</button>
+            </header>
+
+            <section class="modal-body">
+                <p class="muted">Para criar um líder, autentique como <strong>Admin</strong> abaixo. O token temporário não será salvo.</p>
+
+                <form id="registerLeaderForm" class="form" novalidate>
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="adminEmail">E-mail Admin</label>
+                            <input id="adminEmail" type="email" placeholder="admin@colportor.local" required />
+                        </div>
+                        <div class="field">
+                            <label for="adminPassword">Senha Admin</label>
+                            <input id="adminPassword" type="password" placeholder="admin123" required />
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="leaderCountry">País</label>
+                            <select id="leaderCountry" required></select>
+                        </div>
+                        <div class="field">
+                            <label for="leaderRegion">Região</label>
+                            <select id="leaderRegion" required></select>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="leaderEmail">E-mail do Líder</label>
+                            <input id="leaderEmail" type="email" required />
+                        </div>
+                        <div class="field">
+                            <label for="leaderPassword">Senha do Líder</label>
+                            <input id="leaderPassword" type="password" required />
+                        </div>
+                    </div>
+
+                    <button class="btn primary w-100" type="submit" id="btnCreateLeader">
+                        Criar Líder na Região <span class="spinner" hidden></span>
+                    </button>
+                </form>
+            </section>
+        </div>
+
+        <!-- fica por trás do dialog -->
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- IMPORTANTE: usar módulo. NÃO inclua admin.js aqui. -->
+    <script type="module" src="/js/login.js"></script>
+    <script src="/js/admin-auth.js"></script>
+</body>
+</html>

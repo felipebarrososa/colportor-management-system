@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: colp_db
+    environment:
+      POSTGRES_DB: colportor
+      POSTGRES_USER: colp
+      POSTGRES_PASSWORD: colp123
+      TZ: America/Belem
+    ports: ["5432:5432"]
+    volumes: ["db_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U colp -d colportor"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: colp_mailhog
+    ports: ["1025:1025","8025:8025"]
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/Colportor.Api/Dockerfile
+    container_name: colp_api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=db;Port=5432;Database=colportor;Username=colp;Password=colp123
+      Jwt__Key: 0123456789abcdef0123456789abcdef
+      Smtp__Host: mailhog
+      Smtp__Port: 1025
+      Smtp__From: no-reply@colportor.local
+    depends_on:
+      db:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: src/Colportor.Worker/Dockerfile
+    container_name: colp_worker
+    environment:
+      ConnectionStrings__Default: Host=db;Port=5432;Database=colportor;Username=colp;Password=colp123
+      Smtp__Host: mailhog
+      Smtp__Port: 1025
+      Smtp__From: no-reply@colportor.local
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  db_data:

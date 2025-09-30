@@ -1,0 +1,131 @@
+﻿// /js/login.js
+import { apiJSON, saveToken, setBusy } from "/js/shared.js";
+
+const form = document.getElementById("loginForm");
+const btn = document.getElementById("loginBtn");
+
+// login
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setBusy(btn, true);
+
+    try {
+        const email = form.email.value.trim();
+        const password = form.password.value;
+
+        const res = await apiJSON("/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ email, password }),
+        });
+
+        // extrai string do token de vários formatos
+        const token = res.token || res.Token || res.access_token || res.AccessToken || res.value || (res.jwt?.token);
+        if (!token) throw new Error("Token ausente na resposta.");
+
+        // salva a STRING na sessão/local
+        saveToken(token);
+
+        // (debug opcional)
+        console.log("JWT salvo:", sessionStorage.getItem("token"));
+
+        // testa acesso admin
+        const test = await fetch("/admin/colportors", {
+            headers: { Authorization: "Bearer " + sessionStorage.getItem("token") }
+        });
+
+        if (test.ok) {
+            location.href = "/admin/dashboard.html";
+            return;
+        }
+
+        // senão, tenta carteira
+        const w = await fetch("/wallet/me", {
+            headers: { Authorization: "Bearer " + sessionStorage.getItem("token") }
+        });
+        if (w.ok) {
+            location.href = "/colportor/"; // ajuste se tiver outra rota
+            return;
+        }
+
+        // fallback por via das dúvidas
+        location.href = "/admin/dashboard.html";
+    } catch (err) {
+        console.error(err);
+        alert("Falha no login. Verifique e-mail e senha.");
+    } finally {
+        setBusy(btn, false);
+    }
+});
+
+// Abrir/fechar modal de líder
+const registerModal = document.getElementById("registerModal");
+document.getElementById("openLeader").addEventListener("click", () => {
+    registerModal.setAttribute("aria-hidden", "false");
+});
+document.getElementById("closeRegister").addEventListener("click", () => {
+    registerModal.setAttribute("aria-hidden", "true");
+});
+registerModal.addEventListener("click", (e) => {
+    if (e.target.classList?.contains("modal-backdrop"))
+        registerModal.setAttribute("aria-hidden", "true");
+});
+
+// ====== Cadastro de Líder (com token temporário Admin) ======
+const leaderCountry = document.getElementById("leaderCountry");
+const leaderRegion = document.getElementById("leaderRegion");
+const registerLeaderForm = document.getElementById("registerLeaderForm");
+const btnCreateLeader = document.getElementById("btnCreateLeader");
+
+async function loadCountries(sel) {
+    const list = await apiJSON("/geo/countries");
+    sel.innerHTML = list.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+}
+async function loadRegions(countryId, sel) {
+    if (!countryId) { sel.innerHTML = ""; return; }
+    const list = await apiJSON(`/geo/regions?countryId=${countryId}`);
+    sel.innerHTML = list.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
+}
+
+document.getElementById("openLeader").addEventListener("click", async () => {
+    await loadCountries(leaderCountry);
+    if (leaderCountry.options.length > 0) leaderCountry.selectedIndex = 0;
+    await loadRegions(leaderCountry.value, leaderRegion);
+});
+leaderCountry.addEventListener("change", async () => {
+    await loadRegions(leaderCountry.value, leaderRegion);
+});
+
+registerLeaderForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setBusy(btnCreateLeader, true);
+    try {
+        const leaderEmail = document.getElementById("leaderEmail").value.trim();
+        const leaderPassword = document.getElementById("leaderPassword").value;
+        const regionId = parseInt(leaderRegion.value || "0", 10);
+        if (!leaderEmail || !leaderPassword || !regionId) {
+            alert("Preencha todos os campos.");
+            return;
+        }
+
+        // Registro público: cria líder pendente
+        const res = await fetch("/leaders/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: leaderEmail, password: leaderPassword, regionId })
+        });
+        if (!res.ok) {
+            const t = await res.text().catch(() => "");
+            throw new Error(t || "Falha ao solicitar criação de líder");
+        }
+
+        registerModal.setAttribute("aria-hidden", "true");
+        alert("Solicitação enviada! Aguarde aprovação do Admin.");
+    } catch (err) {
+        console.error(err);
+        alert("Não foi possível solicitar o cadastro de líder.");
+    } finally {
+        setBusy(btnCreateLeader, false);
+    }
+});

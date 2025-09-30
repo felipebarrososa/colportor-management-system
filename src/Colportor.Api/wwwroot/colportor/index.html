@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carteira do Colportor</title>
+    <link rel="stylesheet" href="/css/wallet.css" />
+</head>
+<body class="wallet-bg">
+    <!-- LOGIN -->
+    <main id="authScreen" class="screen active">
+        <section class="auth-card login-card">
+            <header class="brand">
+                <div class="brand-logo">c</div>
+                <h1>Carteira Digital</h1>
+                <p class="muted">Acesse com seu e-mail e senha.</p>
+            </header>
+
+            <form id="loginForm" class="form">
+                <label for="loginEmail">E-mail</label>
+                <input id="loginEmail" type="email" placeholder="voce@email.com" autocomplete="username" required />
+
+                <label for="loginPassword">Senha</label>
+                <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" required />
+
+                <button id="btnLogin" class="btn-primary" type="submit">
+                    Entrar
+                    <span class="spinner" hidden></span>
+                </button>
+                <p id="loginError" class="error" hidden>Usuário ou senha inválidos.</p>
+            </form>
+
+            <div class="aux">
+                <span>Não tem conta?</span>
+                <button id="btnOpenRegister" class="link">Cadastrar</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DE CADASTRO -->
+    <div id="registerModal" class="modal" aria-hidden="true">
+        <div class="dialog">
+            <header class="dialog-head">
+                <h2>Criar conta</h2>
+                <button id="btnCloseRegister" class="icon-btn" aria-label="Fechar">✕</button>
+            </header>
+
+            <form id="registerForm" class="form grid-2">
+                <input id="rFullName" placeholder="Nome Completo" required />
+                <input id="rCPF" placeholder="CPF" required />
+
+                <div class="field">
+                    <label for="rCountry">País</label>
+                    <select id="rCountry" required></select>
+                </div>
+
+                <div class="field">
+                    <label for="rRegion">Região</label>
+                    <select id="rRegion" required></select>
+                </div>
+
+                <div class="field">
+                    <label for="rCity">Cidade</label>
+                    <input id="rCity" placeholder="Cidade" />
+                </div>
+
+                <div class="field">
+                    <label for="rLastVisit">Última visita</label>
+                    <input id="rLastVisit" type="date" />
+                    <small class="muted">Opcional — será atualizada automaticamente no check-in.</small>
+                </div>
+
+                <div class="field full">
+                    <label for="rPhotoFile">Foto</label>
+                    <input id="rPhotoFile" type="file" accept="image/*" />
+                    <input id="rPhotoUrl" type="hidden" />
+                </div>
+
+                <input id="rEmail" type="email" placeholder="E-mail (login)" autocomplete="new-username" required />
+                <input id="rPass" type="password" placeholder="Senha" autocomplete="new-password" required />
+
+                <button id="btnRegister" class="btn-primary full" type="submit">
+                    Criar minha conta
+                    <span class="spinner" hidden></span>
+                </button>
+                <p id="registerError" class="error full" hidden>Erro ao cadastrar. Verifique os campos.</p>
+            </form>
+
+        </div>
+        <div class="modal-backdrop"></div>
+    </div>
+
+    <!-- CARTEIRINHA -->
+    <main id="walletScreen" class="screen">
+        <header class="wallet-topbar">
+            <span class="app-name">Carteira Digital</span>
+            <button id="btnLogout" class="btn-ghost">Sair</button>
+        </header>
+
+        <section class="id-card">
+            <div class="id-left">
+                <img id="photo" class="avatar-xl" alt="foto do colportor" />
+            </div>
+            <div class="id-right">
+                <h2 id="name"></h2>
+                <div class="meta">
+                    <span><strong>CPF</strong> <span id="cpf"></span></span>
+                    <span><strong>Local</strong> <span id="place"></span></span>
+                    <span><strong>Última visita</strong> <span id="lastVisit">—</span></span>
+                    <span><strong>Vence em</strong> <span id="due">—</span></span>
+                </div>
+                <div class="status-line">
+                    <span id="status" class="pill">—</span>
+                </div>
+            </div>
+            <div class="badge">COLPORTOR</div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="/js/wallet.js"></script>
+</body>
+</html>
