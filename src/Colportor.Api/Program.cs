@@ -23,6 +23,16 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? builder.Configuration["DATABASE_URL"] 
     ?? throw new InvalidOperationException("Connection string not found");
 
+// Debug: Log das variáveis de ambiente
+Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(builder.Configuration["DATABASE_URL"])}");
+Console.WriteLine($"ConnectionStrings:Default exists: {!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Default"))}");
+
+// Debug: Log da connection string (sem senha)
+var safeConnectionString = connectionString.Contains("@") 
+    ? connectionString.Substring(0, connectionString.IndexOf("@")) + "@***" 
+    : connectionString;
+Console.WriteLine($"Using connection string: {safeConnectionString}");
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(connectionString));
 
