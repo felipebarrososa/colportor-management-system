@@ -18,14 +18,30 @@ using ColpVisit = Colportor.Api.Models.Visit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DB
-var connectionString = builder.Configuration.GetConnectionString("Default") 
-    ?? builder.Configuration["DATABASE_URL"] 
-    ?? throw new InvalidOperationException("Connection string not found");
+// DB - Construir connection string a partir das variáveis do Railway
+string connectionString;
 
-// Debug: Log das variáveis de ambiente
-Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(builder.Configuration["DATABASE_URL"])}");
-Console.WriteLine($"ConnectionStrings:Default exists: {!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("Default"))}");
+// Tentar usar variáveis individuais do Railway primeiro
+var pgHost = builder.Configuration["PGHOST"];
+var pgPort = builder.Configuration["PGPORT"];
+var pgDatabase = builder.Configuration["PGDATABASE"];
+var pgUser = builder.Configuration["PGUSER"];
+var pgPassword = builder.Configuration["PGPASSWORD"];
+
+if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
+{
+    // Usar variáveis individuais do Railway
+    connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
+    Console.WriteLine("Using Railway individual variables");
+}
+else
+{
+    // Fallback para DATABASE_URL ou ConnectionStrings:Default
+    connectionString = builder.Configuration["DATABASE_URL"] 
+        ?? builder.Configuration.GetConnectionString("Default") 
+        ?? throw new InvalidOperationException("Connection string not found");
+    Console.WriteLine("Using fallback connection string");
+}
 
 // Debug: Log da connection string (sem senha)
 var safeConnectionString = connectionString.Contains("@") 
