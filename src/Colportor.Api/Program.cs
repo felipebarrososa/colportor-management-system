@@ -35,12 +35,12 @@ var envVars = Environment.GetEnvironmentVariables();
 Console.WriteLine("Environment variables starting with PG or DATABASE:");
 foreach (System.Collections.DictionaryEntry envVar in envVars)
 {
-    var key = envVar.Key.ToString();
-    if (key.StartsWith("PG") || key.StartsWith("DATABASE"))
+    var envKey = envVar.Key?.ToString();
+    if (envKey != null && (envKey.StartsWith("PG") || envKey.StartsWith("DATABASE")))
     {
-        var value = envVar.Value.ToString();
-        var safeValue = key.Contains("PASSWORD") ? "***" : value;
-        Console.WriteLine($"  {key}: {safeValue}");
+        var envValue = envVar.Value?.ToString();
+        var safeValue = envKey.Contains("PASSWORD") ? "***" : envValue;
+        Console.WriteLine($"  {envKey}: {safeValue}");
     }
 }
 
