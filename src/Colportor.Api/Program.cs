@@ -66,8 +66,25 @@ if (builder.Environment.IsProduction())
     
     if (!string.IsNullOrEmpty(databaseUrl))
     {
-        connectionString = databaseUrl;
-        Console.WriteLine("PRODUCTION: Using DATABASE_URL");
+        // Converter DATABASE_URL para formato Npgsql
+        if (databaseUrl.StartsWith("postgresql://"))
+        {
+            // Parse da URL: postgresql://user:password@host:port/database
+            var uri = new Uri(databaseUrl);
+            var host = uri.Host;
+            var port = uri.Port;
+            var database = uri.AbsolutePath.TrimStart('/');
+            var username = uri.UserInfo.Split(':')[0];
+            var password = uri.UserInfo.Split(':')[1];
+            
+            connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+            Console.WriteLine("PRODUCTION: Using DATABASE_URL (converted to Npgsql format)");
+        }
+        else
+        {
+            connectionString = databaseUrl;
+            Console.WriteLine("PRODUCTION: Using DATABASE_URL (direct)");
+        }
     }
     else
     {
