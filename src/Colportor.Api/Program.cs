@@ -23,33 +23,57 @@ string connectionString;
 
 // Debug: Log todas as variáveis do Railway
 Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"DATABASE_URL: {(string.IsNullOrEmpty(builder.Configuration["DATABASE_URL"]) ? "NULL" : "EXISTS")}");
 Console.WriteLine($"PGHOST: {builder.Configuration["PGHOST"]}");
 Console.WriteLine($"PGPORT: {builder.Configuration["PGPORT"]}");
 Console.WriteLine($"PGDATABASE: {builder.Configuration["PGDATABASE"]}");
 Console.WriteLine($"PGUSER: {builder.Configuration["PGUSER"]}");
 Console.WriteLine($"PGPASSWORD: {(string.IsNullOrEmpty(builder.Configuration["PGPASSWORD"]) ? "NULL" : "***")}");
 
+// Debug: Listar todas as variáveis de ambiente que começam com PG ou DATABASE
+var envVars = Environment.GetEnvironmentVariables();
+Console.WriteLine("Environment variables starting with PG or DATABASE:");
+foreach (System.Collections.DictionaryEntry envVar in envVars)
+{
+    var key = envVar.Key.ToString();
+    if (key.StartsWith("PG") || key.StartsWith("DATABASE"))
+    {
+        var value = envVar.Value.ToString();
+        var safeValue = key.Contains("PASSWORD") ? "***" : value;
+        Console.WriteLine($"  {key}: {safeValue}");
+    }
+}
+
 // Lógica de connection string por ambiente
 if (builder.Environment.IsProduction())
 {
-    // PRODUÇÃO: Priorizar variáveis do Railway
-    var pgHost = builder.Configuration["PGHOST"];
-    var pgPort = builder.Configuration["PGPORT"];
-    var pgDatabase = builder.Configuration["PGDATABASE"];
-    var pgUser = builder.Configuration["PGUSER"];
-    var pgPassword = builder.Configuration["PGPASSWORD"];
-
-    if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
+    // PRODUÇÃO: Usar DATABASE_URL do Railway
+    var databaseUrl = builder.Configuration["DATABASE_URL"];
+    Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(databaseUrl)}");
+    
+    if (!string.IsNullOrEmpty(databaseUrl))
     {
-        connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
-        Console.WriteLine("PRODUCTION: Using Railway individual variables");
+        connectionString = databaseUrl;
+        Console.WriteLine("PRODUCTION: Using DATABASE_URL");
     }
     else
     {
-        // Fallback para DATABASE_URL em produção
-        connectionString = builder.Configuration["DATABASE_URL"] 
-            ?? throw new InvalidOperationException("Production database connection not found");
-        Console.WriteLine("PRODUCTION: Using DATABASE_URL");
+        // Fallback para variáveis individuais do Railway
+        var pgHost = builder.Configuration["PGHOST"];
+        var pgPort = builder.Configuration["PGPORT"];
+        var pgDatabase = builder.Configuration["PGDATABASE"];
+        var pgUser = builder.Configuration["PGUSER"];
+        var pgPassword = builder.Configuration["PGPASSWORD"];
+
+        if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
+        {
+            connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
+            Console.WriteLine("PRODUCTION: Using Railway individual variables");
+        }
+        else
+        {
+            throw new InvalidOperationException("Production database connection not found - neither DATABASE_URL nor individual variables are available");
+        }
     }
 }
 else
