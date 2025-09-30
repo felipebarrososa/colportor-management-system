@@ -73,3 +73,9 @@ node_modules/
 *.bak
 *.backup
 *.old
+
+# Production files
+.env
+.env.local
+.env.production
+docker-compose.override.yml
