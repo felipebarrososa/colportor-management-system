@@ -18,29 +18,46 @@ using ColpVisit = Colportor.Api.Models.Visit;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// DB - Construir connection string a partir das variáveis do Railway
+// DB - Sistema de connection string organizado por ambiente
 string connectionString;
 
-// Tentar usar variáveis individuais do Railway primeiro
-var pgHost = builder.Configuration["PGHOST"];
-var pgPort = builder.Configuration["PGPORT"];
-var pgDatabase = builder.Configuration["PGDATABASE"];
-var pgUser = builder.Configuration["PGUSER"];
-var pgPassword = builder.Configuration["PGPASSWORD"];
+// Debug: Log todas as variáveis do Railway
+Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"PGHOST: {builder.Configuration["PGHOST"]}");
+Console.WriteLine($"PGPORT: {builder.Configuration["PGPORT"]}");
+Console.WriteLine($"PGDATABASE: {builder.Configuration["PGDATABASE"]}");
+Console.WriteLine($"PGUSER: {builder.Configuration["PGUSER"]}");
+Console.WriteLine($"PGPASSWORD: {(string.IsNullOrEmpty(builder.Configuration["PGPASSWORD"]) ? "NULL" : "***")}");
 
-if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
+// Lógica de connection string por ambiente
+if (builder.Environment.IsProduction())
 {
-    // Usar variáveis individuais do Railway
-    connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
-    Console.WriteLine("Using Railway individual variables");
+    // PRODUÇÃO: Priorizar variáveis do Railway
+    var pgHost = builder.Configuration["PGHOST"];
+    var pgPort = builder.Configuration["PGPORT"];
+    var pgDatabase = builder.Configuration["PGDATABASE"];
+    var pgUser = builder.Configuration["PGUSER"];
+    var pgPassword = builder.Configuration["PGPASSWORD"];
+
+    if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
+    {
+        connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
+        Console.WriteLine("PRODUCTION: Using Railway individual variables");
+    }
+    else
+    {
+        // Fallback para DATABASE_URL em produção
+        connectionString = builder.Configuration["DATABASE_URL"] 
+            ?? throw new InvalidOperationException("Production database connection not found");
+        Console.WriteLine("PRODUCTION: Using DATABASE_URL");
+    }
 }
 else
 {
-    // Fallback para DATABASE_URL ou ConnectionStrings:Default
-    connectionString = builder.Configuration["DATABASE_URL"] 
-        ?? builder.Configuration.GetConnectionString("Default") 
-        ?? throw new InvalidOperationException("Connection string not found");
-    Console.WriteLine("Using fallback connection string");
+    // DESENVOLVIMENTO: Usar appsettings.Development.json
+    connectionString = builder.Configuration.GetConnectionString("Default") 
+        ?? throw new InvalidOperationException("Development database connection not found");
+    Console.WriteLine("DEVELOPMENT: Using appsettings.Development.json");
 }
 
 // Debug: Log da connection string (sem senha)
