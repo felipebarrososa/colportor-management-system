@@ -144,7 +144,9 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 });
 
 // Auth
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "dev_key_change_me_please_change");
+var jwtKey = builder.Configuration["JWT_KEY"] ?? builder.Configuration["Jwt:Key"] ?? "dev_key_change_me_please_change";
+var key = Encoding.UTF8.GetBytes(jwtKey);
+Console.WriteLine($"JWT Key length: {key.Length}");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
