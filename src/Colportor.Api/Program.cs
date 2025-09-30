@@ -19,8 +19,12 @@ using ColpVisit = Colportor.Api.Models.Visit;
 var builder = WebApplication.CreateBuilder(args);
 
 // DB
+var connectionString = builder.Configuration.GetConnectionString("Default") 
+    ?? builder.Configuration["DATABASE_URL"] 
+    ?? throw new InvalidOperationException("Connection string not found");
+
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+    opt.UseNpgsql(connectionString));
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
