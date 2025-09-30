@@ -1,0 +1,13 @@
+# Ignore development files
+src/Colportor.Worker/
+deploy/
+*.md
+env.example
+docker-compose*.yml
+.gitignore
+.railwayignore
+
+# Keep only what's needed for production
+!src/Colportor.Api/
+!Dockerfile
+!railway.toml
