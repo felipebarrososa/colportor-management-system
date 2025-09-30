@@ -44,6 +44,19 @@ foreach (System.Collections.DictionaryEntry envVar in envVars)
     }
 }
 
+// Debug: Listar TODAS as variáveis de ambiente para debug
+Console.WriteLine("All environment variables:");
+foreach (System.Collections.DictionaryEntry envVar in envVars)
+{
+    var envKey = envVar.Key?.ToString();
+    if (envKey != null && envKey.Contains("DATABASE"))
+    {
+        var envValue = envVar.Value?.ToString();
+        var safeValue = envKey.Contains("PASSWORD") ? "***" : envValue;
+        Console.WriteLine($"  {envKey}: {safeValue}");
+    }
+}
+
 // Lógica de connection string por ambiente
 if (builder.Environment.IsProduction())
 {
