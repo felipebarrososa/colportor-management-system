@@ -85,7 +85,11 @@ if (builder.Environment.IsProduction())
         }
         else
         {
-            throw new InvalidOperationException("Production database connection not found - neither DATABASE_URL nor individual variables are available");
+            // TEMPORÁRIO: Usar connection string hardcoded para Railway
+            // Substitua pelos valores reais do seu banco Railway
+            connectionString = "postgresql://postgres:RNPzVecUtMNYkYRidaREmveXIZZHKsGD@postgres.railway.internal:5432/railway";
+            Console.WriteLine("PRODUCTION: Using hardcoded Railway connection string");
+            Console.WriteLine("⚠️  WARNING: This is a temporary solution! Please configure Railway properly.");
         }
     }
 }
