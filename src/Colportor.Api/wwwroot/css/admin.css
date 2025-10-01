@@ -1103,6 +1103,63 @@ body.nav-open {
     font-weight: 400;
 }
 
+/* ===== PAC STATUS STYLES ===== */
+.pac-checkbox-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: rgba(255,255,255,0.01);
+}
+
+.pac-checkbox-item.disabled .pac-checkbox-check {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+    cursor: not-allowed;
+}
+
+.pac-checkbox-item.disabled .pac-checkbox-label {
+    cursor: not-allowed;
+}
+
+.pac-status-text {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+/* Status específicos */
+.pac-status-pending .pac-status-text {
+    background: rgba(255,193,7,0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255,193,7,0.3);
+}
+
+.pac-status-approved .pac-status-text {
+    background: rgba(40,167,69,0.2);
+    color: #28a745;
+    border: 1px solid rgba(40,167,69,0.3);
+}
+
+.pac-status-rejected .pac-status-text {
+    background: rgba(220,53,69,0.2);
+    color: #dc3545;
+    border: 1px solid rgba(220,53,69,0.3);
+}
+
+.pac-status-pending {
+    border-left: 3px solid #ffc107;
+}
+
+.pac-status-approved {
+    border-left: 3px solid #28a745;
+}
+
+.pac-status-rejected {
+    border-left: 3px solid #dc3545;
+}
+
 /* ===== PAC SELECTED ITEMS ===== */
 #pacColportors .pac-checkbox-item {
     white-space: nowrap;

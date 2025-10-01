@@ -102,7 +102,7 @@ namespace Colportor.Api.Data
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Status).IsRequired();
                 e.HasOne(x => x.Leader).WithMany().HasForeignKey(x => x.LeaderId).OnDelete(DeleteBehavior.Cascade);
-                e.HasOne(x => x.Colportor).WithMany().HasForeignKey(x => x.ColportorId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Colportor).WithMany(c => c.PacEnrollments).HasForeignKey(x => x.ColportorId).OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.ColportorId, x.StartDate, x.EndDate });
             });
         }

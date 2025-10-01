@@ -508,7 +508,7 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
 
-    var q = db.Colportors.Include(c => c.Region).Include(c => c.Visits).AsQueryable();
+    var q = db.Colportors.Include(c => c.Region).Include(c => c.Visits).Include(c => c.PacEnrollments).AsQueryable();
 
     if (user.Role == "Leader")
     {
@@ -534,6 +534,14 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
     var projected = list.Select(c =>
     {
         var (s, due) = StatusService.ComputeStatus(c.LastVisitDate);
+        
+        // Buscar o status PAC mais recente
+        var latestPac = c.PacEnrollments
+            .OrderByDescending(p => p.CreatedAt)
+            .FirstOrDefault();
+        
+        var pacStatus = latestPac?.Status ?? "Nenhum";
+        
         return new
         {
             c.Id,
@@ -544,6 +552,7 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
             c.PhotoUrl,
             c.LastVisitDate,
             Status = s,
+            PacStatus = pacStatus,
             DueDate = due
         };
     });

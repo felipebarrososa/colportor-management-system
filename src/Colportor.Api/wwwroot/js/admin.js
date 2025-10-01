@@ -791,16 +791,23 @@ async function loadLeaderColportors() {
     if (!res.ok) { pacColportors.innerHTML = `<div class="muted">Falha ao carregar.</div>`; return; }
     const list = await res.json();
     if (!list.length) { pacColportors.innerHTML = `<div class="muted">Nenhum colportor na sua região.</div>`; return; }
-    pacColportors.innerHTML = list.map(x => `
-        <div class="pac-checkbox-item">
-            <input type="checkbox" value="${x.id}" class="pac-checkbox" id="pac-${x.id}">
+    pacColportors.innerHTML = list.map(x => {
+        const isDisabled = x.pacStatus && x.pacStatus !== "Nenhum";
+        const statusClass = isDisabled ? `pac-status-${x.pacStatus.toLowerCase()}` : '';
+        const statusText = isDisabled ? `Status: ${x.pacStatus}` : '';
+        
+        return `
+        <div class="pac-checkbox-item ${isDisabled ? 'disabled' : ''} ${statusClass}">
+            <input type="checkbox" value="${x.id}" class="pac-checkbox" id="pac-${x.id}" ${isDisabled ? 'disabled' : ''}>
             <label for="pac-${x.id}" class="pac-checkbox-label">
                 <strong>${escapeHtml(x.fullName)}</strong>
                 <span class="muted">${escapeHtml(x.cpf)}</span>
+                ${statusText ? `<span class="pac-status-text">${statusText}</span>` : ''}
             </label>
             <span class="pac-checkbox-check"></span>
         </div>
-    `).join("");
+    `;
+    }).join("");
     
     // Adicionar event listeners para sincronizar checkbox real com visual
     pacColportors.querySelectorAll('.pac-checkbox').forEach(checkbox => {

@@ -10,7 +10,7 @@ namespace Colportor.Api.Models
         public string FullName { get; set; } = default!;
         public string CPF { get; set; } = default!;
 
-        // Agora País/Região são relacionais (IDs), não strings:
+        // Agora Paï¿½s/Regiï¿½o sï¿½o relacionais (IDs), nï¿½o strings:
         public int? CountryId { get; set; }
         public Country? Country { get; set; }
 
@@ -23,10 +23,11 @@ namespace Colportor.Api.Models
         /// <summary>UTC</summary>
         public DateTime? LastVisitDate { get; set; }
 
-        /// <summary>Líder responsável (User.Id) — opcional</summary>
+        /// <summary>Lï¿½der responsï¿½vel (User.Id) ï¿½ opcional</summary>
         public int? LeaderId { get; set; }
         public User? Leader { get; set; }
 
         public ICollection<Visit> Visits { get; set; } = new List<Visit>();
+        public ICollection<PacEnrollment> PacEnrollments { get; set; } = new List<PacEnrollment>();
     }
 }
