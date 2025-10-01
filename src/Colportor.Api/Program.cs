@@ -26,6 +26,8 @@ Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"DATABASE_URL: {(string.IsNullOrEmpty(builder.Configuration["DATABASE_URL"]) ? "NULL" : "EXISTS")}");
 Console.WriteLine($"JWT_KEY: {(string.IsNullOrEmpty(builder.Configuration["JWT_KEY"]) ? "NULL" : "EXISTS")}");
 Console.WriteLine($"JWT_KEY length: {(builder.Configuration["JWT_KEY"]?.Length ?? 0)}");
+Console.WriteLine($"PORT: {builder.Configuration["PORT"]}");
+Console.WriteLine($"ASPNETCORE_URLS: {builder.Configuration["ASPNETCORE_URLS"]}");
 Console.WriteLine($"PGHOST: {builder.Configuration["PGHOST"]}");
 Console.WriteLine($"PGPORT: {builder.Configuration["PGPORT"]}");
 Console.WriteLine($"PGDATABASE: {builder.Configuration["PGDATABASE"]}");
