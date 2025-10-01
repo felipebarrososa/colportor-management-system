@@ -327,3 +327,190 @@ $("#btnLogout")?.addEventListener("click", () => {
 function escapeHtml(s) {
     return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
+
+// ===== Modal de Edição =====
+const editModal = $("#editModal");
+const eCountrySel = $("#eCountry");
+const eRegionSel = $("#eRegion");
+const eLeaderSel = $("#eLeader");
+const ePhotoFile = $("#ePhotoFile");
+const ePhotoUrlH = $("#ePhotoUrl");
+
+let currentColportorData = null;
+
+async function hydrateEditGeo() {
+    await loadCountries(eCountrySel);
+    if (eCountrySel && !eCountrySel.value && eCountrySel.options.length > 1) {
+        eCountrySel.selectedIndex = 1;
+    }
+    await loadRegions(eCountrySel?.value, eRegionSel);
+}
+
+async function loadLeadersForEdit(regionId) {
+    if (!regionId) {
+        eLeaderSel.innerHTML = `<option value="">Selecione uma região primeiro...</option>`;
+        return;
+    }
+    try {
+        eLeaderSel.innerHTML = `<option value="">Carregando...</option>`;
+        const res = await fetch(`/geo/leaders?regionId=${regionId}`);
+        const list = (await res.json()) || [];
+        if (!list.length) {
+            eLeaderSel.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
+        } else {
+            eLeaderSel.innerHTML = `<option value="">Opcional - selecione seu líder...</option>` + 
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+        }
+    } catch (err) {
+        console.error("Erro ao carregar líderes:", err);
+        eLeaderSel.innerHTML = `<option value="">Erro ao carregar líderes</option>`;
+    }
+}
+
+async function loadColportorData() {
+    try {
+        const res = await api("/wallet/me");
+        if (!res.ok) return false;
+        
+        currentColportorData = await res.json();
+        
+        // Preencher campos do modal
+        $("#eFullName").value = currentColportorData.fullName || "";
+        $("#eCPF").value = currentColportorData.cpf || "";
+        $("#eCity").value = currentColportorData.city || "";
+        $("#eEmail").value = currentColportorData.email || "";
+        ePhotoUrlH.value = currentColportorData.photoUrl || "";
+        
+        // Carregar dados geográficos
+        await hydrateEditGeo();
+        
+        // Se tiver região, carregar líderes
+        if (currentColportorData.regionId) {
+            eRegionSel.value = currentColportorData.regionId;
+            await loadLeadersForEdit(currentColportorData.regionId);
+            
+            // Se tiver líder, selecionar
+            if (currentColportorData.leaderId) {
+                eLeaderSel.value = currentColportorData.leaderId;
+            }
+        }
+        
+        return true;
+    } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        return false;
+    }
+}
+
+// Event listeners do modal de edição
+$("#btnEditProfile")?.addEventListener("click", async () => {
+    editModal.classList.add("show");
+    await loadColportorData();
+    $("#eFullName")?.focus();
+});
+
+$("#btnCloseEdit")?.addEventListener("click", () => editModal.classList.remove("show"));
+editModal?.addEventListener("click", (e) => { if (e.target === editModal) editModal.classList.remove("show"); });
+
+eCountrySel?.addEventListener("change", () => loadRegions(eCountrySel.value, eRegionSel));
+eRegionSel?.addEventListener("change", () => loadLeadersForEdit(parseInt(eRegionSel.value || "0", 10)));
+
+// Upload de foto no modal de edição
+ePhotoFile?.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+        const url = await uploadPhoto(file);
+        if (url) {
+            ePhotoUrlH.value = url;
+            toast("Foto carregada com sucesso!");
+        }
+    } catch (err) {
+        console.error("Erro ao fazer upload da foto:", err);
+        toast("Erro ao carregar foto.");
+    }
+});
+
+// Submit do formulário de edição
+$("#editForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = $("#btnUpdate");
+    const spinner = btn.querySelector(".spinner");
+    $("#editError").hidden = true;
+    btn.disabled = true;
+    if (spinner) spinner.hidden = false;
+
+    try {
+        // Validações básicas
+        const fullName = $("#eFullName").value.trim();
+        const cpf = $("#eCPF").value.trim();
+        const email = $("#eEmail").value.trim();
+        
+        if (!fullName || !cpf || !email) {
+            $("#editError").textContent = "Nome, CPF e e-mail são obrigatórios.";
+            $("#editError").hidden = false;
+            return;
+        }
+
+        // Foto: file > hidden URL > manter atual
+        let photoUrl = currentColportorData.photoUrl;
+        if (ePhotoFile?.files && ePhotoFile.files[0]) {
+            try { 
+                photoUrl = await uploadPhoto(ePhotoFile.files[0]); 
+            } catch { 
+                toast("Falha ao enviar foto."); 
+            }
+        } else if (ePhotoUrlH?.value) {
+            photoUrl = ePhotoUrlH.value.trim() || currentColportorData.photoUrl;
+        }
+
+        const regionId = eRegionSel?.value ? parseInt(eRegionSel.value, 10) : null;
+        const leaderId = eLeaderSel?.value ? parseInt(eLeaderSel.value, 10) : null;
+
+        const body = {
+            fullName,
+            cpf,
+            city: $("#eCity").value.trim() || null,
+            photoUrl,
+            email,
+            password: $("#ePass").value.trim() || null, // Opcional
+            regionId,
+            leaderId
+        };
+
+        // Remover campos vazios
+        Object.keys(body).forEach(key => {
+            if (body[key] === null || body[key] === "") {
+                delete body[key];
+            }
+        });
+
+        const res = await api("/wallet/me", { 
+            method: "PUT", 
+            body: JSON.stringify(body) 
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            $("#editError").textContent = errorText || "Erro ao atualizar dados.";
+            $("#editError").hidden = false;
+            return;
+        }
+
+        // Sucesso
+        editModal.classList.remove("show");
+        toast("Dados atualizados com sucesso!");
+        
+        // Recarregar carteira
+        await renderWallet();
+        
+    } catch (err) {
+        console.error(err);
+        $("#editError").textContent = "Erro interno. Tente novamente.";
+        $("#editError").hidden = false;
+    } finally {
+        btn.disabled = false;
+        if (spinner) spinner.hidden = true;
+    }
+});

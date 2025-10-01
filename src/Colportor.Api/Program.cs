@@ -728,6 +728,74 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     });
 }).RequireAuthorization(policy => policy.RequireRole("Colportor"));
 
+// Atualizar dados do colportor (próprio colportor)
+app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, UpdateColportorDto dto) =>
+{
+    var user = await CurrentUserAsync(db, ctx);
+    if (user is null) return Results.Unauthorized();
+    if (user.ColportorId is null) return Results.BadRequest();
+
+    var colportor = await db.Colportors.FindAsync(user.ColportorId);
+    if (colportor is null) return Results.NotFound();
+
+    // Validar se o email não está sendo usado por outro usuário
+    if (!string.IsNullOrWhiteSpace(dto.Email) && !string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+    {
+        if (await db.Users.AnyAsync(u => u.Email == dto.Email && u.Id != user.Id))
+            return Results.BadRequest("E-mail já está em uso por outro usuário.");
+    }
+
+    // Validar se o CPF não está sendo usado por outro colportor
+    if (!string.IsNullOrWhiteSpace(dto.CPF) && !string.Equals(colportor.CPF, dto.CPF, StringComparison.OrdinalIgnoreCase))
+    {
+        if (await db.Colportors.AnyAsync(c => c.CPF == dto.CPF && c.Id != colportor.Id))
+            return Results.BadRequest("CPF já está em uso por outro colportor.");
+    }
+
+    // Validar região e líder
+    if (dto.RegionId.HasValue)
+    {
+        if (!await db.Regions.AnyAsync(r => r.Id == dto.RegionId))
+            return Results.BadRequest("Região inválida.");
+        
+        if (dto.LeaderId.HasValue)
+        {
+            if (!await db.Users.AnyAsync(u => u.Id == dto.LeaderId && u.Role == "Leader" && u.RegionId == dto.RegionId))
+                return Results.BadRequest("Líder inválido para a região selecionada.");
+        }
+    }
+
+    // Atualizar dados do colportor
+    if (!string.IsNullOrWhiteSpace(dto.FullName))
+        colportor.FullName = dto.FullName.Trim();
+    
+    if (!string.IsNullOrWhiteSpace(dto.CPF))
+        colportor.CPF = dto.CPF.Trim();
+    
+    if (dto.City != null)
+        colportor.City = dto.City.Trim();
+    
+    if (!string.IsNullOrWhiteSpace(dto.PhotoUrl))
+        colportor.PhotoUrl = dto.PhotoUrl;
+    
+    if (dto.RegionId.HasValue)
+        colportor.RegionId = dto.RegionId.Value;
+    
+    if (dto.LeaderId.HasValue)
+        colportor.LeaderId = dto.LeaderId.Value;
+
+    // Atualizar dados do usuário
+    if (!string.IsNullOrWhiteSpace(dto.Email))
+        user.Email = dto.Email.Trim().ToLowerInvariant();
+    
+    if (!string.IsNullOrWhiteSpace(dto.Password))
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { message = "Dados atualizados com sucesso!" });
+}).RequireAuthorization(policy => policy.RequireRole("Colportor"));
+
 // ========= PAC ENROLLMENTS =========
 // Líder cria solicitações de ida ao PAC para colportores da própria região
 app.MapPost("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx, PacEnrollRequest req) =>

@@ -97,6 +97,61 @@
         <div class="modal-backdrop"></div>
     </div>
 
+    <!-- MODAL DE EDIÇÃO -->
+    <div id="editModal" class="modal" aria-hidden="true">
+        <div class="dialog">
+            <header class="dialog-head">
+                <h2>Editar meus dados</h2>
+                <button id="btnCloseEdit" class="icon-btn" aria-label="Fechar">✕</button>
+            </header>
+
+            <form id="editForm" class="form grid-2">
+                <input id="eFullName" placeholder="Nome Completo" required />
+                <input id="eCPF" placeholder="CPF" required />
+
+                <div class="field">
+                    <label for="eCountry">País</label>
+                    <select id="eCountry" required></select>
+                </div>
+
+                <div class="field">
+                    <label for="eRegion">Região</label>
+                    <select id="eRegion" required></select>
+                </div>
+
+                <div class="field">
+                    <label for="eLeader">Líder</label>
+                    <select id="eLeader">
+                        <option value="">Selecione uma região primeiro...</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="eCity">Cidade</label>
+                    <input id="eCity" placeholder="Cidade" />
+                </div>
+
+                <div class="field full">
+                    <label for="ePhotoFile">Foto</label>
+                    <input id="ePhotoFile" type="file" accept="image/*" />
+                    <input id="ePhotoUrl" type="hidden" />
+                    <small class="muted">Deixe em branco para manter a foto atual.</small>
+                </div>
+
+                <input id="eEmail" type="email" placeholder="E-mail (login)" autocomplete="username" required />
+                <input id="ePass" type="password" placeholder="Nova senha (deixe em branco para manter)" autocomplete="new-password" />
+
+                <button id="btnUpdate" class="btn-primary full" type="submit">
+                    Salvar alterações
+                    <span class="spinner" hidden></span>
+                </button>
+                <p id="editError" class="error full" hidden>Erro ao atualizar. Verifique os campos.</p>
+            </form>
+
+        </div>
+        <div class="modal-backdrop"></div>
+    </div>
+
     <!-- CARTEIRINHA -->
     <main id="walletScreen" class="screen">
         <header class="wallet-topbar">
@@ -122,6 +177,9 @@
                 </div>
             </div>
             <div class="badge">COLPORTOR</div>
+            <button id="btnEditProfile" class="edit-btn" title="Editar meus dados">
+                ✏️
+            </button>
         </section>
     </main>
 
