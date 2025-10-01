@@ -999,3 +999,232 @@ pacAdminList?.addEventListener("click", async (e) => {
         toast("Rejeitado.");
     }
 });
+
+// ================== PAC DASHBOARD (Admin) ==================
+// Elementos do dashboard PAC
+const pacDashboardPanel = $("#pacDashboardPanel");
+const pacTotalPending = $("#pacTotalPending");
+const pacTotalApproved = $("#pacTotalApproved");
+const pacTotalRejected = $("#pacTotalRejected");
+const pacTotalRequests = $("#pacTotalRequests");
+const pacPeriodsGrid = $("#pacPeriodsGrid");
+const pacPeriodsEmpty = $("#pacPeriodsEmpty");
+const pacRecentList = $("#pacRecentList");
+const refreshPacDashboard = $("#refreshPacDashboard");
+const openPacAdmin_fromDashboard = $("#openPacAdmin_fromDashboard");
+const viewAllPacRequests = $("#viewAllPacRequests");
+
+// Mostrar dashboard PAC apenas para admin
+if (ROLE === "admin") {
+    console.log('Setting up PAC dashboard for admin...');
+    if (pacDashboardPanel) {
+        pacDashboardPanel.style.display = "block";
+    }
+    loadPacDashboard();
+} else {
+    console.log('Not an admin, hiding PAC dashboard');
+    if (pacDashboardPanel) {
+        pacDashboardPanel.style.display = "none";
+    }
+}
+
+// Event listeners do dashboard PAC
+refreshPacDashboard?.addEventListener("click", loadPacDashboard);
+openPacAdmin_fromDashboard?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openPacAdmin();
+});
+viewAllPacRequests?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openPacAdmin();
+});
+
+// Carregar dados do dashboard PAC
+async function loadPacDashboard() {
+    try {
+        console.log('Loading PAC dashboard...');
+        
+        // Carregar todas as solicitações PAC
+        const res = await authFetch('/admin/pac/enrollments');
+        if (!res.ok) {
+            console.error('Failed to load PAC data:', res.status);
+            return;
+        }
+        
+        const allRequests = await res.json();
+        console.log('PAC requests loaded:', allRequests.length);
+        
+        // Atualizar KPIs gerais
+        updatePacKPIs(allRequests);
+        
+        // Atualizar visualização por períodos
+        updatePacPeriods(allRequests);
+        
+        // Atualizar lista recente
+        updatePacRecent(allRequests);
+        
+    } catch (err) {
+        console.error('Error loading PAC dashboard:', err);
+    }
+}
+
+// Atualizar KPIs do dashboard
+function updatePacKPIs(requests) {
+    const pending = requests.filter(r => r.status === 'Pending').length;
+    const approved = requests.filter(r => r.status === 'Approved').length;
+    const rejected = requests.filter(r => r.status === 'Rejected').length;
+    const total = requests.length;
+    
+    if (pacTotalPending) pacTotalPending.textContent = pending;
+    if (pacTotalApproved) pacTotalApproved.textContent = approved;
+    if (pacTotalRejected) pacTotalRejected.textContent = rejected;
+    if (pacTotalRequests) pacTotalRequests.textContent = total;
+}
+
+// Atualizar visualização por períodos
+function updatePacPeriods(requests) {
+    if (!pacPeriodsGrid || !pacPeriodsEmpty) return;
+    
+    if (!requests.length) {
+        pacPeriodsGrid.innerHTML = '';
+        pacPeriodsEmpty.style.display = 'block';
+        return;
+    }
+    
+    pacPeriodsEmpty.style.display = 'none';
+    
+    // Agrupar por período (semana)
+    const periods = groupRequestsByPeriod(requests);
+    
+    pacPeriodsGrid.innerHTML = periods.map(period => {
+        const pending = period.requests.filter(r => r.status === 'Pending').length;
+        const approved = period.requests.filter(r => r.status === 'Approved').length;
+        const rejected = period.requests.filter(r => r.status === 'Rejected').length;
+        
+        return `
+            <div class="period-card">
+                <div class="period-header">
+                    <h4 class="period-title">${period.title}</h4>
+                    <span class="period-date">${period.dateRange}</span>
+                </div>
+                <div class="period-stats">
+                    <div class="period-stat">
+                        <span class="period-stat-value">${pending}</span>
+                        <span class="period-stat-label">Pendentes</span>
+                    </div>
+                    <div class="period-stat">
+                        <span class="period-stat-value">${approved}</span>
+                        <span class="period-stat-label">Aprovados</span>
+                    </div>
+                    <div class="period-stat">
+                        <span class="period-stat-value">${rejected}</span>
+                        <span class="period-stat-label">Rejeitados</span>
+                    </div>
+                </div>
+                <div class="period-actions">
+                    <button class="btn sm" onclick="filterByPeriod('${period.startDate}', '${period.endDate}')">
+                        Ver Detalhes
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Atualizar lista recente
+function updatePacRecent(requests) {
+    if (!pacRecentList) return;
+    
+    // Pegar as 5 mais recentes
+    const recent = requests
+        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
+        .slice(0, 5);
+    
+    if (!recent.length) {
+        pacRecentList.innerHTML = '<div class="muted">Nenhuma solicitação encontrada</div>';
+        return;
+    }
+    
+    pacRecentList.innerHTML = recent.map(request => {
+        const startDate = new Date(request.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(request.endDate).toLocaleDateString('pt-BR');
+        const statusClass = `pill ${request.status}`;
+        
+        return `
+            <div class="recent-item">
+                <div class="recent-info">
+                    <div class="recent-name">${escapeHtml(request.colportor.fullName)}</div>
+                    <div class="recent-details">
+                        <span>${startDate} - ${endDate}</span>
+                        <span>Líder: ${escapeHtml(request.leader)}</span>
+                    </div>
+                </div>
+                <div class="recent-status">
+                    <span class="${statusClass}">${escapeHtml(request.status)}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Agrupar solicitações por período (semana)
+function groupRequestsByPeriod(requests) {
+    const periods = new Map();
+    
+    requests.forEach(request => {
+        const startDate = new Date(request.startDate);
+        const endDate = new Date(request.endDate);
+        
+        // Criar chave única para o período (semana)
+        const weekStart = getWeekStart(startDate);
+        const weekEnd = getWeekEnd(weekStart);
+        
+        const key = weekStart.toISOString().split('T')[0];
+        
+        if (!periods.has(key)) {
+            periods.set(key, {
+                key,
+                startDate: weekStart.toISOString().split('T')[0],
+                endDate: weekEnd.toISOString().split('T')[0],
+                title: `Semana ${getWeekNumber(weekStart)}`,
+                dateRange: `${weekStart.toLocaleDateString('pt-BR')} - ${weekEnd.toLocaleDateString('pt-BR')}`,
+                requests: []
+            });
+        }
+        
+        periods.get(key).requests.push(request);
+    });
+    
+    // Converter para array e ordenar por data
+    return Array.from(periods.values())
+        .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+}
+
+// Funções auxiliares para datas
+function getWeekStart(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Segunda-feira
+    return new Date(d.setDate(diff));
+}
+
+function getWeekEnd(weekStart) {
+    const end = new Date(weekStart);
+    end.setDate(end.getDate() + 6); // Domingo
+    return end;
+}
+
+function getWeekNumber(date) {
+    const d = new Date(date);
+    const onejan = new Date(d.getFullYear(), 0, 1);
+    const week = Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+    return week;
+}
+
+// Filtrar por período (função global para usar nos botões)
+window.filterByPeriod = function(startDate, endDate) {
+    if (pacFrom) pacFrom.value = startDate;
+    if (pacTo) pacTo.value = endDate;
+    openPacAdmin();
+    loadPacAdmin();
+};

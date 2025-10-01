@@ -1683,3 +1683,281 @@ body.nav-open {
     border: 1px solid var(--stroke);
     display: inline-block;
 }
+
+/* ===== PAC DASHBOARD STYLES ===== */
+#pacDashboardPanel {
+    margin: 20px 0;
+    background: linear-gradient(135deg, rgba(20,184,106,.08), rgba(16,147,88,.04));
+    border: 1px solid rgba(20,184,106,.15);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+#pacDashboardPanel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #14b86a, #10a55c, #14b86a);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+}
+
+.panel-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #cfe7da;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 24px 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Períodos Grid */
+.periods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.period-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.period-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #14b86a, #10a55c);
+}
+
+.period-card:hover {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(20,184,106,.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.3);
+}
+
+.period-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.period-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.period-date {
+    font-size: 12px;
+    color: #8a9ba8;
+    background: rgba(255,255,255,.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.period-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.period-stat {
+    text-align: center;
+    padding: 8px;
+    background: rgba(255,255,255,.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,.1);
+}
+
+.period-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    display: block;
+}
+
+.period-stat-label {
+    font-size: 11px;
+    color: #8a9ba8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.period-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Recent List */
+.recent-list {
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.recent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    transition: all 0.2s ease;
+}
+
+.recent-item:last-child {
+    border-bottom: none;
+}
+
+.recent-item:hover {
+    background: rgba(255,255,255,.05);
+}
+
+.recent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.recent-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.recent-details {
+    font-size: 12px;
+    color: #8a9ba8;
+    display: flex;
+    gap: 16px;
+}
+
+.recent-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a9ba8;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.empty-text {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #pacDashboardPanel {
+        padding: 16px;
+        margin: 16px 0;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+    
+    .panel-actions {
+        justify-content: center;
+    }
+    
+    .periods-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .period-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .recent-details {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .period-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .period-actions {
+        flex-direction: column;
+    }
+    
+    .recent-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .recent-status {
+        justify-content: center;
+    }
+}

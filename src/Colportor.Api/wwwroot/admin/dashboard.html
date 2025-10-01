@@ -47,6 +47,60 @@
             <div class="kpi danger"><span class="lbl">Vencido</span><strong id="kpiDanger">—</strong></div>
         </section>
 
+        <!-- Dashboard PAC (Admin) -->
+        <section class="card glass" id="pacDashboardPanel">
+            <div class="panel-header">
+                <h3 class="panel-title">📅 Dashboard PAC</h3>
+                <div class="panel-actions">
+                    <button id="refreshPacDashboard" class="btn subtle" title="Atualizar dados">🔄</button>
+                    <button id="openPacAdmin_fromDashboard" class="btn primary" title="Gerenciar solicitações">Gerenciar PAC</button>
+                </div>
+            </div>
+            
+            <!-- Resumo Geral -->
+            <div class="grid-cards" style="margin-bottom: 20px;">
+                <div class="kpi warn">
+                    <span class="lbl">⏳ Pendentes</span>
+                    <strong id="pacTotalPending">—</strong>
+                </div>
+                <div class="kpi ok">
+                    <span class="lbl">✅ Aprovados</span>
+                    <strong id="pacTotalApproved">—</strong>
+                </div>
+                <div class="kpi danger">
+                    <span class="lbl">❌ Rejeitados</span>
+                    <strong id="pacTotalRejected">—</strong>
+                </div>
+                <div class="kpi">
+                    <span class="lbl">📊 Total</span>
+                    <strong id="pacTotalRequests">—</strong>
+                </div>
+            </div>
+
+            <!-- Visualização por Período -->
+            <div class="pac-periods">
+                <h4 class="section-title">📅 Períodos Solicitados</h4>
+                <div id="pacPeriodsGrid" class="periods-grid">
+                    <!-- Períodos serão carregados via JS -->
+                </div>
+                <div id="pacPeriodsEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📅</div>
+                    <div class="empty-text">Nenhuma solicitação PAC encontrada</div>
+                </div>
+            </div>
+
+            <!-- Lista Rápida (últimas 5 solicitações) -->
+            <div class="pac-recent">
+                <h4 class="section-title">🕒 Últimas Solicitações</h4>
+                <div id="pacRecentList" class="recent-list">
+                    <!-- Lista será carregada via JS -->
+                </div>
+                <div class="actions">
+                    <button id="viewAllPacRequests" class="btn">Ver todas as solicitações</button>
+                </div>
+            </div>
+        </section>
+
         <!-- Leader: resumo PAC -->
         <section class="card glass" id="leaderPacPanel" style="display: none;">
             <h3 class="panel-title">Minhas solicitações PAC</h3>
