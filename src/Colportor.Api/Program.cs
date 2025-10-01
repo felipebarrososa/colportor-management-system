@@ -690,4 +690,11 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
 // ========= HEALTH =========
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
+Console.WriteLine("🚀 Application starting...");
+Console.WriteLine($"🌍 Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"🔗 Listening on: http://+:8080");
+Console.WriteLine("✅ Application is ready!");
+
 app.Run();
+
+Console.WriteLine("❌ Application stopped!");
