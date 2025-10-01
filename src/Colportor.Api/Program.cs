@@ -197,10 +197,19 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    if (!db.Database.GetMigrations().Any())
-        db.Database.EnsureCreated();
-    else
+    try
+    {
+        // Tentar aplicar migrações
+        Console.WriteLine("🔄 Applying database migrations...");
         db.Database.Migrate();
+        Console.WriteLine("✅ Migrations applied successfully!");
+    }
+    catch (Exception ex)
+    {
+        // Se falhar (banco criado com EnsureCreated), apenas garante que existe
+        Console.WriteLine($"⚠️ Migration failed, ensuring database exists: {ex.Message}");
+        db.Database.EnsureCreated();
+    }
 
     // País / Regiões iniciais
     if (!db.Countries.Any())
