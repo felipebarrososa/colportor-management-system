@@ -801,6 +801,33 @@ async function loadLeaderColportors() {
             <span class="pac-checkbox-check"></span>
         </div>
     `).join("");
+    
+    // Adicionar event listeners para sincronizar checkbox real com visual
+    pacColportors.querySelectorAll('.pac-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkVisual = this.parentElement.querySelector('.pac-checkbox-check');
+            if (this.checked) {
+                checkVisual.style.background = 'linear-gradient(135deg, #14b86a 0%, #10a55c 100%)';
+                checkVisual.style.borderColor = '#14b86a';
+                checkVisual.innerHTML = '✓';
+            } else {
+                checkVisual.style.background = 'rgba(255,255,255,0.05)';
+                checkVisual.style.borderColor = 'rgba(255,255,255,0.3)';
+                checkVisual.innerHTML = '';
+            }
+            updatePacCounter();
+        });
+    });
+    
+    // Adicionar event listener para clicar no checkbox visual
+    pacColportors.querySelectorAll('.pac-checkbox-check').forEach(checkVisual => {
+        checkVisual.addEventListener('click', function() {
+            const checkbox = this.parentElement.querySelector('.pac-checkbox');
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change'));
+        });
+    });
+    
     updatePacCounter();
 }
 
@@ -817,11 +844,23 @@ pacSearch?.addEventListener('input', () => {
     });
 });
 pacSelectAll?.addEventListener('click', () => {
-    pacColportors.querySelectorAll('input[type=checkbox]').forEach(i => i.checked = true);
+    pacColportors.querySelectorAll('input[type=checkbox]').forEach(checkbox => {
+        checkbox.checked = true;
+        const checkVisual = checkbox.parentElement.querySelector('.pac-checkbox-check');
+        checkVisual.style.background = 'linear-gradient(135deg, #14b86a 0%, #10a55c 100%)';
+        checkVisual.style.borderColor = '#14b86a';
+        checkVisual.innerHTML = '✓';
+    });
     updatePacCounter();
 });
 pacClearAll?.addEventListener('click', () => {
-    pacColportors.querySelectorAll('input[type=checkbox]').forEach(i => i.checked = false);
+    pacColportors.querySelectorAll('input[type=checkbox]').forEach(checkbox => {
+        checkbox.checked = false;
+        const checkVisual = checkbox.parentElement.querySelector('.pac-checkbox-check');
+        checkVisual.style.background = 'rgba(255,255,255,0.05)';
+        checkVisual.style.borderColor = 'rgba(255,255,255,0.3)';
+        checkVisual.innerHTML = '';
+    });
     updatePacCounter();
 });
 
