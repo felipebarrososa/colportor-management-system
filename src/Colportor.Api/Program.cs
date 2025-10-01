@@ -317,6 +317,9 @@ app.MapPost("/auth/register", async (AppDbContext db, DTOsNS.CreateColportorDto 
     if (await db.Colportors.AnyAsync(c => c.CPF == dto.CPF))
         return Results.BadRequest("CPF já cadastrado.");
 
+    // Debug: Log dos dados recebidos
+    Console.WriteLine($"DEBUG: Colportor registration - LeaderId: {dto.LeaderId}, RegionId: {dto.RegionId}");
+
     // cria colportor
     var colp = new ColpColportor
     {
