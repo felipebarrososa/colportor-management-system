@@ -750,12 +750,12 @@ body.nav-open {
 .actions.sticky { 
     position: sticky; 
     bottom: 0; 
-    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 20%, rgba(0,0,0,0.95) 100%);
-    backdrop-filter: blur(10px);
-    padding: 20px 0 12px;
-    margin-top: 20px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    border-radius: 0 0 12px 12px;
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(20px);
+    padding: 24px 0 16px;
+    margin-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    border-radius: 0 0 16px 16px;
 }
 .kpis { 
     display: grid; 
@@ -1000,6 +1000,7 @@ body.nav-open {
 .pac-checkbox-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 16px;
     padding: 16px 20px;
     border: 1px solid rgba(255,255,255,0.1);
@@ -1056,6 +1057,7 @@ body.nav-open {
     display: flex;
     align-items: center;
     justify-content: center;
+    order: 2;
 }
 
 .pac-checkbox-item:hover .pac-checkbox-check {
@@ -1084,6 +1086,7 @@ body.nav-open {
     flex: 1;
     z-index: 1;
     position: relative;
+    order: 1;
 }
 
 .pac-checkbox-label strong {
