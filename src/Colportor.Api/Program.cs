@@ -310,28 +310,71 @@ app.MapPost("/auth/login", (AppDbContext db, JwtService jwt, LoginDto dto) =>
 // Colportor se cadastra (carteira)
 app.MapPost("/auth/register", async (AppDbContext db, DTOsNS.CreateColportorDto dto) =>
 {
+    Console.WriteLine($"🔍 DEBUG: Registration attempt started");
+    Console.WriteLine($"📧 Email: {dto.Email}");
+    Console.WriteLine($"👤 FullName: {dto.FullName}");
+    Console.WriteLine($"🆔 CPF: {dto.CPF}");
+    Console.WriteLine($"🏢 RegionId: {dto.RegionId}");
+    Console.WriteLine($"👨‍💼 LeaderId: {dto.LeaderId}");
+    Console.WriteLine($"🏙️ City: {dto.City}");
+    Console.WriteLine($"📅 LastVisitDate: {dto.LastVisitDate}");
+    
     if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+    {
+        Console.WriteLine("❌ Validation failed: Email or Password is empty");
         return Results.BadRequest("Email e senha são obrigatórios.");
+    }
+    
+    if (string.IsNullOrWhiteSpace(dto.FullName))
+    {
+        Console.WriteLine("❌ Validation failed: FullName is empty");
+        return Results.BadRequest("Nome completo é obrigatório.");
+    }
+    
+    if (string.IsNullOrWhiteSpace(dto.CPF))
+    {
+        Console.WriteLine("❌ Validation failed: CPF is empty");
+        return Results.BadRequest("CPF é obrigatório.");
+    }
+    
     if (await db.Users.AnyAsync(u => u.Email == dto.Email))
+    {
+        Console.WriteLine("❌ Validation failed: Email already exists");
         return Results.BadRequest("E-mail já cadastrado.");
+    }
+    
     if (await db.Colportors.AnyAsync(c => c.CPF == dto.CPF))
+    {
+        Console.WriteLine("❌ Validation failed: CPF already exists");
         return Results.BadRequest("CPF já cadastrado.");
+    }
 
     // Debug: Log dos dados recebidos
     Console.WriteLine($"DEBUG: Colportor registration - LeaderId: {dto.LeaderId}, RegionId: {dto.RegionId}");
 
     // cria colportor
-    var colp = new ColpColportor
+    try
     {
-        FullName = dto.FullName.Trim(),
-        CPF = dto.CPF.Trim(),
-        City = dto.City?.Trim(),
-        PhotoUrl = dto.PhotoUrl,
-        RegionId = dto.RegionId,
-        LeaderId = dto.LeaderId
-    };
-    db.Colportors.Add(colp);
-    await db.SaveChangesAsync();
+        Console.WriteLine("🔨 Creating colportor...");
+        var colp = new ColpColportor
+        {
+            FullName = dto.FullName.Trim(),
+            CPF = dto.CPF.Trim(),
+            City = dto.City?.Trim(),
+            PhotoUrl = dto.PhotoUrl,
+            RegionId = dto.RegionId,
+            LeaderId = dto.LeaderId
+        };
+        db.Colportors.Add(colp);
+        await db.SaveChangesAsync();
+        Console.WriteLine($"✅ Colportor created with ID: {colp.Id}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error creating colportor: {ex.Message}");
+        Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+        return Results.BadRequest($"Erro ao criar colportor: {ex.Message}");
+    }
 
     // Se a última visita for informada, normaliza para meia-noite UTC e cria registro
     if (dto.LastVisitDate is DateTime lv)
@@ -346,16 +389,28 @@ app.MapPost("/auth/register", async (AppDbContext db, DTOsNS.CreateColportorDto 
     }
 
     // cria usuário (perfil de carteira)
-    var user = new ColpUser
+    try
     {
-        Email = dto.Email.Trim().ToLowerInvariant(),
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-        Role = "Colportor",
-        ColportorId = colp.Id
-    };
-    db.Users.Add(user);
-    await db.SaveChangesAsync();
+        Console.WriteLine("👤 Creating user...");
+        var user = new ColpUser
+        {
+            Email = dto.Email.Trim().ToLowerInvariant(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = "Colportor",
+            ColportorId = colp.Id
+        };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        Console.WriteLine($"✅ User created with ID: {user.Id}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error creating user: {ex.Message}");
+        Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+        return Results.BadRequest($"Erro ao criar usuário: {ex.Message}");
+    }
 
+    Console.WriteLine("🎉 Registration completed successfully!");
     return Results.Created($"/auth/register/{colp.Id}", new { colp.Id, dto.Email });
 });
 
