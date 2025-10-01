@@ -5,17 +5,22 @@ namespace Colportor.Api.Models
     {
         public int Id { get; set; }
 
-        // Autenticação
+        // Autenticaï¿½ï¿½o
         public string Email { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
         public string Role { get; set; } = "Colportor"; // "Admin" | "Leader" | "Colportor"
+
+        // Dados pessoais (para lÃ­deres)
+        public string? FullName { get; set; }
+        public string? CPF { get; set; }
+        public string? City { get; set; }
 
         // Se for um colportor, aponta para o registro dele
         public int? ColportorId { get; set; }
         public Colportor? Colportor { get; set; }
 
-        // Se for LÍDER, restringe pela região
+        // Se for Lï¿½DER, restringe pela regiï¿½o
         public int? RegionId { get; set; }       
-        public Region? Region { get; set; }          // navegação opcional
+        public Region? Region { get; set; }          // navegaï¿½ï¿½o opcional
     }
 }

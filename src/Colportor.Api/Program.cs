@@ -334,15 +334,22 @@ app.MapPost("/auth/register", async (AppDbContext db, DTOsNS.CreateColportorDto 
 // Cadastro público de líder: cria usuário com Role="LeaderPending" aguardando aprovação
 app.MapPost("/leaders/register", async (AppDbContext db, LeaderRegisterDto dto) =>
 {
+    if (string.IsNullOrWhiteSpace(dto.FullName) || string.IsNullOrWhiteSpace(dto.CPF))
+        return Results.BadRequest("Nome completo e CPF são obrigatórios.");
     if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
         return Results.BadRequest("Email e senha são obrigatórios.");
     if (!await db.Regions.AnyAsync(r => r.Id == dto.RegionId))
         return Results.BadRequest("Região inválida.");
     if (await db.Users.AnyAsync(u => u.Email == dto.Email))
         return Results.Conflict("E-mail já em uso.");
+    if (await db.Users.AnyAsync(u => u.CPF == dto.CPF))
+        return Results.Conflict("CPF já cadastrado.");
 
     var user = new ColpUser
     {
+        FullName = dto.FullName.Trim(),
+        CPF = dto.CPF.Trim(),
+        City = dto.City?.Trim(),
         Email = dto.Email.Trim().ToLowerInvariant(),
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
         Role = "LeaderPending",
@@ -350,7 +357,7 @@ app.MapPost("/leaders/register", async (AppDbContext db, LeaderRegisterDto dto) 
     };
     db.Users.Add(user);
     await db.SaveChangesAsync();
-    return Results.Created($"/leaders/{user.Id}", new { user.Id, user.Email, user.RegionId, Status = user.Role });
+    return Results.Created($"/leaders/{user.Id}", new { user.Id, user.FullName, user.Email, user.RegionId, Status = user.Role });
 });
 
 // ========= GEO / UPLOAD =========
@@ -390,8 +397,13 @@ app.MapGet("/geo/leaders", async (AppDbContext db, int? regionId) =>
     
     var leaders = await db.Users
         .Where(u => u.Role == "Leader" && u.RegionId == regionId)
-        .Select(u => new { u.Id, u.Email, Name = u.Email })
-        .OrderBy(u => u.Email)
+        .Select(u => new { 
+            u.Id, 
+            u.Email, 
+            Name = u.FullName ?? u.Email,
+            u.CPF
+        })
+        .OrderBy(u => u.Name)
         .ToListAsync();
     
     Console.WriteLine($"📋 Retornando {leaders.Count} líderes para região {regionId}");

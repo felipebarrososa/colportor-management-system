@@ -53,6 +53,17 @@
 
                     <div class="grid-2">
                         <div class="field">
+                            <label for="leaderFullName">Nome Completo</label>
+                            <input id="leaderFullName" type="text" required placeholder="Digite o nome completo" />
+                        </div>
+                        <div class="field">
+                            <label for="leaderCPF">CPF</label>
+                            <input id="leaderCPF" type="text" required placeholder="000.000.000-00" />
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="field">
                             <label for="leaderCountry">País</label>
                             <select id="leaderCountry" required></select>
                         </div>
@@ -62,14 +73,19 @@
                         </div>
                     </div>
 
+                    <div class="field">
+                        <label for="leaderCity">Cidade</label>
+                        <input id="leaderCity" type="text" placeholder="Digite a cidade (opcional)" />
+                    </div>
+
                     <div class="grid-2">
                         <div class="field">
                             <label for="leaderEmail">E-mail do Líder</label>
-                            <input id="leaderEmail" type="email" required />
+                            <input id="leaderEmail" type="email" required placeholder="seu@email.com" />
                         </div>
                         <div class="field">
                             <label for="leaderPassword">Senha do Líder</label>
-                            <input id="leaderPassword" type="password" required />
+                            <input id="leaderPassword" type="password" required placeholder="Mínimo 6 caracteres" />
                         </div>
                     </div>
 

@@ -303,7 +303,7 @@ async function refreshCreateLeaders() {
             cLeader.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
         } else {
             cLeader.innerHTML = `<option value="">Opcional - selecione um líder...</option>` + 
-                list.map(l => `<option value="${l.id}">${escapeHtml(l.email)}</option>`).join("");
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.name)} ${l.cpf ? '- ' + escapeHtml(l.cpf) : ''}</option>`).join("");
         }
     } catch (err) {
         console.error("Erro ao carregar líderes:", err);

@@ -101,11 +101,32 @@ registerLeaderForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     setBusy(btnCreateLeader, true);
     try {
+        const fullName = document.getElementById("leaderFullName").value.trim();
+        const cpf = document.getElementById("leaderCPF").value.trim();
+        const city = document.getElementById("leaderCity").value.trim() || null;
         const leaderEmail = document.getElementById("leaderEmail").value.trim();
         const leaderPassword = document.getElementById("leaderPassword").value;
         const regionId = parseInt(leaderRegion.value || "0", 10);
-        if (!leaderEmail || !leaderPassword || !regionId) {
-            alert("Preencha todos os campos.");
+        
+        // Validações
+        if (!fullName) {
+            alert("❌ Nome completo é obrigatório!");
+            return;
+        }
+        if (!cpf) {
+            alert("❌ CPF é obrigatório!");
+            return;
+        }
+        if (!leaderEmail) {
+            alert("❌ E-mail é obrigatório!");
+            return;
+        }
+        if (!leaderPassword || leaderPassword.length < 6) {
+            alert("❌ A senha deve ter pelo menos 6 caracteres!");
+            return;
+        }
+        if (!regionId) {
+            alert("❌ Selecione uma região!");
             return;
         }
 
@@ -115,7 +136,14 @@ registerLeaderForm.addEventListener("submit", async (e) => {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email: leaderEmail, password: leaderPassword, regionId })
+            body: JSON.stringify({ 
+                fullName, 
+                cpf, 
+                city,
+                email: leaderEmail, 
+                password: leaderPassword, 
+                regionId 
+            })
         });
         if (!res.ok) {
             const t = await res.text().catch(() => "");
@@ -123,10 +151,11 @@ registerLeaderForm.addEventListener("submit", async (e) => {
         }
 
         registerModal.setAttribute("aria-hidden", "true");
-        alert("Solicitação enviada! Aguarde aprovação do Admin.");
+        alert("✅ Solicitação enviada! Aguarde aprovação do Admin.");
+        registerLeaderForm.reset();
     } catch (err) {
         console.error(err);
-        alert("Não foi possível solicitar o cadastro de líder.");
+        alert("❌ Não foi possível solicitar o cadastro de líder.");
     } finally {
         setBusy(btnCreateLeader, false);
     }
