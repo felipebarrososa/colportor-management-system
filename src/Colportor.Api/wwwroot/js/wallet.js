@@ -283,6 +283,9 @@ async function renderWallet() {
         }
         const x = await me.json();
 
+        console.log("DEBUG: Wallet data received:", x);
+        console.log("DEBUG: Leader data:", { leader: x.leader, leaderId: x.leaderId });
+
         $("#photo").src = x.photoUrl || "/css/user.png";
         $("#name").textContent = x.fullName ?? "—";
         $("#cpf").textContent = x.cpf ?? "—";

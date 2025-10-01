@@ -712,6 +712,11 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     
     // Debug logs
     Console.WriteLine($"DEBUG: Colportor {c.FullName} - LeaderId: {c.LeaderId}, Leader: {c.Leader?.FullName ?? "NULL"}");
+    Console.WriteLine($"DEBUG: Leader object is null: {c.Leader == null}");
+    if (c.Leader != null)
+    {
+        Console.WriteLine($"DEBUG: Leader details - Id: {c.Leader.Id}, FullName: {c.Leader.FullName}, Email: {c.Leader.Email}");
+    }
     
     return Results.Ok(new
     {
