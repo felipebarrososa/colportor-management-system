@@ -794,11 +794,11 @@ async function loadLeaderColportors() {
     pacColportors.innerHTML = list.map(x => `
         <label class="pac-checkbox-item">
             <input type="checkbox" value="${x.id}" class="pac-checkbox">
-            <span class="pac-checkbox-check"></span>
             <div class="pac-checkbox-label">
                 <strong>${escapeHtml(x.fullName)}</strong>
                 <span class="muted">${escapeHtml(x.cpf)}</span>
             </div>
+            <span class="pac-checkbox-check"></span>
         </label>
     `).join("");
     updatePacCounter();

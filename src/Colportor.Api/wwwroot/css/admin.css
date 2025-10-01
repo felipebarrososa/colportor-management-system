@@ -1057,7 +1057,6 @@ body.nav-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    order: 2;
 }
 
 .pac-checkbox-item:hover .pac-checkbox-check {
@@ -1086,7 +1085,6 @@ body.nav-open {
     flex: 1;
     z-index: 1;
     position: relative;
-    order: 1;
 }
 
 .pac-checkbox-label strong {
