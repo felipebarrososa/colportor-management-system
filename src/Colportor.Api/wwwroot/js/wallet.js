@@ -201,7 +201,6 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
             lastVisitDate: lastVisitStr ? toUtcMidnightIso(lastVisitStr) : null,
         };
 
-        console.log("DEBUG: Registration payload:", body);
 
         if (!body.fullName || !body.cpf || !body.email || !body.password) {
             $("#registerError").hidden = false; return;
@@ -283,8 +282,6 @@ async function renderWallet() {
         }
         const x = await me.json();
 
-        console.log("DEBUG: Wallet data received:", x);
-        console.log("DEBUG: Leader data:", { leader: x.leader, leaderId: x.leaderId });
 
         $("#photo").src = x.photoUrl || "/css/user.png";
         $("#name").textContent = x.fullName ?? "—";
@@ -408,12 +405,21 @@ async function loadColportorData() {
 // Event listeners do modal de edição
 $("#btnEditProfile")?.addEventListener("click", async () => {
     editModal.classList.add("show");
+    editModal.setAttribute("aria-hidden", "false");
     await loadColportorData();
     $("#eFullName")?.focus();
 });
 
-$("#btnCloseEdit")?.addEventListener("click", () => editModal.classList.remove("show"));
-editModal?.addEventListener("click", (e) => { if (e.target === editModal) editModal.classList.remove("show"); });
+$("#btnCloseEdit")?.addEventListener("click", () => {
+    editModal.classList.remove("show");
+    editModal.setAttribute("aria-hidden", "true");
+});
+editModal?.addEventListener("click", (e) => { 
+    if (e.target === editModal) {
+        editModal.classList.remove("show");
+        editModal.setAttribute("aria-hidden", "true");
+    }
+});
 
 eCountrySel?.addEventListener("change", () => loadRegions(eCountrySel.value, eRegionSel));
 eRegionSel?.addEventListener("change", () => loadLeadersForEdit(parseInt(eRegionSel.value || "0", 10)));
@@ -503,6 +509,7 @@ $("#editForm")?.addEventListener("submit", async (e) => {
 
         // Sucesso
         editModal.classList.remove("show");
+        editModal.setAttribute("aria-hidden", "true");
         toast("Dados atualizados com sucesso!");
         
         // Recarregar carteira
