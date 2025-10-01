@@ -1866,6 +1866,19 @@ body.nav-open {
     background: rgba(255,255,255,.05);
 }
 
+/* Grupos de líder - estilo especial */
+.recent-item.leader-group {
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(20, 184, 106, 0.08), rgba(16, 147, 88, 0.04));
+    border-color: rgba(20, 184, 106, 0.2);
+}
+
+.recent-item.leader-group:hover {
+    background: linear-gradient(135deg, rgba(20, 184, 106, 0.15), rgba(16, 147, 88, 0.08));
+    border-color: rgba(20, 184, 106, 0.4);
+    box-shadow: 0 4px 12px rgba(20, 184, 106, 0.2);
+}
+
 .recent-info {
     display: flex;
     flex-direction: column;

@@ -1039,6 +1039,37 @@ viewAllPacRequests?.addEventListener("click", (e) => {
     openPacAdmin();
 });
 
+// Event listener para clicar nos grupos de líder
+pacRecentList?.addEventListener("click", (e) => {
+    const leaderGroup = e.target.closest(".leader-group");
+    if (leaderGroup) {
+        const leaderId = leaderGroup.getAttribute("data-leader-id");
+        const startDate = leaderGroup.getAttribute("data-start-date");
+        const endDate = leaderGroup.getAttribute("data-end-date");
+        
+        // Abrir modal de gerenciamento PAC com filtros
+        openPacAdmin();
+        pacAdminModal.classList.add("show");
+        
+        // Aplicar filtros para mostrar apenas as solicitações deste líder e período
+        setTimeout(() => {
+            if (pacAdminStartDate) pacAdminStartDate.value = startDate;
+            if (pacAdminEndDate) pacAdminEndDate.value = endDate;
+            if (pacAdminLeader) {
+                // Encontrar o líder na lista e selecionar
+                const leaderOption = Array.from(pacAdminLeader.options).find(opt => 
+                    opt.value === leaderId
+                );
+                if (leaderOption) {
+                    pacAdminLeader.value = leaderId;
+                }
+            }
+            // Aplicar filtros
+            loadPacAdmin();
+        }, 100);
+    }
+});
+
 // Carregar dados do dashboard PAC
 async function loadPacDashboard() {
     try {
@@ -1135,36 +1166,80 @@ function updatePacPeriods(requests) {
 function updatePacRecent(requests) {
     if (!pacRecentList) return;
     
-    // Pegar as 5 mais recentes
-    const recent = requests
-        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-        .slice(0, 5);
-    
-    if (!recent.length) {
+    if (!requests.length) {
         pacRecentList.innerHTML = '<div class="muted">Nenhuma solicitação encontrada</div>';
         return;
     }
     
-    pacRecentList.innerHTML = recent.map(request => {
-        const startDate = new Date(request.startDate).toLocaleDateString('pt-BR');
-        const endDate = new Date(request.endDate).toLocaleDateString('pt-BR');
-        const statusClass = `pill ${request.status}`;
+    // Agrupar por líder e período
+    const leaderGroups = groupRequestsByLeader(requests);
+    
+    // Pegar os 5 grupos mais recentes
+    const recentGroups = leaderGroups
+        .sort((a, b) => new Date(b.latestDate) - new Date(a.latestDate))
+        .slice(0, 5);
+    
+    pacRecentList.innerHTML = recentGroups.map(group => {
+        const startDate = new Date(group.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(group.endDate).toLocaleDateString('pt-BR');
+        const statusClass = `pill ${group.status}`;
         
         return `
-            <div class="recent-item">
+            <div class="recent-item leader-group" data-leader-id="${group.leaderId}" data-start-date="${group.startDate}" data-end-date="${group.endDate}">
                 <div class="recent-info">
-                    <div class="recent-name">${escapeHtml(request.colportor.fullName)}</div>
+                    <div class="recent-name">👤 ${escapeHtml(group.leaderName)}</div>
                     <div class="recent-details">
-                        <span>${startDate} - ${endDate}</span>
-                        <span>Líder: ${escapeHtml(request.leader)}</span>
+                        <span>📅 ${startDate} - ${endDate}</span>
+                        <span>👥 ${group.colportorCount} colportor(es)</span>
                     </div>
                 </div>
                 <div class="recent-status">
-                    <span class="${statusClass}">${escapeHtml(request.status)}</span>
+                    <span class="${statusClass}">${escapeHtml(group.status)}</span>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+// Agrupar solicitações por líder e período
+function groupRequestsByLeader(requests) {
+    const groups = new Map();
+    
+    requests.forEach(request => {
+        const leaderId = request.leaderId;
+        const startDate = request.startDate;
+        const endDate = request.endDate;
+        
+        // Criar chave única para líder + período
+        const key = `${leaderId}_${startDate}_${endDate}`;
+        
+        if (!groups.has(key)) {
+            groups.set(key, {
+                key,
+                leaderId,
+                leaderName: request.leader,
+                startDate,
+                endDate,
+                status: request.status,
+                colportorCount: 0,
+                colportors: [],
+                latestDate: request.createdAt || request.startDate
+            });
+        }
+        
+        const group = groups.get(key);
+        group.colportorCount++;
+        group.colportors.push(request.colportor);
+        
+        // Atualizar data mais recente
+        const requestDate = new Date(request.createdAt || request.startDate);
+        const groupDate = new Date(group.latestDate);
+        if (requestDate > groupDate) {
+            group.latestDate = request.createdAt || request.startDate;
+        }
+    });
+    
+    return Array.from(groups.values());
 }
 
 // Agrupar solicitações por período (semana)
