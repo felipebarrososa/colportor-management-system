@@ -382,6 +382,22 @@ app.MapGet("/geo/regions", (AppDbContext db, int countryId) =>
               .Select(r => new { r.Id, r.Name })
               .OrderBy(r => r.Name));
 
+// Listar líderes por região (público para cadastro)
+app.MapGet("/geo/leaders", async (AppDbContext db, int? regionId) =>
+{
+    if (regionId == null)
+        return Results.BadRequest("regionId é obrigatório");
+    
+    var leaders = await db.Users
+        .Where(u => u.Role == "Leader" && u.RegionId == regionId)
+        .Select(u => new { u.Id, u.Email, Name = u.Email })
+        .OrderBy(u => u.Email)
+        .ToListAsync();
+    
+    Console.WriteLine($"📋 Retornando {leaders.Count} líderes para região {regionId}");
+    return Results.Ok(leaders);
+});
+
 // ========= ADMIN =========
 
 // Admin cria colportor (com região/líder)
@@ -390,25 +406,6 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
     if (await db.Colportors.AnyAsync(c => c.CPF == dto.CPF))
         return Results.BadRequest("CPF já cadastrado.");
 
-    // Se LeaderId não for informado, busca automaticamente o líder da região
-    int? leaderId = dto.LeaderId;
-    if (leaderId == null && dto.RegionId != null)
-    {
-        var regionLeader = await db.Users
-            .Where(u => u.Role == "Leader" && u.RegionId == dto.RegionId)
-            .FirstOrDefaultAsync();
-        
-        if (regionLeader != null)
-        {
-            leaderId = regionLeader.Id;
-            Console.WriteLine($"✅ Auto-vinculando colportor à líder {regionLeader.Email} da região {dto.RegionId}");
-        }
-        else
-        {
-            Console.WriteLine($"⚠️ Nenhum líder encontrado para região {dto.RegionId}");
-        }
-    }
-
     var colp = new ColpColportor
     {
         FullName = dto.FullName.Trim(),
@@ -416,8 +413,14 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
         City = dto.City?.Trim(),
         PhotoUrl = dto.PhotoUrl,
         RegionId = dto.RegionId,
-        LeaderId = leaderId
+        LeaderId = dto.LeaderId // Líder informado pelo frontend
     };
+    
+    if (dto.LeaderId != null)
+    {
+        Console.WriteLine($"✅ Colportor vinculado ao líder ID: {dto.LeaderId}");
+    }
+    
     db.Colportors.Add(colp);
     await db.SaveChangesAsync();
 

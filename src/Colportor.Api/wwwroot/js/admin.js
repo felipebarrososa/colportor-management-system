@@ -78,6 +78,7 @@ const closeCreateBtn = $("#closeCreate");
 const createForm = $("#createForm");
 const cCountry = $("#cCountry");
 const cRegion = $("#cRegion");
+const cLeader = $("#cLeader");
 const cPhoto = $("#cPhoto");
 const cLastVisit = $("#cLastVisit"); // <<< NOVO
 const btnCreateColp = $("#btnCreateColp");
@@ -286,6 +287,30 @@ async function hydrateCreateGeo() {
     await refreshCreateRegions();
 }
 cCountry?.addEventListener("change", refreshCreateRegions);
+cRegion?.addEventListener("change", refreshCreateLeaders);
+
+async function refreshCreateLeaders() {
+    cLeader.innerHTML = `<option value="">Carregando...</option>`;
+    const regionId = parseInt(cRegion.value || "0", 10);
+    if (!regionId) {
+        cLeader.innerHTML = `<option value="">Selecione uma região primeiro...</option>`;
+        return;
+    }
+    try {
+        const res = await fetch(`/geo/leaders?regionId=${regionId}`);
+        const list = (await res.json()) || [];
+        if (!list.length) {
+            cLeader.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
+        } else {
+            cLeader.innerHTML = `<option value="">Opcional - selecione um líder...</option>` + 
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.email)}</option>`).join("");
+        }
+    } catch (err) {
+        console.error("Erro ao carregar líderes:", err);
+        cLeader.innerHTML = `<option value="">Erro ao carregar líderes</option>`;
+    }
+}
+
 async function hydrateLeaderGeo() {
     const cRes = await fetch("/geo/countries");
     const cList = (await cRes.json()) || [];
@@ -506,6 +531,7 @@ createForm?.addEventListener("submit", async (e) => {
         password,
         countryId: cCountry.value ? parseInt(cCountry.value, 10) : null,
         regionId: cRegion.value ? parseInt(cRegion.value, 10) : null,
+        leaderId: cLeader.value ? parseInt(cLeader.value, 10) : null,
     };
 
     const lastVisitStr = (cLastVisit?.value || "").trim(); // yyyy-mm-dd
