@@ -673,33 +673,37 @@ async function loadColportors() {
             return `
 <div class="mobile-card">
   <div class="mobile-card-header">
-    <div>
-      <div class="mobile-card-id">#${x.id}</div>
+    <div class="mobile-card-avatar">
+      ${x.photoUrl ? `<img src="${escapeHtml(x.photoUrl)}" alt="Foto" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` : '👤'}
+    </div>
+    <div class="mobile-card-info">
       <div class="mobile-card-name">${escapeHtml(x.fullName || "—")}</div>
       <div class="mobile-card-cpf">${escapeHtml(x.cpf || "—")}</div>
+    </div>
+    <div class="mobile-card-status">
+      <span class="pill ${status}">${status}</span>
     </div>
   </div>
   <div class="mobile-card-details">
     <div class="mobile-card-detail">
-      <strong>Região</strong>
-      ${escapeHtml(place)}
+      <div class="mobile-card-detail-label">Região</div>
+      <div class="mobile-card-detail-value">${escapeHtml(place)}</div>
     </div>
     <div class="mobile-card-detail">
-      <strong>Cidade</strong>
-      ${escapeHtml(x.city || "—")}
+      <div class="mobile-card-detail-label">Cidade</div>
+      <div class="mobile-card-detail-value">${escapeHtml(x.city || "—")}</div>
     </div>
     <div class="mobile-card-detail">
-      <strong>Últ. Visita</strong>
-      ${last ? last.toLocaleDateString("pt-BR") : "—"}
+      <div class="mobile-card-detail-label">Últ. Visita</div>
+      <div class="mobile-card-detail-value">${last ? last.toLocaleDateString("pt-BR") : "—"}</div>
+    </div>
+    <div class="mobile-card-detail">
+      <div class="mobile-card-detail-label">ID</div>
+      <div class="mobile-card-detail-value">#${x.id}</div>
     </div>
   </div>
-  <div class="mobile-card-footer">
-    <div class="mobile-card-status">
-      <span class="pill ${status}">${status}</span>
-    </div>
-    <div class="mobile-card-actions">
-      <button class="btn sm ghost primary-ghost" data-action="checkin" data-id="${x.id}" title="Registrar check-in agora">Check-in</button>
-    </div>
+  <div class="mobile-card-actions">
+    <button class="btn sm ghost primary-ghost" data-action="checkin" data-id="${x.id}" title="Registrar check-in agora">Check-in</button>
   </div>
 </div>`;
         }).join("");

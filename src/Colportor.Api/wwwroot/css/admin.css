@@ -1259,141 +1259,110 @@ body.nav-open {
     gap: 4px;
 }
 
-/* ===== Tablet Responsive Table ===== */
+/* ===== Tablet Responsive Layout ===== */
 @media (min-width: 481px) and (max-width: 1024px) {
+    /* Hide table on tablet, show cards instead */
     .table-wrap {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        margin: 0 -16px;
-        padding: 0 16px;
-    }
-    
-    .table {
-        min-width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 14px;
-    }
-    
-    .table th {
-        padding: 12px 8px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #ffffff;
-        background: rgba(255,255,255,0.05);
-        border-bottom: 2px solid rgba(255,255,255,0.1);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .table td {
-        padding: 12px 8px;
-        font-size: 13px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-    
-    /* Make name column wider and better organized */
-    .table th:nth-child(3),
-    .table td:nth-child(3) {
-        min-width: 140px;
-        max-width: 160px;
-    }
-    
-    .table td:nth-child(3) {
-        white-space: normal;
-        line-height: 1.4;
-        vertical-align: top;
-    }
-    
-    .table td:nth-child(3) strong {
-        display: block;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 4px;
-        font-size: 14px;
-    }
-    
-    .table td:nth-child(3) .muted {
-        display: block;
-        font-size: 11px;
-        color: #8a9ba8;
-        font-family: 'Courier New', monospace;
-    }
-    
-    /* CPF column */
-    .table th:nth-child(4),
-    .table td:nth-child(4) {
-        min-width: 100px;
-        max-width: 120px;
-    }
-    
-    .table td:nth-child(4) {
-        font-family: 'Courier New', monospace;
-        font-size: 12px;
-        color: #8a9ba8;
-    }
-    
-    /* Region column */
-    .table th:nth-child(5),
-    .table td:nth-child(5) {
-        min-width: 80px;
-        max-width: 100px;
-    }
-    
-    .table td:nth-child(5) {
-        font-size: 12px;
-        color: #8a9ba8;
-    }
-    
-    /* City column */
-    .table th:nth-child(6),
-    .table td:nth-child(6) {
-        min-width: 80px;
-        max-width: 100px;
-    }
-    
-    .table td:nth-child(6) {
-        font-size: 12px;
-        color: #8a9ba8;
-    }
-    
-    /* Last visit column */
-    .table th:nth-child(7),
-    .table td:nth-child(7) {
-        min-width: 90px;
-        max-width: 110px;
-    }
-    
-    .table td:nth-child(7) {
-        font-size: 12px;
-        color: #8a9ba8;
-    }
-    
-    /* Status column */
-    .table th:nth-child(8),
-    .table td:nth-child(8) {
-        min-width: 80px;
-        max-width: 100px;
-        text-align: center;
-    }
-    
-    /* Hide photo column on tablet */
-    .table th:nth-child(2), /* Foto */
-    .table td:nth-child(2) {
         display: none;
     }
     
-    /* Status pills better on tablet */
-    .pill {
-        padding: 6px 10px;
+    .mobile-cards {
+        display: block;
+    }
+    
+    .mobile-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .mobile-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    
+    .mobile-card-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .mobile-card-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #8a9ba8;
+    }
+    
+    .mobile-card-info {
+        flex: 1;
+    }
+    
+    .mobile-card-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 4px;
+    }
+    
+    .mobile-card-cpf {
+        font-size: 12px;
+        color: #8a9ba8;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .mobile-card-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .mobile-card-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    
+    .mobile-card-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .mobile-card-detail-label {
         font-size: 11px;
+        color: #8a9ba8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         font-weight: 600;
     }
     
-    /* Action buttons */
-    .btn.sm {
-        padding: 6px 10px;
-        font-size: 11px;
+    .mobile-card-detail-value {
+        font-size: 13px;
+        color: #ffffff;
+    }
+    
+    .mobile-card-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    
+    .mobile-card-actions .btn {
+        padding: 8px 16px;
+        font-size: 12px;
     }
     
     /* Better spacing for tablet */
