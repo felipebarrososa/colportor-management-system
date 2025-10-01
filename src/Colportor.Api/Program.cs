@@ -220,6 +220,7 @@ using (var scope = app.Services.CreateScope())
     // Admin master
     if (!db.Users.Any(u => u.Role == "Admin"))
     {
+        Console.WriteLine("🔧 Creating admin user...");
         var admin = new ColpUser
         {
             Email = "admin@colportor.local",
@@ -228,6 +229,13 @@ using (var scope = app.Services.CreateScope())
         };
         db.Users.Add(admin);
         db.SaveChanges();
+        Console.WriteLine("✅ Admin user created successfully!");
+    }
+    else
+    {
+        Console.WriteLine("✅ Admin user already exists");
+        var adminUser = db.Users.FirstOrDefault(u => u.Role == "Admin");
+        Console.WriteLine($"   Email: {adminUser?.Email}");
     }
 }
 #endregion
