@@ -395,15 +395,29 @@ app.MapPost("/upload/photo", async (HttpRequest req) =>
     var file = req.Form.Files.GetFile("photo");
     if (file is null || file.Length == 0) return Results.BadRequest("arquivo vazio");
 
-    var ext = Path.GetExtension(file.FileName);
-    var name = $"{Guid.NewGuid():N}{ext}";
-    var saveTo = Path.Combine(uploadsPath, name);
+    // Em produção (Railway), salvar como base64 no banco
+    if (builder.Environment.IsProduction())
+    {
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+        var base64 = Convert.ToBase64String(bytes);
+        var dataUrl = $"data:{file.ContentType};base64,{base64}";
+        return Results.Ok(new { url = dataUrl });
+    }
+    else
+    {
+        // Em desenvolvimento, salvar arquivo físico
+        var ext = Path.GetExtension(file.FileName);
+        var name = $"{Guid.NewGuid():N}{ext}";
+        var saveTo = Path.Combine(uploadsPath, name);
 
-    await using var fs = File.Create(saveTo);
-    await file.CopyToAsync(fs);
+        await using var fs = File.Create(saveTo);
+        await file.CopyToAsync(fs);
 
-    var url = $"/uploads/{name}";
-    return Results.Ok(new { url });
+        var url = $"/uploads/{name}";
+        return Results.Ok(new { url });
+    }
 });
 
 // Países e Regiões (para preencher selects)
