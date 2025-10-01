@@ -10,7 +10,8 @@ public class JwtService
     private readonly string _key;
     public JwtService(IConfiguration cfg)
     {
-        _key = cfg["Jwt:Key"] ?? "dev_key_change_me";
+        _key = cfg["JWT_KEY"] ?? cfg["Jwt:Key"] ?? "dev_key_change_me";
+        Console.WriteLine($"JwtService initialized with key length: {_key.Length}");
     }
     public string GenerateToken(User user)
     {
