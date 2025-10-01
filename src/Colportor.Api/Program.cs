@@ -353,10 +353,11 @@ app.MapPost("/auth/register", async (AppDbContext db, DTOsNS.CreateColportorDto 
     Console.WriteLine($"DEBUG: Colportor registration - LeaderId: {dto.LeaderId}, RegionId: {dto.RegionId}");
 
     // cria colportor
+    ColpColportor colp;
     try
     {
         Console.WriteLine("🔨 Creating colportor...");
-        var colp = new ColpColportor
+        colp = new ColpColportor
         {
             FullName = dto.FullName.Trim(),
             CPF = dto.CPF.Trim(),
