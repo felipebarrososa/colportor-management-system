@@ -1243,7 +1243,7 @@ function groupRequestsByLeader(requests) {
         if (!groups.has(key)) {
             groups.set(key, {
                 key,
-                leaderId,
+                leaderId: request.leaderId,
                 leaderName: request.leader,
                 regionName: request.region || 'Região não informada',
                 startDate,

@@ -851,12 +851,18 @@ app.MapGet("/admin/pac/enrollments", async (AppDbContext db, int? regionId, stri
         if (regionId is int rid && colportor?.RegionId != rid)
             continue;
             
+        // Buscar região do líder
+        var leaderRegion = leader?.RegionId != null ? await db.Regions.FindAsync(leader.RegionId) : null;
+            
         result.Add(new { 
             x.Id, 
             x.Status, 
             x.StartDate, 
-            x.EndDate, 
-            Leader = leader?.Email, 
+            x.EndDate,
+            x.CreatedAt,
+            LeaderId = leader?.Id,
+            Leader = leader?.FullName ?? leader?.Email, 
+            Region = leaderRegion?.Name ?? "Região não informada",
             Colportor = new { 
                 colportor?.Id, 
                 colportor?.FullName, 
