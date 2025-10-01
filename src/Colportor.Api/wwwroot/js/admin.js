@@ -925,9 +925,19 @@ function openPacAdmin() {
     pacAdminModal.setAttribute("aria-hidden", "false");
     hydratePacAdminGeo().then(loadPacAdmin);
 }
-function closePacAdmin() { pacAdminModal.setAttribute("aria-hidden", "true"); }
+function closePacAdmin() { 
+    pacAdminModal.setAttribute("aria-hidden", "true");
+    unlockBodyScroll();
+}
 openPacAdmin_fromDrawer?.addEventListener("click", (e) => { e.preventDefault?.(); openPacAdmin(); });
 closePacAdminBtn?.addEventListener("click", (e) => { e.preventDefault?.(); closePacAdmin(); });
+
+// Fechar modal ao clicar fora dele
+pacAdminModal?.addEventListener("click", (e) => {
+    if (e.target === pacAdminModal) {
+        closePacAdmin();
+    }
+});
 
 async function hydratePacAdminGeo() {
     const cRes = await fetch("/geo/countries");
@@ -1028,15 +1038,30 @@ if (ROLE === "admin") {
     }
 }
 
+// Funções para controlar scroll do body
+function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+}
+
+function unlockBodyScroll() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+}
+
 // Event listeners do dashboard PAC
 refreshPacDashboard?.addEventListener("click", loadPacDashboard);
 openPacAdmin_fromDashboard?.addEventListener("click", (e) => {
     e.preventDefault();
     openPacAdmin();
+    lockBodyScroll();
 });
 viewAllPacRequests?.addEventListener("click", (e) => {
     e.preventDefault();
     openPacAdmin();
+    lockBodyScroll();
 });
 
 // Event listener para clicar nos grupos de líder
@@ -1050,6 +1075,7 @@ pacRecentList?.addEventListener("click", (e) => {
         // Abrir modal de gerenciamento PAC com filtros
         openPacAdmin();
         pacAdminModal.classList.add("show");
+        lockBodyScroll();
         
         // Aplicar filtros para mostrar apenas as solicitações deste líder e período
         setTimeout(() => {
@@ -1190,6 +1216,7 @@ function updatePacRecent(requests) {
                     <div class="recent-name">👤 ${escapeHtml(group.leaderName)}</div>
                     <div class="recent-details">
                         <span>📅 ${startDate} - ${endDate}</span>
+                        <span>🌍 ${escapeHtml(group.regionName || 'Região não informada')}</span>
                         <span>👥 ${group.colportorCount} colportor(es)</span>
                     </div>
                 </div>
@@ -1218,6 +1245,7 @@ function groupRequestsByLeader(requests) {
                 key,
                 leaderId,
                 leaderName: request.leader,
+                regionName: request.region || 'Região não informada',
                 startDate,
                 endDate,
                 status: request.status,
