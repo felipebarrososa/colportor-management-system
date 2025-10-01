@@ -79,6 +79,7 @@ async function uploadPhoto(file) {
 const modal = $("#registerModal");
 const rCountrySel = $("#rCountry");
 const rRegionSel = $("#rRegion");
+const rLeaderSel = $("#rLeader");
 const rPhotoFile = $("#rPhotoFile");
 const rPhotoUrlH = $("#rPhotoUrl");
 const rLastVisit = $("#rLastVisit");
@@ -99,6 +100,27 @@ $("#btnOpenRegister")?.addEventListener("click", async () => {
 $("#btnCloseRegister")?.addEventListener("click", () => modal.classList.remove("show"));
 modal?.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("show"); });
 rCountrySel?.addEventListener("change", () => loadRegions(rCountrySel.value, rRegionSel));
+rRegionSel?.addEventListener("change", async () => {
+    const regionId = parseInt(rRegionSel.value || "0", 10);
+    if (!regionId) {
+        rLeaderSel.innerHTML = `<option value="">Selecione uma região primeiro...</option>`;
+        return;
+    }
+    try {
+        rLeaderSel.innerHTML = `<option value="">Carregando...</option>`;
+        const res = await fetch(`/geo/leaders?regionId=${regionId}`);
+        const list = (await res.json()) || [];
+        if (!list.length) {
+            rLeaderSel.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
+        } else {
+            rLeaderSel.innerHTML = `<option value="">Opcional - selecione seu líder...</option>` + 
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.email)}</option>`).join("");
+        }
+    } catch (err) {
+        console.error("Erro ao carregar líderes:", err);
+        rLeaderSel.innerHTML = `<option value="">Erro ao carregar líderes</option>`;
+    }
+});
 
 // ===== login =====
 $("#loginForm")?.addEventListener("submit", async (e) => {
@@ -163,6 +185,7 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
 
         const countryId = rCountrySel?.value ? parseInt(rCountrySel.value, 10) : null;
         const regionId = rRegionSel?.value ? parseInt(rRegionSel.value, 10) : null;
+        const leaderId = rLeaderSel?.value ? parseInt(rLeaderSel.value, 10) : null;
 
         const body = {
             fullName: $("#rFullName").value.trim(),
@@ -173,6 +196,7 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
             password: $("#rPass").value,
             countryId,
             regionId,
+            leaderId,
             // envia a última visita já no cadastro, se informada
             lastVisitDate: lastVisitStr ? toUtcMidnightIso(lastVisitStr) : null,
         };
