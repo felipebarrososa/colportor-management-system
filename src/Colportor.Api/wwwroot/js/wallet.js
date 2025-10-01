@@ -1,16 +1,19 @@
 // ===== helpers =====
 const $ = (q) => document.querySelector(q);
-const api = (path, opts = {}) =>
-    fetch(path, {
+const api = (path, opts = {}) => {
+    const token = localStorage.getItem("token");
+    console.log("API call to:", path, "Token exists:", !!token);
+    return fetch(path, {
         ...opts,
         headers: {
             "Content-Type": "application/json",
-            ...(localStorage.getItem("token")
-                ? { Authorization: "Bearer " + localStorage.getItem("token") }
+            ...(token
+                ? { Authorization: "Bearer " + token }
                 : {}),
             ...(opts.headers || {}),
         },
     });
+};
 
 function showScreen(selector) {
     document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
@@ -276,6 +279,7 @@ async function renderWallet() {
     try {
         const me = await api("/wallet/me");
         if (!me.ok) {
+            console.error("Erro na carteira:", me.status, me.statusText);
             localStorage.removeItem("token");
             showScreen("#authScreen");
             return false;
@@ -370,7 +374,10 @@ async function loadLeadersForEdit(regionId) {
 async function loadColportorData() {
     try {
         const res = await api("/wallet/me");
-        if (!res.ok) return false;
+        if (!res.ok) {
+            console.error("Erro na resposta:", res.status, res.statusText);
+            return false;
+        }
         
         currentColportorData = await res.json();
         
