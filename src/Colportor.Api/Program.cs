@@ -209,6 +209,23 @@ using (var scope = app.Services.CreateScope())
         // Se falhar (banco criado com EnsureCreated), apenas garante que existe
         Console.WriteLine($"⚠️ Migration failed, ensuring database exists: {ex.Message}");
         db.Database.EnsureCreated();
+        
+        // Adicionar colunas que podem estar faltando
+        try
+        {
+            Console.WriteLine("🔧 Adding missing columns...");
+            db.Database.ExecuteSqlRaw(@"
+                ALTER TABLE ""Users"" 
+                ADD COLUMN IF NOT EXISTS ""FullName"" text,
+                ADD COLUMN IF NOT EXISTS ""CPF"" text,
+                ADD COLUMN IF NOT EXISTS ""City"" text;
+            ");
+            Console.WriteLine("✅ Missing columns added!");
+        }
+        catch (Exception colEx)
+        {
+            Console.WriteLine($"⚠️ Could not add columns: {colEx.Message}");
+        }
     }
 
     // País / Regiões iniciais
