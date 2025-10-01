@@ -725,8 +725,8 @@ app.MapPost("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx, 
 {
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
-    if (user.Role != "Leader") return Results.Forbid();
-    if (user.RegionId is null) return Results.BadRequest("Líder sem região");
+    if (user.Role != "Leader" && user.Role != "Admin") return Results.Forbid();
+    if (user.Role == "Leader" && user.RegionId is null) return Results.BadRequest("Líder sem região");
 
     // Normaliza datas para meia-noite UTC inclusivas
     DateTime s = req.StartDate.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(req.StartDate, DateTimeKind.Utc) : req.StartDate.ToUniversalTime();
@@ -735,9 +735,20 @@ app.MapPost("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx, 
     e = new DateTime(e.Year, e.Month, e.Day, 0, 0, 0, DateTimeKind.Utc);
     if (e < s) return Results.BadRequest("Período inválido");
 
-    var regionId = user.RegionId.Value;
-    var allowed = await db.Colportors.Where(c => req.ColportorIds.Contains(c.Id) && c.RegionId == regionId).Select(c => c.Id).ToListAsync();
-    if (!allowed.Any()) return Results.BadRequest("Nenhum colportor válido para sua região");
+    List<int> allowed;
+    if (user.Role == "Admin")
+    {
+        // Admin pode selecionar colportores de qualquer região
+        allowed = await db.Colportors.Where(c => req.ColportorIds.Contains(c.Id)).Select(c => c.Id).ToListAsync();
+    }
+    else
+    {
+        // Líder só pode selecionar colportores da sua região
+        var regionId = user.RegionId.Value;
+        allowed = await db.Colportors.Where(c => req.ColportorIds.Contains(c.Id) && c.RegionId == regionId).Select(c => c.Id).ToListAsync();
+    }
+    
+    if (!allowed.Any()) return Results.BadRequest("Nenhum colportor válido");
 
     foreach (var cid in allowed)
     {
@@ -753,7 +764,7 @@ app.MapPost("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx, 
     }
     await db.SaveChangesAsync();
     return Results.Created("/leader/pac/enrollments", new { Count = allowed.Count });
-}).RequireAuthorization(policy => policy.RequireRole("Leader"));
+}).RequireAuthorization(policy => policy.RequireRole("Leader", "Admin"));
 
 // Líder vê apenas suas solicitações
 app.MapGet("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx) =>
