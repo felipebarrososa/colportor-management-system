@@ -455,6 +455,34 @@ async function refreshCreateRegions() {
 createForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = btnCreateColp;
+    
+    // Validações
+    const fullName = $("#cFullName").value.trim();
+    const cpf = $("#cCpf").value.trim();
+    const email = $("#cEmail").value.trim();
+    const password = $("#cPass").value;
+    
+    if (!fullName) {
+        alert("❌ O campo 'Nome Completo' é obrigatório!");
+        $("#cFullName").focus();
+        return;
+    }
+    if (!cpf) {
+        alert("❌ O campo 'CPF' é obrigatório!");
+        $("#cCpf").focus();
+        return;
+    }
+    if (!email) {
+        alert("❌ O campo 'E-mail' é obrigatório!");
+        $("#cEmail").focus();
+        return;
+    }
+    if (!password || password.length < 6) {
+        alert("❌ A senha deve ter pelo menos 6 caracteres!");
+        $("#cPass").focus();
+        return;
+    }
+    
     setBusy(btn, true);
 
     // Foto (opcional)
@@ -470,12 +498,12 @@ createForm?.addEventListener("submit", async (e) => {
 
     // Payload do colportor
     const payload = {
-        fullName: $("#cFullName").value.trim(),
-        cpf: $("#cCpf").value.trim(),
+        fullName,
+        cpf,
         city: $("#cCity").value.trim() || null,
         photoUrl,
-        email: $("#cEmail").value.trim(),
-        password: $("#cPass").value,
+        email,
+        password,
         countryId: cCountry.value ? parseInt(cCountry.value, 10) : null,
         regionId: cRegion.value ? parseInt(cRegion.value, 10) : null,
     };
@@ -738,7 +766,14 @@ async function loadLeaderColportors() {
     const list = await res.json();
     if (!list.length) { pacColportors.innerHTML = `<div class="muted">Nenhum colportor na sua região.</div>`; return; }
     pacColportors.innerHTML = list.map(x => `
-        <label class="item"><input type="checkbox" value="${x.id}"> <span>${escapeHtml(x.fullName)} — ${escapeHtml(x.cpf)}</span></label>
+        <label class="pac-checkbox-item">
+            <input type="checkbox" value="${x.id}" class="pac-checkbox">
+            <span class="pac-checkbox-check"></span>
+            <div class="pac-checkbox-label">
+                <strong>${escapeHtml(x.fullName)}</strong>
+                <span class="muted">${escapeHtml(x.cpf)}</span>
+            </div>
+        </label>
     `).join("");
     updatePacCounter();
 }
@@ -766,17 +801,46 @@ pacClearAll?.addEventListener('click', () => {
 
 submitPacLeader?.addEventListener("click", async () => {
     const ids = Array.from(pacColportors.querySelectorAll("input[type=checkbox]:checked")).map(i => parseInt(i.value, 10));
-    if (!ids.length) { toast("Selecione ao menos um colportor."); return; }
-    if (!pacStart.value || !pacEnd.value) { toast("Informe o período."); return; }
+    
+    if (!ids.length) {
+        alert("❌ Selecione pelo menos um colportor para o PAC!");
+        return;
+    }
+    
+    if (!pacStart.value) {
+        alert("❌ Informe a data de início do período!");
+        pacStart.focus();
+        return;
+    }
+    
+    if (!pacEnd.value) {
+        alert("❌ Informe a data de fim do período!");
+        pacEnd.focus();
+        return;
+    }
+    
+    const startDate = new Date(pacStart.value);
+    const endDate = new Date(pacEnd.value);
+    
+    if (endDate < startDate) {
+        alert("❌ A data de fim deve ser posterior à data de início!");
+        pacEnd.focus();
+        return;
+    }
+    
     const body = {
         colportorIds: ids,
         startDate: new Date(pacStart.value + "T00:00:00Z").toISOString(),
         endDate: new Date(pacEnd.value + "T00:00:00Z").toISOString(),
     };
     const res = await authFetch(`/leader/pac/enrollments`, { method: "POST", body: JSON.stringify(body) });
-    if (!res.ok) { toast("Falha ao enviar."); return; }
-    toast("Enviado para aprovação do PAC.");
+    if (!res.ok) { 
+        alert("❌ Falha ao enviar. Tente novamente.");
+        return;
+    }
+    alert("✅ Solicitação enviada para aprovação do PAC!");
     closePacLeader();
+    loadLeaderPacOverview(); // Atualiza o painel
 });
 
 // ================== PAC Admin ==================

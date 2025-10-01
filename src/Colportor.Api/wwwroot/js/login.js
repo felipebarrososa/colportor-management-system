@@ -7,6 +7,7 @@ const btn = document.getElementById("loginBtn");
 // login
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    console.log("🔐 Login started, setting busy...");
     setBusy(btn, true);
 
     try {
@@ -50,9 +51,10 @@ form.addEventListener("submit", async (e) => {
         // fallback por via das dúvidas
         location.href = "/admin/dashboard.html";
     } catch (err) {
-        console.error(err);
+        console.error("❌ Login error:", err);
         alert("Falha no login. Verifique e-mail e senha.");
     } finally {
+        console.log("✅ Login finished, removing busy...");
         setBusy(btn, false);
     }
 });

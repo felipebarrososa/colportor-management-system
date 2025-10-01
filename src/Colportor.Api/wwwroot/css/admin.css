@@ -983,6 +983,69 @@ body.nav-open {
     100% { transform: rotate(360deg); }
 }
 
+/* ===== PAC CHECKBOXES (MELHORADO) ===== */
+.pac-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--panel-2);
+    margin-bottom: 8px;
+}
+.pac-checkbox-item:hover {
+    background: var(--panel);
+    border-color: var(--brand);
+    transform: translateX(4px);
+}
+.pac-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.pac-checkbox-check {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--stroke);
+    border-radius: 6px;
+    background: var(--bg);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+.pac-checkbox:checked + .pac-checkbox-check {
+    background: var(--brand);
+    border-color: var(--brand);
+}
+.pac-checkbox:checked + .pac-checkbox-check::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+.pac-checkbox-label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+.pac-checkbox-label strong {
+    color: var(--text);
+    font-size: 14px;
+}
+.pac-checkbox-label .muted {
+    font-size: 12px;
+    color: var(--text-subtle);
+}
+
 /* ===== Better Status Pills ===== */
 .pill {
     padding: 6px 12px;
