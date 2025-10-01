@@ -1,7 +1,7 @@
 // src/Colportor.Api/Data/AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
 
-// Aliases para evitar colis�o com o namespace raiz "Colportor"
+// Aliases para evitar colisão com o namespace raiz "Colportor"
 using ColpUser = Colportor.Api.Models.User;
 using ColpColportor = Colportor.Api.Models.Colportor;
 using ColpVisit = Colportor.Api.Models.Visit;
@@ -38,12 +38,6 @@ namespace Colportor.Api.Data
                     .WithMany()
                     .HasForeignKey(x => x.ColportorId)
                     .OnDelete(DeleteBehavior.SetNull);
-
-                // L�DER: v�nculo opcional com Region
-                e.HasOne(x => x.Region)
-                    .WithMany() // n�o depende de a Region ter cole��o
-                    .HasForeignKey(x => x.RegionId)
-                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ===== Colportors =====
@@ -53,20 +47,6 @@ namespace Colportor.Api.Data
                 e.Property(x => x.FullName).IsRequired();
                 e.Property(x => x.CPF).IsRequired();
                 e.HasIndex(x => x.CPF).IsUnique();
-                
-                // Relacionamento com Region
-                e.HasOne(x => x.Region)
-                    .WithMany()
-                    .HasForeignKey(x => x.RegionId)
-                    .OnDelete(DeleteBehavior.SetNull);
-                
-                // Relacionamento com Leader (User)
-                e.HasOne(x => x.Leader)
-                    .WithMany()
-                    .HasForeignKey(x => x.LeaderId)
-                    .OnDelete(DeleteBehavior.SetNull);
-                // Se voc� j� adicionou RegionId em Colportor, pode mapear aqui.
-                // (Deixei sem FK para n�o quebrar quem ainda usa string Region.)
             });
 
             // ===== Visits =====
@@ -86,7 +66,7 @@ namespace Colportor.Api.Data
                 e.Property(x => x.Name).IsRequired();
                 e.HasIndex(x => new { x.CountryId, x.Name }).IsUnique();
                 e.HasOne(x => x.Country)
-                    .WithMany()      // n�o exigir cole��o em Country
+                    .WithMany()
                     .HasForeignKey(x => x.CountryId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -96,8 +76,6 @@ namespace Colportor.Api.Data
             {
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Name).IsRequired();
-                // Se existir Code/Iso2 no seu modelo, crie �ndice �nico. Caso n�o exista, remova.
-                // e.HasIndex(x => x.Iso2).IsUnique();
             });
 
             // ===== NotificationLogs =====
@@ -113,8 +91,14 @@ namespace Colportor.Api.Data
             {
                 e.HasKey(x => x.Id);
                 e.Property(x => x.Status).IsRequired();
-                e.HasOne(x => x.Leader).WithMany().HasForeignKey(x => x.LeaderId).OnDelete(DeleteBehavior.Cascade);
-                e.HasOne(x => x.Colportor).WithMany(c => c.PacEnrollments).HasForeignKey(x => x.ColportorId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Leader)
+                    .WithMany()
+                    .HasForeignKey(x => x.LeaderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Colportor)
+                    .WithMany(c => c.PacEnrollments)
+                    .HasForeignKey(x => x.ColportorId)
+                    .OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.ColportorId, x.StartDate, x.EndDate });
             });
         }

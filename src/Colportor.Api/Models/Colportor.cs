@@ -11,8 +11,6 @@ namespace Colportor.Api.Models
         public string CPF { get; set; } = default!;
 
         // Agora Pa�s/Regi�o s�o relacionais (IDs), n�o strings:
-        public int? CountryId { get; set; }
-        public Country? Country { get; set; }
 
         public int? RegionId { get; set; }
         public Region? Region { get; set; }
