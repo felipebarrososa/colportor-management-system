@@ -729,7 +729,7 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
 }).RequireAuthorization(policy => policy.RequireRole("Colportor"));
 
 // Atualizar dados do colportor (próprio colportor)
-app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, UpdateColportorDto dto) =>
+app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, DTOsNS.UpdateColportorDto dto) =>
 {
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
@@ -821,7 +821,7 @@ app.MapPost("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx, 
     else
     {
         // Líder só pode selecionar colportores da sua região
-        var regionId = user.RegionId.Value;
+        var regionId = user.RegionId!.Value;
         allowed = await db.Colportors.Where(c => req.ColportorIds.Contains(c.Id) && c.RegionId == regionId).Select(c => c.Id).ToListAsync();
     }
     
