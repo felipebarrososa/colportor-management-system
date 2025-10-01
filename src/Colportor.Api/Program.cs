@@ -511,7 +511,7 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
 
-    var q = db.Colportors.Include(c => c.Region).Include(c => c.Visits).Include(c => c.PacEnrollments).AsQueryable();
+    var q = db.Colportors.AsQueryable();
 
     if (user.Role == "Leader")
     {
@@ -534,34 +534,39 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
 
     var list = await q.OrderBy(c => c.FullName).ToListAsync();
 
-    var projected = list.Select(c =>
+    var projected = new List<object>();
+    foreach (var c in list)
     {
         var (s, due) = StatusService.ComputeStatus(c.LastVisitDate);
         
+        // Buscar região
+        var region = c.RegionId.HasValue ? await db.Regions.FindAsync(c.RegionId.Value) : null;
+        
         // Buscar o status PAC mais recente
-        var latestPac = c.PacEnrollments
+        var latestPac = await db.PacEnrollments
+            .Where(p => p.ColportorId == c.Id)
             .OrderByDescending(p => p.CreatedAt)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
         
         var pacStatus = latestPac?.Status ?? "Nenhum";
         
-        return new
+        projected.Add(new
         {
             c.Id,
             c.FullName,
             c.CPF,
-            Region = c.Region != null ? c.Region.Name : null,
+            Region = region?.Name,
             c.City,
             c.PhotoUrl,
             c.LastVisitDate,
             Status = s,
             PacStatus = pacStatus,
             DueDate = due
-        };
-    });
+        });
+    }
 
     if (!string.IsNullOrWhiteSpace(status))
-        projected = projected.Where(x => string.Equals(x.Status, status, StringComparison.OrdinalIgnoreCase));
+        projected = projected.Where(x => string.Equals(((dynamic)x).Status, status, StringComparison.OrdinalIgnoreCase)).ToList();
 
     return Results.Ok(projected);
 }).RequireAuthorization(policy => policy.RequireRole("Admin", "Leader"));
@@ -638,9 +643,20 @@ app.MapPost("/admin/leaders", async (AppDbContext db, LeaderRegisterDto dto) =>
 app.MapGet("/admin/leaders/pending", async (AppDbContext db) =>
 {
     var list = await db.Users.Where(u => u.Role == "LeaderPending")
-        .Select(u => new { u.Id, u.Email, u.RegionId, Region = u.Region != null ? u.Region.Name : null })
         .OrderBy(u => u.Email).ToListAsync();
-    return Results.Ok(list);
+    
+    var result = new List<object>();
+    foreach (var u in list)
+    {
+        var region = u.RegionId.HasValue ? await db.Regions.FindAsync(u.RegionId.Value) : null;
+        result.Add(new { 
+            u.Id, 
+            u.Email, 
+            u.RegionId, 
+            Region = region?.Name 
+        });
+    }
+    return Results.Ok(result);
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 // Aprovar líder pendente (Admin)
@@ -665,9 +681,20 @@ app.MapGet("/admin/leaders", async (AppDbContext db, int? regionId, string? emai
         var term = email.Trim().ToLower();
         q = q.Where(u => u.Email.ToLower().Contains(term));
     }
-    var list = await q.Select(u => new { u.Id, u.Email, u.RegionId, Region = u.Region != null ? u.Region.Name : null })
-        .OrderBy(u => u.Email).ToListAsync();
-    return Results.Ok(list);
+    var list = await q.OrderBy(u => u.Email).ToListAsync();
+    
+    var result = new List<object>();
+    foreach (var u in list)
+    {
+        var region = u.RegionId.HasValue ? await db.Regions.FindAsync(u.RegionId.Value) : null;
+        result.Add(new { 
+            u.Id, 
+            u.Email, 
+            u.RegionId, 
+            Region = region?.Name 
+        });
+    }
+    return Results.Ok(result);
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 // Atualizar líder (Admin)
@@ -708,17 +735,21 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     if (user is null) return Results.Unauthorized();
     if (user.ColportorId is null) return Results.BadRequest();
 
-    var c = await db.Colportors.Include(x => x.Region).Include(x => x.Leader).Include(x => x.Visits)
-                               .SingleAsync(x => x.Id == user.ColportorId);
+    var c = await db.Colportors.SingleAsync(x => x.Id == user.ColportorId);
+    
+    // Carregar dados relacionados manualmente
+    var region = c.RegionId.HasValue ? await db.Regions.FindAsync(c.RegionId.Value) : null;
+    var leader = c.LeaderId.HasValue ? await db.Users.FindAsync(c.LeaderId.Value) : null;
+    var visits = await db.Visits.Where(v => v.ColportorId == c.Id).ToListAsync();
 
     var (status, due) = StatusService.ComputeStatus(c.LastVisitDate);
     
     // Debug logs
-    Console.WriteLine($"DEBUG: Colportor {c.FullName} - LeaderId: {c.LeaderId}, Leader: {c.Leader?.FullName ?? "NULL"}");
-    Console.WriteLine($"DEBUG: Leader object is null: {c.Leader == null}");
-    if (c.Leader != null)
+    Console.WriteLine($"DEBUG: Colportor {c.FullName} - LeaderId: {c.LeaderId}, Leader: {leader?.FullName ?? "NULL"}");
+    Console.WriteLine($"DEBUG: Leader object is null: {leader == null}");
+    if (leader != null)
     {
-        Console.WriteLine($"DEBUG: Leader details - Id: {c.Leader.Id}, FullName: {c.Leader.FullName}, Email: {c.Leader.Email}");
+        Console.WriteLine($"DEBUG: Leader details - Id: {leader.Id}, FullName: {leader.FullName}, Email: {leader.Email}");
     }
     
     return Results.Ok(new
@@ -726,8 +757,8 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
         c.Id,
         c.FullName,
         c.CPF,
-        Region = c.Region != null ? c.Region.Name : null,
-        Leader = c.Leader != null ? c.Leader.FullName : null,
+        Region = region?.Name,
+        Leader = leader?.FullName,
         c.City,
         c.PhotoUrl,
         c.LastVisitDate,
@@ -857,26 +888,65 @@ app.MapGet("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx) =
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
     if (user.Role != "Leader") return Results.Forbid();
-    var list = await db.PacEnrollments.Include(x => x.Colportor)
+    var list = await db.PacEnrollments
         .Where(x => x.LeaderId == user.Id)
         .OrderByDescending(x => x.CreatedAt)
-        .Select(x => new { x.Id, x.Status, x.StartDate, x.EndDate, Colportor = new { x.Colportor.Id, x.Colportor.FullName, x.Colportor.CPF } })
         .ToListAsync();
-    return Results.Ok(list);
+    
+    var result = new List<object>();
+    foreach (var x in list)
+    {
+        var colportor = await db.Colportors.FindAsync(x.ColportorId);
+        result.Add(new { 
+            x.Id, 
+            x.Status, 
+            x.StartDate, 
+            x.EndDate, 
+            Colportor = new { 
+                colportor?.Id, 
+                colportor?.FullName, 
+                colportor?.CPF 
+            } 
+        });
+    }
+    return Results.Ok(result);
 }).RequireAuthorization(policy => policy.RequireRole("Leader"));
 
 // Admin lista todas (+ filtros) e aprova/reprova
 app.MapGet("/admin/pac/enrollments", async (AppDbContext db, int? regionId, string? status, DateTime? from, DateTime? to) =>
 {
-    var q = db.PacEnrollments.Include(x => x.Colportor).Include(x => x.Leader).AsQueryable();
-    if (regionId is int rid) q = q.Where(x => x.Colportor.RegionId == rid);
+    var q = db.PacEnrollments.AsQueryable();
     if (!string.IsNullOrWhiteSpace(status)) q = q.Where(x => x.Status == status);
     if (from is DateTime f) q = q.Where(x => x.StartDate >= f);
     if (to is DateTime t) q = q.Where(x => x.EndDate <= t);
-    var list = await q.OrderBy(x => x.StartDate)
-        .Select(x => new { x.Id, x.Status, x.StartDate, x.EndDate, Leader = x.Leader.Email, Colportor = new { x.Colportor.Id, x.Colportor.FullName, x.Colportor.CPF, x.Colportor.RegionId } })
-        .ToListAsync();
-    return Results.Ok(list);
+    
+    var list = await q.OrderBy(x => x.StartDate).ToListAsync();
+    
+    var result = new List<object>();
+    foreach (var x in list)
+    {
+        var colportor = await db.Colportors.FindAsync(x.ColportorId);
+        var leader = await db.Users.FindAsync(x.LeaderId);
+        
+        // Filtrar por região se especificado
+        if (regionId is int rid && colportor?.RegionId != rid)
+            continue;
+            
+        result.Add(new { 
+            x.Id, 
+            x.Status, 
+            x.StartDate, 
+            x.EndDate, 
+            Leader = leader?.Email, 
+            Colportor = new { 
+                colportor?.Id, 
+                colportor?.FullName, 
+                colportor?.CPF, 
+                colportor?.RegionId 
+            } 
+        });
+    }
+    return Results.Ok(result);
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 app.MapPost("/admin/pac/enrollments/{id:int}/approve", async (AppDbContext db, int id) =>
