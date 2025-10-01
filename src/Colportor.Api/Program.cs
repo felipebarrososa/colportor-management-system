@@ -21,52 +21,12 @@ var builder = WebApplication.CreateBuilder(args);
 // DB - Sistema de connection string organizado por ambiente
 string connectionString;
 
-// Debug: Log todas as variáveis do Railway
-Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
-Console.WriteLine($"DATABASE_URL: {(string.IsNullOrEmpty(builder.Configuration["DATABASE_URL"]) ? "NULL" : "EXISTS")}");
-Console.WriteLine($"JWT_KEY: {(string.IsNullOrEmpty(builder.Configuration["JWT_KEY"]) ? "NULL" : "EXISTS")}");
-Console.WriteLine($"JWT_KEY length: {(builder.Configuration["JWT_KEY"]?.Length ?? 0)}");
-Console.WriteLine($"PORT: {builder.Configuration["PORT"]}");
-Console.WriteLine($"ASPNETCORE_URLS: {builder.Configuration["ASPNETCORE_URLS"]}");
-Console.WriteLine($"PGHOST: {builder.Configuration["PGHOST"]}");
-Console.WriteLine($"PGPORT: {builder.Configuration["PGPORT"]}");
-Console.WriteLine($"PGDATABASE: {builder.Configuration["PGDATABASE"]}");
-Console.WriteLine($"PGUSER: {builder.Configuration["PGUSER"]}");
-Console.WriteLine($"PGPASSWORD: {(string.IsNullOrEmpty(builder.Configuration["PGPASSWORD"]) ? "NULL" : "***")}");
-
-// Debug: Listar todas as variáveis de ambiente que começam com PG ou DATABASE
-var envVars = Environment.GetEnvironmentVariables();
-Console.WriteLine("Environment variables starting with PG or DATABASE:");
-foreach (System.Collections.DictionaryEntry envVar in envVars)
-{
-    var envKey = envVar.Key?.ToString();
-    if (envKey != null && (envKey.StartsWith("PG") || envKey.StartsWith("DATABASE")))
-    {
-        var envValue = envVar.Value?.ToString();
-        var safeValue = envKey.Contains("PASSWORD") ? "***" : envValue;
-        Console.WriteLine($"  {envKey}: {safeValue}");
-    }
-}
-
-// Debug: Listar TODAS as variáveis de ambiente para debug
-Console.WriteLine("All environment variables:");
-foreach (System.Collections.DictionaryEntry envVar in envVars)
-{
-    var envKey = envVar.Key?.ToString();
-    if (envKey != null && envKey.Contains("DATABASE"))
-    {
-        var envValue = envVar.Value?.ToString();
-        var safeValue = envKey.Contains("PASSWORD") ? "***" : envValue;
-        Console.WriteLine($"  {envKey}: {safeValue}");
-    }
-}
 
 // Lógica de connection string por ambiente
 if (builder.Environment.IsProduction())
 {
     // PRODUÇÃO: Usar DATABASE_URL do Railway
     var databaseUrl = builder.Configuration["DATABASE_URL"];
-    Console.WriteLine($"DATABASE_URL exists: {!string.IsNullOrEmpty(databaseUrl)}");
     
     if (!string.IsNullOrEmpty(databaseUrl))
     {
@@ -82,12 +42,10 @@ if (builder.Environment.IsProduction())
             var password = uri.UserInfo.Split(':')[1];
             
             connectionString = $"Host={host};Port={port};Database={database};Username={username};Password={password}";
-            Console.WriteLine("PRODUCTION: Using DATABASE_URL (converted to Npgsql format)");
         }
         else
         {
             connectionString = databaseUrl;
-            Console.WriteLine("PRODUCTION: Using DATABASE_URL (direct)");
         }
     }
     else
@@ -102,15 +60,11 @@ if (builder.Environment.IsProduction())
         if (!string.IsNullOrEmpty(pgHost) && !string.IsNullOrEmpty(pgDatabase))
         {
             connectionString = $"Host={pgHost};Port={pgPort};Database={pgDatabase};Username={pgUser};Password={pgPassword}";
-            Console.WriteLine("PRODUCTION: Using Railway individual variables");
         }
         else
         {
             // TEMPORÁRIO: Usar connection string hardcoded para Railway
-            // Substitua pelos valores reais do seu banco Railway
             connectionString = "postgresql://postgres:RNPzVecUtMNYkYRidaREmveXIZZHKsGD@postgres.railway.internal:5432/railway";
-            Console.WriteLine("PRODUCTION: Using hardcoded Railway connection string");
-            Console.WriteLine("⚠️  WARNING: This is a temporary solution! Please configure Railway properly.");
         }
     }
 }
@@ -119,14 +73,7 @@ else
     // DESENVOLVIMENTO: Usar appsettings.Development.json
     connectionString = builder.Configuration.GetConnectionString("Default") 
         ?? throw new InvalidOperationException("Development database connection not found");
-    Console.WriteLine("DEVELOPMENT: Using appsettings.Development.json");
 }
-
-// Debug: Log da connection string (sem senha)
-var safeConnectionString = connectionString.Contains("@") 
-    ? connectionString.Substring(0, connectionString.IndexOf("@")) + "@***" 
-    : connectionString;
-Console.WriteLine($"Using connection string: {safeConnectionString}");
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(connectionString));
@@ -148,7 +95,6 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 // Auth
 var jwtKey = builder.Configuration["JWT_KEY"] ?? builder.Configuration["Jwt:Key"] ?? "dev_key_change_me_please_change";
 var key = Encoding.UTF8.GetBytes(jwtKey);
-Console.WriteLine($"JWT Key length: {key.Length}");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
@@ -282,28 +228,17 @@ static async Task<ColpUser?> CurrentUserAsync(AppDbContext db, HttpContext ctx)
 // ========= AUTH =========
 app.MapPost("/auth/login", (AppDbContext db, JwtService jwt, LoginDto dto) =>
 {
-    Console.WriteLine($"🔐 Login attempt - Email: {dto.Email}");
     var user = db.Users.SingleOrDefault(u => u.Email == dto.Email);
     
     if (user is null)
-    {
-        Console.WriteLine($"❌ User not found: {dto.Email}");
         return Results.Unauthorized();
-    }
-    
-    Console.WriteLine($"✅ User found: {user.Email}, Role: {user.Role}");
     
     var passwordMatch = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-    Console.WriteLine($"🔑 Password match: {passwordMatch}");
     
     if (!passwordMatch)
-    {
-        Console.WriteLine($"❌ Invalid password for: {dto.Email}");
         return Results.Unauthorized();
-    }
 
-    var token = jwt.GenerateToken(user); // se possível, faça este service incluir Role e (se tiver) RegionId no token
-    Console.WriteLine($"✅ Login successful for: {dto.Email}");
+    var token = jwt.GenerateToken(user);
     return Results.Ok(new TokenDto(token));
 });
 
@@ -475,10 +410,6 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
         LeaderId = dto.LeaderId // Líder informado pelo frontend
     };
     
-    if (dto.LeaderId != null)
-    {
-        Console.WriteLine($"✅ Colportor vinculado ao líder ID: {dto.LeaderId}");
-    }
     
     db.Colportors.Add(colp);
     await db.SaveChangesAsync();
@@ -738,22 +669,15 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     if (user.ColportorId is null) return Results.BadRequest();
 
     var c = await db.Colportors.SingleAsync(x => x.Id == user.ColportorId);
-    
-    // Carregar dados relacionados manualmente
-    var region = c.RegionId.HasValue ? await db.Regions.FindAsync(c.RegionId.Value) : null;
-    var leader = c.LeaderId.HasValue ? await db.Users.FindAsync(c.LeaderId.Value) : null;
-    var visits = await db.Visits.Where(v => v.ColportorId == c.Id).ToListAsync();
-
     var (status, due) = StatusService.ComputeStatus(c.LastVisitDate);
-    
     
     return Results.Ok(new
     {
         c.Id,
         c.FullName,
         c.CPF,
-        Region = region?.Name,
-        Leader = leader?.FullName,
+        Region = c.RegionId.HasValue ? (await db.Regions.FindAsync(c.RegionId.Value))?.Name : null,
+        Leader = c.LeaderId.HasValue ? (await db.Users.FindAsync(c.LeaderId.Value))?.FullName : null,
         c.City,
         c.PhotoUrl,
         c.LastVisitDate,
@@ -965,11 +889,4 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
 // ========= HEALTH =========
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-Console.WriteLine("🚀 Application starting...");
-Console.WriteLine($"🌍 Environment: {app.Environment.EnvironmentName}");
-Console.WriteLine($"🔗 Listening on: http://+:8080");
-Console.WriteLine("✅ Application is ready!");
-
 app.Run();
-
-Console.WriteLine("❌ Application stopped!");
