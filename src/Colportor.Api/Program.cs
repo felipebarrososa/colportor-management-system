@@ -390,6 +390,25 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
     if (await db.Colportors.AnyAsync(c => c.CPF == dto.CPF))
         return Results.BadRequest("CPF já cadastrado.");
 
+    // Se LeaderId não for informado, busca automaticamente o líder da região
+    int? leaderId = dto.LeaderId;
+    if (leaderId == null && dto.RegionId != null)
+    {
+        var regionLeader = await db.Users
+            .Where(u => u.Role == "Leader" && u.RegionId == dto.RegionId)
+            .FirstOrDefaultAsync();
+        
+        if (regionLeader != null)
+        {
+            leaderId = regionLeader.Id;
+            Console.WriteLine($"✅ Auto-vinculando colportor à líder {regionLeader.Email} da região {dto.RegionId}");
+        }
+        else
+        {
+            Console.WriteLine($"⚠️ Nenhum líder encontrado para região {dto.RegionId}");
+        }
+    }
+
     var colp = new ColpColportor
     {
         FullName = dto.FullName.Trim(),
@@ -397,7 +416,7 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
         City = dto.City?.Trim(),
         PhotoUrl = dto.PhotoUrl,
         RegionId = dto.RegionId,
-        LeaderId = dto.LeaderId
+        LeaderId = leaderId
     };
     db.Colportors.Add(colp);
     await db.SaveChangesAsync();
@@ -428,7 +447,7 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
     return Results.Created($"/admin/colportors/{colp.Id}", new { colp.Id });
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-// Listar colportores (Admin vê tudo; Leader só a própria região)
+// Listar colportores (Admin vê tudo; Leader só os seus vinculados)
 app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string? city, string? cpf, string? status) =>
 {
     var user = await CurrentUserAsync(db, ctx);
@@ -436,10 +455,20 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
 
     var q = db.Colportors.Include(c => c.Region).Include(c => c.Visits).AsQueryable();
 
-    if (user.Role != "Admin")
+    if (user.Role == "Leader")
     {
-        if (user.RegionId is null) return Results.Forbid();
-        q = q.Where(c => c.RegionId == user.RegionId);
+        // Líder vê apenas colportores vinculados a ele
+        q = q.Where(c => c.LeaderId == user.Id);
+        Console.WriteLine($"🔍 Leader {user.Email} filtering colportors by LeaderId: {user.Id}");
+    }
+    else if (user.Role != "Admin")
+    {
+        // Outros roles não têm acesso
+        return Results.Forbid();
+    }
+    else
+    {
+        Console.WriteLine($"👑 Admin {user.Email} viewing all colportors");
     }
 
     if (!string.IsNullOrWhiteSpace(city)) q = q.Where(c => (c.City ?? "").ToLower().Contains(city.ToLower()));
