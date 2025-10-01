@@ -792,14 +792,14 @@ async function loadLeaderColportors() {
     const list = await res.json();
     if (!list.length) { pacColportors.innerHTML = `<div class="muted">Nenhum colportor na sua região.</div>`; return; }
     pacColportors.innerHTML = list.map(x => `
-        <label class="pac-checkbox-item">
-            <input type="checkbox" value="${x.id}" class="pac-checkbox">
-            <div class="pac-checkbox-label">
+        <div class="pac-checkbox-item">
+            <input type="checkbox" value="${x.id}" class="pac-checkbox" id="pac-${x.id}">
+            <label for="pac-${x.id}" class="pac-checkbox-label">
                 <strong>${escapeHtml(x.fullName)}</strong>
                 <span class="muted">${escapeHtml(x.cpf)}</span>
-            </div>
+            </label>
             <span class="pac-checkbox-check"></span>
-        </label>
+        </div>
     `).join("");
     updatePacCounter();
 }
