@@ -1684,6 +1684,17 @@ body.nav-open {
     display: inline-block;
 }
 
+/* ===== SECTION TITLES ===== */
+.section-title {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem 0;
+    padding-left: 0.5rem;
+    border-left: 4px solid var(--primary);
+    text-align: left;
+}
+
 /* ===== PAC DASHBOARD STYLES ===== */
 #pacDashboardPanel {
     margin: 20px 0;
