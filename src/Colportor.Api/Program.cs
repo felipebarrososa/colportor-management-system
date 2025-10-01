@@ -696,7 +696,7 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     if (user is null) return Results.Unauthorized();
     if (user.ColportorId is null) return Results.BadRequest();
 
-    var c = await db.Colportors.Include(x => x.Region).Include(x => x.Visits)
+    var c = await db.Colportors.Include(x => x.Region).Include(x => x.Leader).Include(x => x.Visits)
                                .SingleAsync(x => x.Id == user.ColportorId);
 
     var (status, due) = StatusService.ComputeStatus(c.LastVisitDate);
@@ -706,6 +706,7 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
         c.FullName,
         c.CPF,
         Region = c.Region != null ? c.Region.Name : null,
+        Leader = c.Leader != null ? c.Leader.FullName : null,
         c.City,
         c.PhotoUrl,
         c.LastVisitDate,

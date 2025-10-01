@@ -285,6 +285,7 @@ async function renderWallet() {
         $("#name").textContent = x.fullName ?? "—";
         $("#cpf").textContent = x.cpf ?? "—";
         $("#place").textContent = [x.city, x.region, x.country].filter(Boolean).join(" / ") || "—";
+        $("#leader").textContent = x.leader ?? "—";
         $("#lastVisit").textContent = x.lastVisitDate ? new Date(x.lastVisitDate).toLocaleDateString("pt-BR") : "—";
         $("#due").textContent = x.dueDate ? new Date(x.dueDate).toLocaleDateString("pt-BR") : "—";
 
