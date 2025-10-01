@@ -256,11 +256,28 @@ static async Task<ColpUser?> CurrentUserAsync(AppDbContext db, HttpContext ctx)
 // ========= AUTH =========
 app.MapPost("/auth/login", (AppDbContext db, JwtService jwt, LoginDto dto) =>
 {
+    Console.WriteLine($"🔐 Login attempt - Email: {dto.Email}");
     var user = db.Users.SingleOrDefault(u => u.Email == dto.Email);
-    if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+    
+    if (user is null)
+    {
+        Console.WriteLine($"❌ User not found: {dto.Email}");
         return Results.Unauthorized();
+    }
+    
+    Console.WriteLine($"✅ User found: {user.Email}, Role: {user.Role}");
+    
+    var passwordMatch = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+    Console.WriteLine($"🔑 Password match: {passwordMatch}");
+    
+    if (!passwordMatch)
+    {
+        Console.WriteLine($"❌ Invalid password for: {dto.Email}");
+        return Results.Unauthorized();
+    }
 
     var token = jwt.GenerateToken(user); // se possível, faça este service incluir Role e (se tiver) RegionId no token
+    Console.WriteLine($"✅ Login successful for: {dto.Email}");
     return Results.Ok(new TokenDto(token));
 });
 
