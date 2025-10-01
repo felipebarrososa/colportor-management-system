@@ -700,6 +700,10 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
                                .SingleAsync(x => x.Id == user.ColportorId);
 
     var (status, due) = StatusService.ComputeStatus(c.LastVisitDate);
+    
+    // Debug logs
+    Console.WriteLine($"DEBUG: Colportor {c.FullName} - LeaderId: {c.LeaderId}, Leader: {c.Leader?.FullName ?? "NULL"}");
+    
     return Results.Ok(new
     {
         c.Id,

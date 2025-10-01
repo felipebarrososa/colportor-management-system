@@ -201,6 +201,8 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
             lastVisitDate: lastVisitStr ? toUtcMidnightIso(lastVisitStr) : null,
         };
 
+        console.log("DEBUG: Registration payload:", body);
+
         if (!body.fullName || !body.cpf || !body.email || !body.password) {
             $("#registerError").hidden = false; return;
         }
