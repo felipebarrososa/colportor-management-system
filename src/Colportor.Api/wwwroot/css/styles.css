@@ -300,10 +300,18 @@ body {
 }
 
     .pill.EM\ DIA {
-        background: linear-gradient(135deg, #0f2d1f, #1d7a55);
-        color: #19da86;
-        border: 1px solid #1d7a55;
-        box-shadow: 0 2px 8px rgba(25,218,134,.2);
+        background: linear-gradient(135deg, #0f2d1f, #1d7a55) !important;
+        color: #19da86 !important;
+        border: 1px solid #1d7a55 !important;
+        box-shadow: 0 2px 8px rgba(25,218,134,.2) !important;
+    }
+    
+    /* Fallback para EM DIA sem escape */
+    .pill[class*="EM DIA"] {
+        background: linear-gradient(135deg, #0f2d1f, #1d7a55) !important;
+        color: #19da86 !important;
+        border: 1px solid #1d7a55 !important;
+        box-shadow: 0 2px 8px rgba(25,218,134,.2) !important;
     }
 
     .pill.AVISO {

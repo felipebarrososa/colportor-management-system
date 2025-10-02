@@ -323,15 +323,21 @@ async function renderWallet() {
         pill.textContent = x.status ?? "—";
         // Aplicar classe correta para status
         const status = (x.status || "").toUpperCase();
+        console.log("🔍 Status recebido:", status);
         if (status === "EM DIA") {
             pill.className = "pill EM\\ DIA";
+            console.log("✅ Aplicada classe: pill EM\\ DIA");
         } else if (status === "AVISO") {
             pill.className = "pill AVISO";
+            console.log("✅ Aplicada classe: pill AVISO");
         } else if (status === "VENCIDO") {
             pill.className = "pill VENCIDO";
+            console.log("✅ Aplicada classe: pill VENCIDO");
         } else {
             pill.className = "pill";
+            console.log("✅ Aplicada classe: pill (padrão)");
         }
+        console.log("🔍 Classe final aplicada:", pill.className);
 
         showScreen("#walletScreen");
         return true;
