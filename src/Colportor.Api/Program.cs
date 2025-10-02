@@ -407,7 +407,7 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
         FullName = dto.FullName.Trim(),
         CPF = dto.CPF.Trim(),
         Gender = dto.Gender?.Trim(),
-        BirthDate = dto.BirthDate,
+        BirthDate = dto.BirthDate.HasValue ? DateTime.SpecifyKind(dto.BirthDate.Value, DateTimeKind.Utc) : null,
         City = dto.City?.Trim(),
         PhotoUrl = dto.PhotoUrl,
         RegionId = dto.RegionId,
@@ -750,7 +750,7 @@ app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, DTOsNS.UpdateC
         colportor.Gender = dto.Gender.Trim();
     
     if (dto.BirthDate.HasValue)
-        colportor.BirthDate = dto.BirthDate.Value;
+        colportor.BirthDate = DateTime.SpecifyKind(dto.BirthDate.Value, DateTimeKind.Utc);
     
     if (dto.City != null)
         colportor.City = dto.City.Trim();
