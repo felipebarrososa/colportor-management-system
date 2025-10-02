@@ -45,7 +45,8 @@
                 <button id="btnCloseRegister" class="icon-btn" aria-label="Fechar">✕</button>
             </header>
 
-            <form id="registerForm" class="form grid-2">
+            <div class="dialog-body">
+                <form id="registerForm" class="form grid-2">
                 <input id="rFullName" placeholder="Nome Completo" required />
                 <input id="rCPF" placeholder="CPF" required />
 
@@ -105,7 +106,8 @@
                     <span class="spinner" hidden></span>
                 </button>
                 <p id="registerError" class="error full" hidden>Erro ao cadastrar. Verifique os campos.</p>
-            </form>
+                </form>
+            </div>
 
         </div>
         <div class="modal-backdrop"></div>
@@ -119,7 +121,8 @@
                 <button id="btnCloseEdit" class="icon-btn" aria-label="Fechar">✕</button>
             </header>
 
-            <form id="editForm" class="form grid-2">
+            <div class="dialog-body">
+                <form id="editForm" class="form grid-2">
                 <input id="eFullName" placeholder="Nome Completo" required />
                 <input id="eCPF" placeholder="CPF" required />
 
@@ -174,7 +177,8 @@
                     <span class="spinner" hidden></span>
                 </button>
                 <p id="editError" class="error full" hidden>Erro ao atualizar. Verifique os campos.</p>
-            </form>
+                </form>
+            </div>
 
         </div>
         <div class="modal-backdrop"></div>

@@ -262,6 +262,7 @@ a, button {
 
 .dialog {
     width: min(880px,92vw);
+    max-height: 90vh;
     background: #141820;
     border: 1px solid #1f2633;
     border-radius: 18px;
@@ -270,6 +271,9 @@ a, button {
     /* força renderização separada -> evita qualquer herança de blur */
     transform: translateZ(0);
     will-change: transform;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 
@@ -283,6 +287,39 @@ a, button {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.dialog-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-right: -8px;
+}
+
+/* Scrollbar personalizada para o modal */
+.dialog-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dialog-body::-webkit-scrollbar-track {
+    background: var(--stroke);
+    border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb {
+    background: var(--stroke-2);
+    border-radius: 3px;
+}
+
+.dialog-body::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+}
+
+/* Para Firefox */
+.dialog-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--stroke-2) var(--stroke);
 }
 
 .icon-btn {
