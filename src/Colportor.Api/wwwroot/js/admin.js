@@ -684,7 +684,7 @@ async function loadColportors() {
   <td>${escapeHtml(place)}</td>
   <td>${escapeHtml(x.city || "—")}</td>
   <td>${last ? last.toLocaleDateString("pt-BR") : "—"}</td>
-  <td><span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}">${status}</span></td>
+  <td><span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}" ${status === 'EM DIA' ? 'style="background: linear-gradient(135deg, #0f2d1f, #1d7a55); color: #19da86; border: 1px solid #1d7a55; box-shadow: 0 2px 8px rgba(25,218,134,.2);"' : ''}>${status}</span></td>
   <td>
     <div class="row-actions">
       <button class="btn sm ghost primary-ghost" data-action="checkin" data-id="${x.id}" title="Registrar check-in agora">Check-in</button>
@@ -726,7 +726,7 @@ async function loadColportors() {
       <div class="mobile-card-cpf">${escapeHtml(x.cpf || "—")}</div>
     </div>
     <div class="mobile-card-status">
-      <span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}">${status}</span>
+      <span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}" ${status === 'EM DIA' ? 'style="background: linear-gradient(135deg, #0f2d1f, #1d7a55); color: #19da86; border: 1px solid #1d7a55; box-shadow: 0 2px 8px rgba(25,218,134,.2);"' : ''}>${status}</span>
     </div>
   </div>
   <div class="mobile-card-details">

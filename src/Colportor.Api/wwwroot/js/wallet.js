@@ -326,7 +326,12 @@ async function renderWallet() {
         console.log("🔍 Status recebido:", status);
         if (status === "EM DIA") {
             pill.className = "pill EM\\ DIA";
-            console.log("✅ Aplicada classe: pill EM\\ DIA");
+            // APLICAR ESTILO DIRETAMENTE VIA JAVASCRIPT
+            pill.style.background = "linear-gradient(135deg, #0f2d1f, #1d7a55)";
+            pill.style.color = "#19da86";
+            pill.style.border = "1px solid #1d7a55";
+            pill.style.boxShadow = "0 2px 8px rgba(25,218,134,.2)";
+            console.log("✅ Aplicada classe: pill EM\\ DIA + estilo direto");
         } else if (status === "AVISO") {
             pill.className = "pill AVISO";
             console.log("✅ Aplicada classe: pill AVISO");
