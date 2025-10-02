@@ -617,12 +617,20 @@ rows?.addEventListener("click", async (e) => {
 });
 
 async function loadColportors() {
+    // Mostrar loading
+    if (rows) rows.innerHTML = '<tr><td colspan="9" class="text-center">Carregando...</td></tr>';
+    if (empty) empty.hidden = true;
+    
     const qs = new URLSearchParams();
     if (fCity.value.trim()) qs.set("city", fCity.value.trim());
     if (fCpf.value.trim()) qs.set("cpf", fCpf.value.trim());
     if (fStatus.value) qs.set("status", fStatus.value);
 
+    const startTime = Date.now();
     const res = await authFetch(`/admin/colportors?${qs.toString()}`);
+    const loadTime = Date.now() - startTime;
+    console.log(`⏱️ Colportors load time: ${loadTime}ms`);
+    
     if (!res.ok) {
         rows.innerHTML = "";
         empty.hidden = false;

@@ -443,7 +443,6 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
 // Listar colportores (Admin vê tudo; Leader só os seus vinculados)
 app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string? city, string? cpf, string? status) =>
 {
-    var startTime = DateTime.UtcNow;
     var user = await CurrentUserAsync(db, ctx);
     if (user is null) return Results.Unauthorized();
 
@@ -467,12 +466,10 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
     if (!string.IsNullOrWhiteSpace(cpf)) q = q.Where(c => c.CPF.Contains(cpf));
 
     var list = await q.OrderBy(c => c.FullName).ToListAsync();
-    Console.WriteLine($"⏱️ Colportors query: {(DateTime.UtcNow - startTime).TotalMilliseconds}ms");
 
     // Buscar todas as regiões de uma vez
     var regionIds = list.Where(c => c.RegionId.HasValue).Select(c => c.RegionId.Value).Distinct().ToList();
     var regions = await db.Regions.Where(r => regionIds.Contains(r.Id)).ToDictionaryAsync(r => r.Id, r => r.Name);
-    Console.WriteLine($"⏱️ Regions query: {(DateTime.UtcNow - startTime).TotalMilliseconds}ms");
     
     // Buscar todos os status PAC de uma vez
     var colportorIds = list.Select(c => c.Id).ToList();
@@ -481,7 +478,6 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
         .GroupBy(p => p.ColportorId)
         .Select(g => new { ColportorId = g.Key, Status = g.OrderByDescending(p => p.CreatedAt).First().Status })
         .ToDictionaryAsync(p => p.ColportorId, p => p.Status);
-    Console.WriteLine($"⏱️ PAC statuses query: {(DateTime.UtcNow - startTime).TotalMilliseconds}ms");
 
     var projected = new List<object>();
     foreach (var c in list)
@@ -513,7 +509,6 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
     if (!string.IsNullOrWhiteSpace(status))
         projected = projected.Where(x => string.Equals(((dynamic)x).Status, status, StringComparison.OrdinalIgnoreCase)).ToList();
 
-    Console.WriteLine($"⏱️ Total time: {(DateTime.UtcNow - startTime).TotalMilliseconds}ms");
     return Results.Ok(projected);
 }).RequireAuthorization(policy => policy.RequireRole("Admin", "Leader"));
 
