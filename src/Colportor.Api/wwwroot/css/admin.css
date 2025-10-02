@@ -188,7 +188,8 @@
 .pill {
     padding: .35rem .6rem;
     border-radius: 999px;
-    font-weight: 700
+    font-weight: 700;
+    /* Removido background e color para não interferir com status específicos */
 }
 
     .pill.EM\ DIA {

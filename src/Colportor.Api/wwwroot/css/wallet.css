@@ -681,6 +681,7 @@ a, button {
     gap: 4px;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     transition: all 0.2s ease;
+    /* Removido background e color para não interferir com status específicos */
 }
 
 .pill:hover {
