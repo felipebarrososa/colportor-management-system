@@ -796,3 +796,13 @@ a, button {
         animation: none !important;
     }
 }
+
+/* FORÇA O EM DIA A FUNCIONAR - REGRA MAIS ESPECÍFICA */
+#status.pill.EM\ DIA,
+#status.pill.EM_DIA,
+#status[class*="EM DIA"] {
+    background: linear-gradient(135deg, #0f2d1f, #1d7a55) !important;
+    color: #19da86 !important;
+    border: 1px solid #1d7a55 !important;
+    box-shadow: 0 2px 8px rgba(25,218,134,.2) !important;
+}
