@@ -286,15 +286,25 @@ body.nav-open {
     position: relative;
     margin: 8vh auto;
     width: min(760px,92vw);
+    max-height: 80vh;
     background: #0f141b;
     border: 1px solid var(--stroke);
     border-radius: 12px;
     box-shadow: var(--shadow);
-    backdrop-filter: none !important
+    backdrop-filter: none !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-header, .modal-body {
     padding: 12px 14px
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(80vh - 60px);
 }
 
 .modal-header {
