@@ -449,18 +449,27 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
     if (editLoading) {
         editLoading.hidden = false;
         editLoading.innerHTML = '<span class="spinner"></span><span>Carregando dados...</span>';
+        editLoading.classList.remove('success');
     }
     
-    await loadColportorData();
-    
-    // mostrar confirmação e depois esconder
-    if (editLoading) {
-        editLoading.innerHTML = '<span class="spinner"></span><span>Dados carregados!</span>';
-        editLoading.classList.add('success');
-        setTimeout(() => {
+    try {
+        await loadColportorData();
+        
+        // mostrar confirmação e depois esconder
+        if (editLoading) {
+            editLoading.innerHTML = '<span class="spinner"></span><span>Dados carregados!</span>';
+            editLoading.classList.add('success');
+            setTimeout(() => {
+                editLoading.hidden = true;
+                editLoading.classList.remove('success');
+            }, 1500);
+        }
+    } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        // esconder loading em caso de erro
+        if (editLoading) {
             editLoading.hidden = true;
-            editLoading.classList.remove('success');
-        }, 1500);
+        }
     }
     
     $("#eFullName")?.focus();
@@ -469,11 +478,25 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
 $("#btnCloseEdit")?.addEventListener("click", () => {
     editModal.classList.remove("show");
     editModal.setAttribute("aria-hidden", "true");
+    
+    // esconder loading quando fechar modal
+    const editLoading = document.getElementById("editLoading");
+    if (editLoading) {
+        editLoading.hidden = true;
+        editLoading.classList.remove('success');
+    }
 });
 editModal?.addEventListener("click", (e) => { 
     if (e.target === editModal) {
         editModal.classList.remove("show");
         editModal.setAttribute("aria-hidden", "true");
+        
+        // esconder loading quando fechar modal
+        const editLoading = document.getElementById("editLoading");
+        if (editLoading) {
+            editLoading.hidden = true;
+            editLoading.classList.remove('success');
+        }
     }
 });
 
