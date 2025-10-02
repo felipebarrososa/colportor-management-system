@@ -156,8 +156,8 @@ if (ROLE === "leader") {
     // Exibe painel de resumo PAC para líderes
     if (leaderPacPanel) {
         console.log('Showing PAC panel for leader');
-        leaderPacPanel.removeAttribute("hidden");
         leaderPacPanel.style.display = "block";
+        leaderPacPanel.removeAttribute("hidden");
     } else {
         console.log('PAC panel not found!');
     }
@@ -744,11 +744,12 @@ loadColportors();
 async function loadLeaderPacOverview() {
     try {
         console.log('Loading leader PAC overview...');
+        console.log('Leader PAC panel element:', leaderPacPanel);
         const res = await authFetch('/leader/pac/enrollments');
         console.log('PAC response:', res.status);
         if (!res.ok) { 
             console.log('PAC fetch failed:', res.status);
-            if (leaderPacPanel) leaderPacPanel.hidden = true; 
+            if (leaderPacPanel) leaderPacPanel.style.display = "none"; 
             return; 
         }
         const list = await res.json();
