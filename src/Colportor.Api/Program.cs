@@ -840,12 +840,13 @@ app.MapGet("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx) =
 }).RequireAuthorization(policy => policy.RequireRole("Leader"));
 
 // Admin lista todas (+ filtros) e aprova/reprova
-app.MapGet("/admin/pac/enrollments", async (AppDbContext db, int? regionId, string? status, DateTime? from, DateTime? to) =>
+app.MapGet("/admin/pac/enrollments", async (AppDbContext db, int? regionId, string? status, DateTime? from, DateTime? to, int? leaderId) =>
 {
     var q = db.PacEnrollments.AsQueryable();
     if (!string.IsNullOrWhiteSpace(status)) q = q.Where(x => x.Status == status);
     if (from is DateTime f) q = q.Where(x => x.StartDate >= f);
     if (to is DateTime t) q = q.Where(x => x.EndDate <= t);
+    if (leaderId is int lid) q = q.Where(x => x.LeaderId == lid);
     
     var list = await q.OrderBy(x => x.StartDate).ToListAsync();
     

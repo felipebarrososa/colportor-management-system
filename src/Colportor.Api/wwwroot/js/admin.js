@@ -122,6 +122,7 @@ const pacAdminModal = $("#pacAdminModal");
 const closePacAdminBtn = $("#closePacAdmin");
 const pacAdminCountry = $("#pacAdminCountry");
 const pacAdminRegion = $("#pacAdminRegion");
+const pacAdminLeader = $("#pacAdminLeader");
 const pacStatus = $("#pacStatus");
 const pacFrom = $("#pacFrom");
 const pacTo = $("#pacTo");
@@ -947,6 +948,11 @@ async function hydratePacAdminGeo() {
     pacAdminRegion.innerHTML = `<option value="">Todas</option>`;
     if (pacAdminCountry.options.length > 1) pacAdminCountry.selectedIndex = 1;
     await refreshPacAdminRegions();
+    
+    // Carregar líderes
+    const lRes = await authFetch("/admin/leaders");
+    const lList = (await lRes.json()) || [];
+    pacAdminLeader.innerHTML = `<option value="">Todos</option>` + lList.map(l => `<option value="${l.id}">${escapeHtml(l.fullName || l.email)}</option>`).join("");
 }
 pacAdminCountry?.addEventListener("change", refreshPacAdminRegions);
 async function refreshPacAdminRegions() {
@@ -1080,8 +1086,8 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate) {
         console.log('Loading specific PAC data for leader:', leaderId, 'period:', startDate, 'to', endDate);
         
         // Definir filtros visuais
-        if (pacAdminStartDate) pacAdminStartDate.value = startDate;
-        if (pacAdminEndDate) pacAdminEndDate.value = endDate;
+        if (pacFrom) pacFrom.value = startDate;
+        if (pacTo) pacTo.value = endDate;
         if (pacAdminLeader) {
             const leaderOption = Array.from(pacAdminLeader.options).find(opt => 
                 opt.value === leaderId
@@ -1091,10 +1097,13 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate) {
             }
         }
         
-        // Carregar dados específicos
-        const startDateParam = new Date(startDate).toISOString().split('T')[0];
-        const endDateParam = new Date(endDate).toISOString().split('T')[0];
-        const res = await authFetch(`/admin/pac/enrollments/leader/${leaderId}?startDate=${startDateParam}&endDate=${endDateParam}`);
+        // Carregar dados específicos usando filtros normais
+        const qs = new URLSearchParams();
+        qs.set("leaderId", leaderId);
+        qs.set("from", startDate);
+        qs.set("to", endDate);
+        
+        const res = await authFetch(`/admin/pac/enrollments?${qs.toString()}`);
         if (!res.ok) {
             console.error('Failed to load specific PAC data:', res.status);
             return;
