@@ -321,7 +321,17 @@ async function renderWallet() {
 
         const pill = $("#status");
         pill.textContent = x.status ?? "—";
-        pill.className = "pill " + (x.status || "");
+        // Aplicar classe correta para status
+        const status = (x.status || "").toUpperCase();
+        if (status === "EM DIA") {
+            pill.className = "pill EM\\ DIA";
+        } else if (status === "AVISO") {
+            pill.className = "pill AVISO";
+        } else if (status === "VENCIDO") {
+            pill.className = "pill VENCIDO";
+        } else {
+            pill.className = "pill";
+        }
 
         showScreen("#walletScreen");
         return true;
@@ -456,16 +466,19 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
         await loadColportorData();
         
         // esconder loading imediatamente após carregar
+        console.log("✅ Dados carregados, escondendo loading...");
         if (editLoading) {
             editLoading.hidden = true;
             editLoading.classList.remove('success');
+            console.log("✅ Loading escondido com sucesso");
         }
     } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("❌ Erro ao carregar dados:", error);
         // esconder loading em caso de erro
         if (editLoading) {
             editLoading.hidden = true;
             editLoading.classList.remove('success');
+            console.log("✅ Loading escondido após erro");
         }
     }
     

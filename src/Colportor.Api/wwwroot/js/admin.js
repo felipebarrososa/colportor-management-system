@@ -684,7 +684,7 @@ async function loadColportors() {
   <td>${escapeHtml(place)}</td>
   <td>${escapeHtml(x.city || "—")}</td>
   <td>${last ? last.toLocaleDateString("pt-BR") : "—"}</td>
-  <td><span class="pill ${status}">${status}</span></td>
+  <td><span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}">${status}</span></td>
   <td>
     <div class="row-actions">
       <button class="btn sm ghost primary-ghost" data-action="checkin" data-id="${x.id}" title="Registrar check-in agora">Check-in</button>
@@ -726,7 +726,7 @@ async function loadColportors() {
       <div class="mobile-card-cpf">${escapeHtml(x.cpf || "—")}</div>
     </div>
     <div class="mobile-card-status">
-      <span class="pill ${status}">${status}</span>
+      <span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}">${status}</span>
     </div>
   </div>
   <div class="mobile-card-details">
