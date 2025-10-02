@@ -297,6 +297,29 @@ a, button {
     margin-right: -8px;
 }
 
+/* Loading inline simples */
+.inline-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    color: var(--muted);
+    margin-bottom: 12px;
+}
+.inline-loading .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #0000;
+    border-left-color: var(--muted);
+    border-right-color: var(--muted);
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin .7s linear infinite;
+}
+
 /* Scrollbar personalizada para o modal */
 .dialog-body::-webkit-scrollbar {
     width: 6px;

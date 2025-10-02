@@ -284,6 +284,9 @@ async function createVisitForSelf(isoDate) {
 // ===== render carteira =====
 async function renderWallet() {
     try {
+        // mostrar loading na carteirinha
+        const wl = document.getElementById("walletLoading");
+        if (wl) wl.hidden = false;
         const me = await api("/wallet/me");
         if (!me.ok) {
             console.error("Erro na carteira:", me.status, me.statusText);
@@ -324,9 +327,12 @@ async function renderWallet() {
         pill.className = "pill " + (x.status || "");
 
         showScreen("#walletScreen");
+        if (wl) wl.hidden = true;
         return true;
     } catch (err) {
         console.error(err);
+        const wl = document.getElementById("walletLoading");
+        if (wl) wl.hidden = true;
         localStorage.removeItem("token");
         showScreen("#authScreen");
         return false;
@@ -443,7 +449,11 @@ async function loadColportorData() {
 $("#btnEditProfile")?.addEventListener("click", async () => {
     editModal.classList.add("show");
     editModal.setAttribute("aria-hidden", "false");
+    // mostrar loading do modal
+    const editLoading = document.getElementById("editLoading");
+    if (editLoading) editLoading.hidden = false;
     await loadColportorData();
+    if (editLoading) editLoading.hidden = true;
     $("#eFullName")?.focus();
 });
 
