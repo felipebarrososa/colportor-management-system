@@ -456,10 +456,14 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
     
     // mostrar loading do modal
     const editLoading = document.getElementById("editLoading");
+    console.log("🔍 Elemento editLoading encontrado:", editLoading);
     if (editLoading) {
         editLoading.hidden = false;
         editLoading.innerHTML = '<span class="spinner"></span><span>Carregando dados...</span>';
         editLoading.classList.remove('success');
+        console.log("✅ Loading mostrado");
+    } else {
+        console.error("❌ Elemento editLoading não encontrado!");
     }
     
     try {
@@ -468,14 +472,19 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
         // esconder loading imediatamente após carregar
         console.log("✅ Dados carregados, escondendo loading...");
         if (editLoading) {
+            editLoading.style.display = 'none';
             editLoading.hidden = true;
             editLoading.classList.remove('success');
             console.log("✅ Loading escondido com sucesso");
+            console.log("🔍 Estado do elemento:", editLoading.hidden, editLoading.style.display);
+        } else {
+            console.error("❌ Elemento editLoading não encontrado para esconder!");
         }
     } catch (error) {
         console.error("❌ Erro ao carregar dados:", error);
         // esconder loading em caso de erro
         if (editLoading) {
+            editLoading.style.display = 'none';
             editLoading.hidden = true;
             editLoading.classList.remove('success');
             console.log("✅ Loading escondido após erro");
@@ -492,6 +501,7 @@ $("#btnCloseEdit")?.addEventListener("click", () => {
     // esconder loading quando fechar modal
     const editLoading = document.getElementById("editLoading");
     if (editLoading) {
+        editLoading.style.display = 'none';
         editLoading.hidden = true;
         editLoading.classList.remove('success');
     }
@@ -504,6 +514,7 @@ editModal?.addEventListener("click", (e) => {
         // esconder loading quando fechar modal
         const editLoading = document.getElementById("editLoading");
         if (editLoading) {
+            editLoading.style.display = 'none';
             editLoading.hidden = true;
             editLoading.classList.remove('success');
         }
