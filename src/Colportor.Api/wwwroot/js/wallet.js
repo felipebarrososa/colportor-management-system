@@ -401,7 +401,7 @@ async function loadColportorData() {
         const res = await api("/wallet/me");
         if (!res.ok) {
             console.error("❌ Erro na resposta:", res.status, res.statusText);
-            return false;
+            throw new Error(`Erro na API: ${res.status}`);
         }
         
         currentColportorData = await res.json();
@@ -455,20 +455,17 @@ $("#btnEditProfile")?.addEventListener("click", async () => {
     try {
         await loadColportorData();
         
-        // mostrar confirmação e depois esconder
+        // esconder loading imediatamente após carregar
         if (editLoading) {
-            editLoading.innerHTML = '<span class="spinner"></span><span>Dados carregados!</span>';
-            editLoading.classList.add('success');
-            setTimeout(() => {
-                editLoading.hidden = true;
-                editLoading.classList.remove('success');
-            }, 1500);
+            editLoading.hidden = true;
+            editLoading.classList.remove('success');
         }
     } catch (error) {
         console.error("Erro ao carregar dados:", error);
         // esconder loading em caso de erro
         if (editLoading) {
             editLoading.hidden = true;
+            editLoading.classList.remove('success');
         }
     }
     
