@@ -467,28 +467,36 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
 
     var list = await q.OrderBy(c => c.FullName).ToListAsync();
 
+    // Buscar todas as regiões de uma vez
+    var regionIds = list.Where(c => c.RegionId.HasValue).Select(c => c.RegionId.Value).Distinct().ToList();
+    var regions = await db.Regions.Where(r => regionIds.Contains(r.Id)).ToDictionaryAsync(r => r.Id, r => r.Name);
+    
+    // Buscar todos os status PAC de uma vez
+    var colportorIds = list.Select(c => c.Id).ToList();
+    var pacStatuses = await db.PacEnrollments
+        .Where(p => colportorIds.Contains(p.ColportorId))
+        .GroupBy(p => p.ColportorId)
+        .Select(g => new { ColportorId = g.Key, Status = g.OrderByDescending(p => p.CreatedAt).First().Status })
+        .ToDictionaryAsync(p => p.ColportorId, p => p.Status);
+
     var projected = new List<object>();
     foreach (var c in list)
     {
         var (s, due) = StatusService.ComputeStatus(c.LastVisitDate);
         
-        // Buscar região
-        var region = c.RegionId.HasValue ? await db.Regions.FindAsync(c.RegionId.Value) : null;
+        // Usar dados já carregados
+        var regionName = c.RegionId.HasValue && regions.ContainsKey(c.RegionId.Value) 
+            ? regions[c.RegionId.Value] 
+            : null;
         
-        // Buscar o status PAC mais recente
-        var latestPac = await db.PacEnrollments
-            .Where(p => p.ColportorId == c.Id)
-            .OrderByDescending(p => p.CreatedAt)
-            .FirstOrDefaultAsync();
-        
-        var pacStatus = latestPac?.Status ?? "Nenhum";
+        var pacStatus = pacStatuses.ContainsKey(c.Id) ? pacStatuses[c.Id] : "Nenhum";
         
         projected.Add(new
         {
             c.Id,
             c.FullName,
             c.CPF,
-            Region = region?.Name,
+            Region = regionName,
             c.City,
             c.PhotoUrl,
             c.LastVisitDate,
