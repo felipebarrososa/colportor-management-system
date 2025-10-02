@@ -973,7 +973,7 @@ async function loadPacAdmin() {
     if (rid) qs.set("regionId", String(rid));
     if (pacStatus?.value) qs.set("status", pacStatus.value);
     if (pacFrom?.value) qs.set("from", new Date(pacFrom.value + "T00:00:00Z").toISOString());
-    if (pacTo?.value) qs.set("to", new Date(pacTo.value + "T00:00:00Z").toISOString());
+    if (pacTo?.value) qs.set("to", new Date(pacTo.value + "T23:59:59Z").toISOString());
     if (pacAdminLeader?.value) qs.set("leaderId", pacAdminLeader.value);
     const res = await authFetch(`/admin/pac/enrollments?${qs.toString()}`);
     if (!res.ok) { pacAdminList.innerHTML = `<div class=\"muted\">Falha ao carregar.</div>`; return; }
@@ -1107,8 +1107,8 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate, status) {
         // Carregar dados específicos usando filtros normais
         const qs = new URLSearchParams();
         qs.set("leaderId", leaderId);
-        qs.set("from", startDate);
-        qs.set("to", endDate);
+        qs.set("from", new Date(startDate + "T00:00:00Z").toISOString());
+        qs.set("to", new Date(endDate + "T23:59:59Z").toISOString());
         
         const res = await authFetch(`/admin/pac/enrollments?${qs.toString()}`);
         if (!res.ok) {
