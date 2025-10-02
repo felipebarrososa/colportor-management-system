@@ -193,6 +193,8 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
         const body = {
             fullName: $("#rFullName").value.trim(),
             cpf: $("#rCPF").value.trim(),
+            gender: $("#rGender").value || null,
+            birthDate: $("#rBirthDate").value || null,
             city: $("#rCity").value.trim() || null,
             photoUrl,
             email: $("#rEmail").value.trim(),
