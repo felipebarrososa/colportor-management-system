@@ -308,6 +308,7 @@ a, button {
     border-radius: 8px;
     color: var(--muted);
     margin-bottom: 12px;
+    transition: all 0.3s ease;
 }
 .inline-loading .spinner {
     width: 18px;
@@ -318,6 +319,17 @@ a, button {
     border-radius: 50%;
     display: inline-block;
     animation: spin .7s linear infinite;
+}
+
+/* Estado de sucesso */
+.inline-loading.success {
+    background: var(--ok-bg);
+    border-color: var(--ok-bd);
+    color: var(--ok-fg);
+}
+.inline-loading.success .spinner {
+    border-left-color: var(--ok-fg);
+    border-right-color: var(--ok-fg);
 }
 
 /* Scrollbar personalizada para o modal */

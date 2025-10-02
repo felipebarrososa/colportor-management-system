@@ -443,11 +443,26 @@ async function loadColportorData() {
 $("#btnEditProfile")?.addEventListener("click", async () => {
     editModal.classList.add("show");
     editModal.setAttribute("aria-hidden", "false");
+    
     // mostrar loading do modal
     const editLoading = document.getElementById("editLoading");
-    if (editLoading) editLoading.hidden = false;
+    if (editLoading) {
+        editLoading.hidden = false;
+        editLoading.innerHTML = '<span class="spinner"></span><span>Carregando dados...</span>';
+    }
+    
     await loadColportorData();
-    if (editLoading) editLoading.hidden = true;
+    
+    // mostrar confirmação e depois esconder
+    if (editLoading) {
+        editLoading.innerHTML = '<span class="spinner"></span><span>Dados carregados!</span>';
+        editLoading.classList.add('success');
+        setTimeout(() => {
+            editLoading.hidden = true;
+            editLoading.classList.remove('success');
+        }, 1500);
+    }
+    
     $("#eFullName")?.focus();
 });
 
