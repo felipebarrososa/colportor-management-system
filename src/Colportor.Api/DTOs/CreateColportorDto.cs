@@ -4,8 +4,8 @@
     {
     public string FullName { get; set; } = "";
     public string CPF { get; set; } = "";
-    // public string? Gender { get; set; } // TEMPORARIAMENTE COMENTADO
-    // public DateTime? BirthDate { get; set; } // TEMPORARIAMENTE COMENTADO
+    public string? Gender { get; set; }
+    public DateTime? BirthDate { get; set; }
     public string? Country { get; set; } = "Brasil";
     public string? City { get; set; }
     public string? PhotoUrl { get; set; }

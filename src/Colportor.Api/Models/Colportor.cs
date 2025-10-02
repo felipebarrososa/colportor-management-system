@@ -9,8 +9,8 @@ namespace Colportor.Api.Models
 
         public string FullName { get; set; } = default!;
         public string CPF { get; set; } = default!;
-        // public string? Gender { get; set; } // Masculino, Feminino, Outro - TEMPORARIAMENTE COMENTADO
-        // public DateTime? BirthDate { get; set; } // TEMPORARIAMENTE COMENTADO
+        public string? Gender { get; set; } // Masculino, Feminino
+        public DateTime? BirthDate { get; set; }
 
         // Agora Pa�s/Regi�o s�o relacionais (IDs), n�o strings:
 
