@@ -1,4 +1,6 @@
 // ===== helpers =====
+import { loadingManager } from "/js/loading.js";
+
 const $ = (q) => document.querySelector(q);
 const api = (path, opts = {}) => {
     const token = localStorage.getItem("token");
@@ -214,7 +216,12 @@ $("#registerForm")?.addEventListener("submit", async (e) => {
 
         // 1) Cria conta
         const res = await api("/auth/register", { method: "POST", body: JSON.stringify(body) });
-        if (!res.ok) { $("#registerError").hidden = false; return; }
+        if (!res.ok) { 
+            $("#registerError").hidden = false; 
+            btn.disabled = false; 
+            if (spinner) spinner.hidden = true; 
+            return; 
+        }
 
         // 2) Login automático
         const resLogin = await api("/auth/login", {
@@ -279,8 +286,16 @@ async function createVisitForSelf(isoDate) {
 // ===== render carteira =====
 async function renderWallet() {
     try {
+        // Mostrar loading na carteira
+        const walletScreen = document.getElementById('walletScreen');
+        let loadingId = null;
+        if (walletScreen) {
+            loadingId = loadingManager.showSection(walletScreen, 'Carregando carteira...');
+        }
+        
         const me = await api("/wallet/me");
         if (!me.ok) {
+            if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
             console.error("Erro na carteira:", me.status, me.statusText);
             localStorage.removeItem("token");
             showScreen("#authScreen");
@@ -319,9 +334,13 @@ async function renderWallet() {
         pill.className = "pill " + (x.status || "");
 
         showScreen("#walletScreen");
+        
+        // Esconder loading
+        if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
         return true;
     } catch (err) {
         console.error(err);
+        if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
         localStorage.removeItem("token");
         showScreen("#authScreen");
         return false;
@@ -534,6 +553,8 @@ $("#editForm")?.addEventListener("submit", async (e) => {
             const errorText = await res.text();
             $("#editError").textContent = errorText || "Erro ao atualizar dados.";
             $("#editError").hidden = false;
+            btn.disabled = false;
+            if (spinner) spinner.hidden = true;
             return;
         }
 

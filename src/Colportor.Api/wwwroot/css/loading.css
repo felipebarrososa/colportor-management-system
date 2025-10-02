@@ -1,0 +1,254 @@
+/* ================== Loading Components ================== */
+
+/* Loading overlay global */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 17, 21, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.loading-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Loading spinner principal */
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--stroke);
+    border-left-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+/* Loading card */
+.loading-card {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: var(--shadow-2);
+    max-width: 300px;
+    width: 90%;
+}
+
+.loading-text {
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.loading-subtext {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 8px 0 0 0;
+}
+
+/* Loading states para seções específicas */
+.section-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.section-loading .spinner {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+}
+
+/* Loading para tabelas */
+.table-loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+.table-loading .spinner {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+}
+
+/* Loading para cards */
+.card-loading {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.card-loading .spinner {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+}
+
+/* Loading para botões */
+.btn-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.btn-loading .btn-text {
+    opacity: 0.7;
+}
+
+.btn-loading .spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    margin: 0;
+}
+
+/* Loading skeleton para conteúdo */
+.skeleton {
+    background: linear-gradient(90deg, var(--stroke) 25%, var(--stroke-2) 50%, var(--stroke) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.medium {
+    width: 80%;
+}
+
+.skeleton-text.long {
+    width: 100%;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-button {
+    height: 36px;
+    width: 100px;
+    border-radius: 6px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Loading para modais */
+.modal-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(20, 24, 32, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    z-index: 10;
+}
+
+.modal-loading .loading-card {
+    background: var(--panel-2);
+    border: 1px solid var(--stroke-2);
+    padding: 24px;
+    max-width: 250px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .loading-card {
+        padding: 24px 20px;
+        margin: 20px;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border-width: 3px;
+    }
+    
+    .loading-text {
+        font-size: 14px;
+    }
+    
+    .loading-subtext {
+        font-size: 12px;
+    }
+}
+
+/* Estados de loading específicos */
+.loading-dashboard {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-table {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-modal {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Animações de entrada */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.loading-overlay.show .loading-card {
+    animation: fadeInUp 0.3s ease-out;
+}
