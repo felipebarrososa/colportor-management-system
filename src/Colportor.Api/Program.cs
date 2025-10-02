@@ -404,8 +404,8 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
     {
         FullName = dto.FullName.Trim(),
         CPF = dto.CPF.Trim(),
-        Gender = dto.Gender?.Trim(),
-        BirthDate = dto.BirthDate,
+        // Gender = dto.Gender?.Trim(), // TEMPORARIAMENTE COMENTADO
+        // BirthDate = dto.BirthDate, // TEMPORARIAMENTE COMENTADO
         City = dto.City?.Trim(),
         PhotoUrl = dto.PhotoUrl,
         RegionId = dto.RegionId,
@@ -498,8 +498,8 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
             c.Id,
             c.FullName,
             c.CPF,
-            Gender = c.Gender ?? null,
-            BirthDate = c.BirthDate,
+            // Gender = c.Gender ?? null, // TEMPORARIAMENTE COMENTADO
+            // BirthDate = c.BirthDate, // TEMPORARIAMENTE COMENTADO
             Region = regionName,
             c.City,
             c.PhotoUrl,
@@ -683,21 +683,21 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
     var c = await db.Colportors.SingleAsync(x => x.Id == user.ColportorId);
     var (status, due) = StatusService.ComputeStatus(c.LastVisitDate);
     
-    return Results.Ok(new
-    {
-        c.Id,
-        c.FullName,
-        c.CPF,
-        Gender = c.Gender ?? null,
-        BirthDate = c.BirthDate,
-        Region = c.RegionId.HasValue ? (await db.Regions.FindAsync(c.RegionId.Value))?.Name : null,
-        Leader = c.LeaderId.HasValue ? (await db.Users.FindAsync(c.LeaderId.Value))?.FullName : null,
-        c.City,
-        c.PhotoUrl,
-        c.LastVisitDate,
-        Status = status,
-        DueDate = due
-    });
+        return Results.Ok(new
+        {
+            c.Id,
+            c.FullName,
+            c.CPF,
+            // Gender = c.Gender ?? null, // TEMPORARIAMENTE COMENTADO
+            // BirthDate = c.BirthDate, // TEMPORARIAMENTE COMENTADO
+            Region = c.RegionId.HasValue ? (await db.Regions.FindAsync(c.RegionId.Value))?.Name : null,
+            Leader = c.LeaderId.HasValue ? (await db.Users.FindAsync(c.LeaderId.Value))?.FullName : null,
+            c.City,
+            c.PhotoUrl,
+            c.LastVisitDate,
+            Status = status,
+            DueDate = due
+        });
 }).RequireAuthorization(policy => policy.RequireRole("Colportor"));
 
 // Atualizar dados do colportor (próprio colportor)
@@ -744,11 +744,11 @@ app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, DTOsNS.UpdateC
     if (!string.IsNullOrWhiteSpace(dto.CPF))
         colportor.CPF = dto.CPF.Trim();
     
-    if (!string.IsNullOrWhiteSpace(dto.Gender))
-        colportor.Gender = dto.Gender.Trim();
+    // if (!string.IsNullOrWhiteSpace(dto.Gender)) // TEMPORARIAMENTE COMENTADO
+    //     colportor.Gender = dto.Gender.Trim();
     
-    if (dto.BirthDate.HasValue)
-        colportor.BirthDate = dto.BirthDate.Value;
+    // if (dto.BirthDate.HasValue) // TEMPORARIAMENTE COMENTADO
+    //     colportor.BirthDate = dto.BirthDate.Value;
     
     if (dto.City != null)
         colportor.City = dto.City.Trim();
