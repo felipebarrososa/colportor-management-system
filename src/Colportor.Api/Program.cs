@@ -904,7 +904,7 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
 app.MapGet("/admin/pac/enrollments/leader/{leaderId:int}", async (AppDbContext db, int leaderId, DateTime startDate, DateTime endDate) =>
 {
     var enrollments = await db.PacEnrollments
-        .Where(p => p.LeaderId == leaderId && p.StartDate == startDate && p.EndDate == endDate)
+        .Where(p => p.LeaderId == leaderId && p.StartDate.Date == startDate.Date && p.EndDate.Date == endDate.Date)
         .OrderBy(p => p.StartDate)
         .ToListAsync();
     

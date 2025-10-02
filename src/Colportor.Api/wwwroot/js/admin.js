@@ -1092,7 +1092,9 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate) {
         }
         
         // Carregar dados específicos
-        const res = await authFetch(`/admin/pac/enrollments/leader/${leaderId}?startDate=${startDate}&endDate=${endDate}`);
+        const startDateParam = new Date(startDate).toISOString().split('T')[0];
+        const endDateParam = new Date(endDate).toISOString().split('T')[0];
+        const res = await authFetch(`/admin/pac/enrollments/leader/${leaderId}?startDate=${startDateParam}&endDate=${endDateParam}`);
         if (!res.ok) {
             console.error('Failed to load specific PAC data:', res.status);
             return;
@@ -1135,6 +1137,15 @@ function renderPacAdminList(requests) {
         const endDate = new Date(request.endDate).toLocaleDateString('pt-BR');
         const statusClass = `pill ${request.status}`;
         
+        const actionButtons = request.status === 'Pending' 
+            ? `<div class="actions">
+                <button class="btn" data-approve="${request.id}">Aprovar</button>
+                <button class="btn danger" data-reject="${request.id}">Rejeitar</button>
+               </div>`
+            : `<div class="actions">
+                <span class="muted">${request.status === 'Approved' ? 'Aprovado' : 'Rejeitado'}</span>
+               </div>`;
+        
         return `
             <div class="item">
                 <div>
@@ -1148,10 +1159,7 @@ function renderPacAdminList(requests) {
                 </div>
                 <div>
                     <span class="${statusClass}">${escapeHtml(request.status)}</span>
-                    <div class="actions">
-                        <button class="btn" data-approve="${request.id}">Aprovar</button>
-                        <button class="btn danger" data-reject="${request.id}">Rejeitar</button>
-                    </div>
+                    ${actionButtons}
                 </div>
             </div>
         `;
