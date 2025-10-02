@@ -900,6 +900,41 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
     return Results.Ok();
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+// Buscar solicitações PAC de um líder específico em um período
+app.MapGet("/admin/pac/enrollments/leader/{leaderId:int}", async (AppDbContext db, int leaderId, DateTime startDate, DateTime endDate) =>
+{
+    var enrollments = await db.PacEnrollments
+        .Where(p => p.LeaderId == leaderId && p.StartDate == startDate && p.EndDate == endDate)
+        .OrderBy(p => p.StartDate)
+        .ToListAsync();
+    
+    var result = new List<object>();
+    foreach (var x in enrollments)
+    {
+        var colportor = await db.Colportors.FindAsync(x.ColportorId);
+        var leader = await db.Users.FindAsync(x.LeaderId);
+        var leaderRegion = leader?.RegionId != null ? await db.Regions.FindAsync(leader.RegionId) : null;
+            
+        result.Add(new { 
+            x.Id, 
+            x.Status, 
+            x.StartDate, 
+            x.EndDate,
+            x.CreatedAt,
+            LeaderId = leader?.Id,
+            Leader = leader?.FullName ?? leader?.Email, 
+            Region = leaderRegion?.Name ?? "Região não informada",
+            Colportor = new { 
+                colportor?.Id, 
+                colportor?.FullName, 
+                colportor?.CPF, 
+                colportor?.RegionId 
+            } 
+        });
+    }
+    return Results.Ok(result);
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
 // ========= HEALTH =========
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 

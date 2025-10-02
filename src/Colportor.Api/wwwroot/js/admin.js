@@ -979,17 +979,8 @@ async function loadPacAdmin() {
     document.getElementById('kpiPend').textContent = pend;
     document.getElementById('kpiApr').textContent = apr;
     document.getElementById('kpiRej').textContent = rej;
-    pacAdminList.innerHTML = list.map(x => `
-        <div class=\"item\">
-            <div>
-                <strong>${escapeHtml(x.colportor.fullName)}</strong> — ${escapeHtml(x.colportor.cpf)}
-                <div class=\"muted\">${new Date(x.startDate).toLocaleDateString("pt-BR")} a ${new Date(x.endDate).toLocaleDateString("pt-BR")} • ${escapeHtml(x.status)} • Líder: ${escapeHtml(x.leader)}</div>
-            </div>
-            <div>
-                ${x.status === 'Pending' ? `<button class=\"btn\" data-approve=\"${x.id}\">Aprovar</button> <button class=\"btn danger\" data-reject=\"${x.id}\">Rejeitar</button>` : ''}
-            </div>
-        </div>
-    `).join("");
+    // Usar a função renderPacAdminList para consistência
+    renderPacAdminList(list);
 }
 
 pacAdminList?.addEventListener("click", async (e) => {
@@ -1078,24 +1069,94 @@ pacRecentList?.addEventListener("click", (e) => {
         pacAdminModal.classList.add("show");
         lockBodyScroll();
         
-        // Aplicar filtros para mostrar apenas as solicitações deste líder e período
-        setTimeout(() => {
-            if (pacAdminStartDate) pacAdminStartDate.value = startDate;
-            if (pacAdminEndDate) pacAdminEndDate.value = endDate;
-            if (pacAdminLeader) {
-                // Encontrar o líder na lista e selecionar
-                const leaderOption = Array.from(pacAdminLeader.options).find(opt => 
-                    opt.value === leaderId
-                );
-                if (leaderOption) {
-                    pacAdminLeader.value = leaderId;
-                }
-            }
-            // Aplicar filtros
-            loadPacAdmin();
-        }, 100);
+        // Carregar dados específicos da solicitação
+        loadPacAdminSpecific(leaderId, startDate, endDate);
     }
 });
+
+// Carregar dados específicos de uma solicitação PAC
+async function loadPacAdminSpecific(leaderId, startDate, endDate) {
+    try {
+        console.log('Loading specific PAC data for leader:', leaderId, 'period:', startDate, 'to', endDate);
+        
+        // Definir filtros visuais
+        if (pacAdminStartDate) pacAdminStartDate.value = startDate;
+        if (pacAdminEndDate) pacAdminEndDate.value = endDate;
+        if (pacAdminLeader) {
+            const leaderOption = Array.from(pacAdminLeader.options).find(opt => 
+                opt.value === leaderId
+            );
+            if (leaderOption) {
+                pacAdminLeader.value = leaderId;
+            }
+        }
+        
+        // Carregar dados específicos
+        const res = await authFetch(`/admin/pac/enrollments/leader/${leaderId}?startDate=${startDate}&endDate=${endDate}`);
+        if (!res.ok) {
+            console.error('Failed to load specific PAC data:', res.status);
+            return;
+        }
+        
+        const specificData = await res.json();
+        console.log('Specific PAC data loaded:', specificData);
+        
+        // Atualizar KPIs com dados específicos
+        const pending = specificData.filter(r => r.status === 'Pending').length;
+        const approved = specificData.filter(r => r.status === 'Approved').length;
+        const rejected = specificData.filter(r => r.status === 'Rejected').length;
+        const total = specificData.length;
+        
+        // Atualizar KPIs no modal
+        if (pacAdminPending) pacAdminPending.textContent = pending;
+        if (pacAdminApproved) pacAdminApproved.textContent = approved;
+        if (pacAdminRejected) pacAdminRejected.textContent = rejected;
+        if (pacAdminTotal) pacAdminTotal.textContent = total;
+        
+        // Renderizar lista específica
+        renderPacAdminList(specificData);
+        
+    } catch (error) {
+        console.error('Error loading specific PAC data:', error);
+    }
+}
+
+// Renderizar lista de solicitações PAC no modal
+function renderPacAdminList(requests) {
+    if (!pacAdminList) return;
+    
+    if (!requests || !requests.length) {
+        pacAdminList.innerHTML = '<div class="muted">Nenhuma solicitação encontrada</div>';
+        return;
+    }
+    
+    pacAdminList.innerHTML = requests.map(request => {
+        const startDate = new Date(request.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(request.endDate).toLocaleDateString('pt-BR');
+        const statusClass = `pill ${request.status}`;
+        
+        return `
+            <div class="item">
+                <div>
+                    <strong>${escapeHtml(request.colportor.fullName)}</strong>
+                    <div class="muted">
+                        ${startDate} - ${endDate}
+                    </div>
+                    <div class="muted">
+                        Líder: ${escapeHtml(request.leader)}
+                    </div>
+                </div>
+                <div>
+                    <span class="${statusClass}">${escapeHtml(request.status)}</span>
+                    <div class="actions">
+                        <button class="btn" data-approve="${request.id}">Aprovar</button>
+                        <button class="btn danger" data-reject="${request.id}">Rejeitar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
 
 // Carregar dados do dashboard PAC
 async function loadPacDashboard() {
