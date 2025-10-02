@@ -1,6 +1,4 @@
 // /js/admin.js
-import { loadingManager } from "/js/loading.js";
-
 // ================== Auth ==================
 const token =
     sessionStorage.getItem("token") || localStorage.getItem("token") || "";
@@ -623,11 +621,8 @@ rows?.addEventListener("click", async (e) => {
 });
 
 async function loadColportors() {
-    // Mostrar loading
-    let loadingId = null;
-    if (rows) {
-        loadingId = loadingManager.showTable(rows.closest('table'), 'Carregando colportores...');
-    }
+    // Mostrar loading simples
+    if (rows) rows.innerHTML = '<tr><td colspan="11" class="text-center">Carregando colportores...</td></tr>';
     if (empty) empty.hidden = true;
     
     const qs = new URLSearchParams();
@@ -641,7 +636,6 @@ async function loadColportors() {
     console.log(`⏱️ Colportors load time: ${loadTime}ms`);
     
     if (!res.ok) {
-        if (loadingId) loadingManager.hideTable(rows.closest('table'), loadingId);
         rows.innerHTML = "";
         empty.hidden = false;
         kpiTotal.textContent = "0"; kpiOk.textContent = "0"; kpiWarn.textContent = "0"; kpiDanger.textContent = "0";
@@ -698,9 +692,6 @@ async function loadColportors() {
   </td>
 </tr>`;
     }).join("");
-
-    // Esconder loading da tabela
-    if (loadingId) loadingManager.hideTable(rows.closest('table'), loadingId);
 
     // Mobile cards
     const mobileCards = document.getElementById('mobileCards');
@@ -1269,18 +1260,10 @@ async function loadPacDashboard() {
     try {
         console.log('Loading PAC dashboard...');
         
-        // Mostrar loading no dashboard PAC
-        const pacSection = document.getElementById('pacDashboardPanel');
-        let loadingId = null;
-        if (pacSection) {
-            loadingId = loadingManager.showSection(pacSection, 'Carregando dashboard PAC...');
-        }
-        
         // Carregar todas as solicitações PAC
         const res = await authFetch('/admin/pac/enrollments');
         if (!res.ok) {
             console.error('Failed to load PAC data:', res.status);
-            if (loadingId) loadingManager.hideSection(pacSection, loadingId);
             return;
         }
         
@@ -1298,10 +1281,6 @@ async function loadPacDashboard() {
         
     } catch (err) {
         console.error('Error loading PAC dashboard:', err);
-        if (loadingId) loadingManager.hideSection(pacSection, loadingId);
-    } finally {
-        // Garantir que o loading seja removido
-        if (loadingId) loadingManager.hideSection(pacSection, loadingId);
     }
 }
 

@@ -1,6 +1,4 @@
 // ===== helpers =====
-import { loadingManager } from "/js/loading.js";
-
 const $ = (q) => document.querySelector(q);
 const api = (path, opts = {}) => {
     const token = localStorage.getItem("token");
@@ -286,16 +284,8 @@ async function createVisitForSelf(isoDate) {
 // ===== render carteira =====
 async function renderWallet() {
     try {
-        // Mostrar loading na carteira
-        const walletScreen = document.getElementById('walletScreen');
-        let loadingId = null;
-        if (walletScreen) {
-            loadingId = loadingManager.showSection(walletScreen, 'Carregando carteira...');
-        }
-        
         const me = await api("/wallet/me");
         if (!me.ok) {
-            if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
             console.error("Erro na carteira:", me.status, me.statusText);
             localStorage.removeItem("token");
             showScreen("#authScreen");
@@ -334,13 +324,9 @@ async function renderWallet() {
         pill.className = "pill " + (x.status || "");
 
         showScreen("#walletScreen");
-        
-        // Esconder loading
-        if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
         return true;
     } catch (err) {
         console.error(err);
-        if (loadingId) loadingManager.hideSection(walletScreen, loadingId);
         localStorage.removeItem("token");
         showScreen("#authScreen");
         return false;
@@ -411,13 +397,15 @@ async function loadLeadersForEdit(regionId) {
 
 async function loadColportorData() {
     try {
+        console.log("🔄 Carregando dados do colportor para edição...");
         const res = await api("/wallet/me");
         if (!res.ok) {
-            console.error("Erro na resposta:", res.status, res.statusText);
+            console.error("❌ Erro na resposta:", res.status, res.statusText);
             return false;
         }
         
         currentColportorData = await res.json();
+        console.log("✅ Dados carregados:", currentColportorData);
         
         // Preencher campos do modal
         $("#eFullName").value = currentColportorData.fullName || "";
@@ -427,6 +415,8 @@ async function loadColportorData() {
         $("#eCity").value = currentColportorData.city || "";
         $("#eEmail").value = currentColportorData.email || "";
         ePhotoUrlH.value = currentColportorData.photoUrl || "";
+        
+        console.log("✅ Campos preenchidos no modal");
         
         // Carregar dados geográficos
         await hydrateEditGeo();

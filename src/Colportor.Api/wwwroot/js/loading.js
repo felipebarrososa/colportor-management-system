@@ -188,48 +188,60 @@ class LoadingManager {
     }
 }
 
-// Instância global
-const loadingManager = new LoadingManager();
+// Instância global - só criar após DOM carregado
+let loadingManager = null;
+
+// Inicializar quando DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        loadingManager = new LoadingManager();
+    });
+} else {
+    loadingManager = new LoadingManager();
+}
 
 // Funções de conveniência
 export function showLoading(text, subtext) {
-    loadingManager.showGlobal(text, subtext);
+    if (loadingManager) loadingManager.showGlobal(text, subtext);
 }
 
 export function hideLoading() {
-    loadingManager.hideGlobal();
+    if (loadingManager) loadingManager.hideGlobal();
 }
 
 export function showButtonLoading(button, text) {
-    loadingManager.showButton(button, text);
+    if (loadingManager) loadingManager.showButton(button, text);
 }
 
 export function hideButtonLoading(button) {
-    loadingManager.hideButton(button);
+    if (loadingManager) loadingManager.hideButton(button);
 }
 
 export function showSectionLoading(section, text) {
-    return loadingManager.showSection(section, text);
+    if (loadingManager) return loadingManager.showSection(section, text);
+    return null;
 }
 
 export function hideSectionLoading(section, loadingId) {
-    loadingManager.hideSection(section, loadingId);
+    if (loadingManager) loadingManager.hideSection(section, loadingId);
 }
 
 export function showTableLoading(table, text) {
-    return loadingManager.showTable(table, text);
+    if (loadingManager) return loadingManager.showTable(table, text);
+    return null;
 }
 
 export function hideTableLoading(table, loadingId) {
-    loadingManager.hideTable(table, loadingId);
+    if (loadingManager) loadingManager.hideTable(table, loadingId);
 }
 
 export function showModalLoading(modal, text) {
-    return loadingManager.showModal(modal, text);
+    if (loadingManager) return loadingManager.showModal(modal, text);
+    return null;
 }
 
 export function hideModalLoading(modal, loadingId) {
-    loadingManager.hideModal(modal, loadingId);
+    if (loadingManager) loadingManager.hideModal(modal, loadingId);
 }
 
 // Wrapper para funções assíncronas com loading
