@@ -930,6 +930,14 @@ function openPacAdmin() {
 function closePacAdmin() { 
     pacAdminModal.setAttribute("aria-hidden", "true");
     unlockBodyScroll();
+    
+    // Limpar todos os filtros
+    clearPacFilters();
+    
+    // Limpar a lista de dados
+    if (pacAdminList) {
+        pacAdminList.innerHTML = '<div class="muted">Nenhuma solicitação encontrada</div>';
+    }
 }
 openPacAdmin_fromDrawer?.addEventListener("click", (e) => { e.preventDefault?.(); openPacAdmin(); });
 closePacAdminBtn?.addEventListener("click", (e) => { e.preventDefault?.(); closePacAdmin(); });
@@ -965,7 +973,20 @@ async function refreshPacAdminRegions() {
 }
 
 applyPacFilters?.addEventListener("click", loadPacAdmin);
-clearPacFilters?.addEventListener("click", () => { pacAdminCountry.selectedIndex = 0; pacAdminRegion.innerHTML = `<option value="">Todas</option>`; pacAdminLeader.value = ""; pacStatus.value = ""; pacFrom.value = ""; pacTo.value = ""; loadPacAdmin(); });
+// Função para limpar filtros PAC
+function clearPacFilters() {
+    if (pacAdminCountry) pacAdminCountry.selectedIndex = 0;
+    if (pacAdminRegion) pacAdminRegion.innerHTML = `<option value="">Todas</option>`;
+    if (pacAdminLeader) pacAdminLeader.value = "";
+    if (pacStatus) pacStatus.value = "";
+    if (pacFrom) pacFrom.value = "";
+    if (pacTo) pacTo.value = "";
+}
+
+clearPacFilters?.addEventListener("click", () => { 
+    clearPacFilters(); 
+    loadPacAdmin(); 
+});
 
 async function loadPacAdmin() {
     const qs = new URLSearchParams();
