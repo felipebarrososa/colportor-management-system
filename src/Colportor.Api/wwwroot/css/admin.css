@@ -192,9 +192,10 @@
 }
 
     .pill.EM\ DIA {
-        background: #0f2d1f;
+        background: linear-gradient(135deg, #0f2d1f, #1d7a55);
         color: #19da86;
-        border: 1px solid #1d7a55
+        border: 1px solid #1d7a55;
+        box-shadow: 0 2px 8px rgba(25,218,134,.2);
     }
 
     .pill.AVISO {
