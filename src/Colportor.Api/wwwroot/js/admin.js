@@ -965,7 +965,7 @@ async function refreshPacAdminRegions() {
 }
 
 applyPacFilters?.addEventListener("click", loadPacAdmin);
-clearPacFilters?.addEventListener("click", () => { pacAdminCountry.selectedIndex = 0; pacAdminRegion.innerHTML = `<option value="">Todas</option>`; pacStatus.value = ""; pacFrom.value = ""; pacTo.value = ""; loadPacAdmin(); });
+clearPacFilters?.addEventListener("click", () => { pacAdminCountry.selectedIndex = 0; pacAdminRegion.innerHTML = `<option value="">Todas</option>`; pacAdminLeader.value = ""; pacStatus.value = ""; pacFrom.value = ""; pacTo.value = ""; loadPacAdmin(); });
 
 async function loadPacAdmin() {
     const qs = new URLSearchParams();
@@ -974,6 +974,7 @@ async function loadPacAdmin() {
     if (pacStatus?.value) qs.set("status", pacStatus.value);
     if (pacFrom?.value) qs.set("from", new Date(pacFrom.value + "T00:00:00Z").toISOString());
     if (pacTo?.value) qs.set("to", new Date(pacTo.value + "T00:00:00Z").toISOString());
+    if (pacAdminLeader?.value) qs.set("leaderId", pacAdminLeader.value);
     const res = await authFetch(`/admin/pac/enrollments?${qs.toString()}`);
     if (!res.ok) { pacAdminList.innerHTML = `<div class=\"muted\">Falha ao carregar.</div>`; return; }
     const list = await res.json();
