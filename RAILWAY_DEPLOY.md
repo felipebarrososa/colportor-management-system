@@ -64,12 +64,12 @@ Railway criará automaticamente:
 #### 4.1 Converter DATABASE_URL
 Railway fornece `DATABASE_URL` no formato:
 ```
-postgresql://postgres:senha@host:port/database
+postgresql://postgres:[PASSWORD]@host:port/database
 ```
 
 #### 4.2 Adicionar ConnectionStrings__Default
 ```bash
-ConnectionStrings__Default=postgresql://postgres:senha@host:port/database
+ConnectionStrings__Default=postgresql://postgres:[PASSWORD]@host:port/database
 ```
 
 ### 5. Deploy e Teste

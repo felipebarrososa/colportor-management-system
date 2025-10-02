@@ -63,8 +63,10 @@ if (builder.Environment.IsProduction())
         }
         else
         {
-            // TEMPORÁRIO: Usar connection string hardcoded para Railway
-            connectionString = "postgresql://postgres:RNPzVecUtMNYkYRidaREmveXIZZHKsGD@postgres.railway.internal:5432/railway";
+            // Usar DATABASE_URL do Railway
+            connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+            if (string.IsNullOrEmpty(connectionString))
+                throw new InvalidOperationException("DATABASE_URL environment variable is required");
         }
     }
 }

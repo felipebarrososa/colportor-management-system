@@ -38,6 +38,13 @@ logs/
 .env.test.local
 .env.production.local
 
+# Database connection strings and credentials
+*connection*
+*credential*
+*password*
+*secret*
+*key*
+
 # OS generated files
 .DS_Store
 .DS_Store?
