@@ -673,40 +673,6 @@ app.MapDelete("/admin/leaders/{id:int}", async (AppDbContext db, int id) =>
     return Results.NoContent();
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-// ========= MIGRAÇÃO MANUAL (TEMPORÁRIO) =========
-app.MapPost("/admin/apply-migration", async (AppDbContext db) =>
-{
-    try
-    {
-        // Aplicar migração manual para adicionar colunas Gender e BirthDate
-        await db.Database.ExecuteSqlRawAsync(@"
-            DO $$ 
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                               WHERE table_name = 'Colportors' AND column_name = 'Gender') THEN
-                    ALTER TABLE ""Colportors"" ADD COLUMN ""Gender"" text;
-                END IF;
-            END $$;
-        ");
-        
-        await db.Database.ExecuteSqlRawAsync(@"
-            DO $$ 
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                               WHERE table_name = 'Colportors' AND column_name = 'BirthDate') THEN
-                    ALTER TABLE ""Colportors"" ADD COLUMN ""BirthDate"" timestamp with time zone;
-                END IF;
-            END $$;
-        ");
-        
-        return Results.Ok(new { message = "Migration applied successfully!" });
-    }
-    catch (Exception ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
-}).RequireAuthorization(policy => policy.RequireRole("Admin"));
-
 // ========= CARTEIRA =========
 app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
 {
