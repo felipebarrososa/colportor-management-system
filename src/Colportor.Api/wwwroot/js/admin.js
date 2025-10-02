@@ -1070,6 +1070,7 @@ pacRecentList?.addEventListener("click", (e) => {
         const leaderId = leaderGroup.getAttribute("data-leader-id");
         const startDate = leaderGroup.getAttribute("data-start-date");
         const endDate = leaderGroup.getAttribute("data-end-date");
+        const status = leaderGroup.getAttribute("data-status");
         
         // Abrir modal de gerenciamento PAC com filtros
         openPacAdmin();
@@ -1077,14 +1078,14 @@ pacRecentList?.addEventListener("click", (e) => {
         lockBodyScroll();
         
         // Carregar dados específicos da solicitação
-        loadPacAdminSpecific(leaderId, startDate, endDate);
+        loadPacAdminSpecific(leaderId, startDate, endDate, status);
     }
 });
 
 // Carregar dados específicos de uma solicitação PAC
-async function loadPacAdminSpecific(leaderId, startDate, endDate) {
+async function loadPacAdminSpecific(leaderId, startDate, endDate, status) {
     try {
-        console.log('Loading specific PAC data for leader:', leaderId, 'period:', startDate, 'to', endDate);
+        console.log('Loading specific PAC data for leader:', leaderId, 'period:', startDate, 'to', endDate, 'status:', status);
         
         // Definir filtros visuais
         if (pacFrom) pacFrom.value = startDate;
@@ -1096,6 +1097,11 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate) {
             if (leaderOption) {
                 pacAdminLeader.value = leaderId;
             }
+        }
+        
+        // Definir status baseado no card clicado
+        if (pacStatus && status) {
+            pacStatus.value = status;
         }
         
         // Carregar dados específicos usando filtros normais
@@ -1291,7 +1297,7 @@ function updatePacRecent(requests) {
         const statusClass = `pill ${group.status}`;
         
         return `
-            <div class="recent-item leader-group" data-leader-id="${group.leaderId}" data-start-date="${group.startDate}" data-end-date="${group.endDate}">
+            <div class="recent-item leader-group" data-leader-id="${group.leaderId}" data-start-date="${group.startDate}" data-end-date="${group.endDate}" data-status="${group.status}">
                 <div class="recent-info">
                     <div class="recent-name">👤 ${escapeHtml(group.leaderName)}</div>
                     <div class="recent-details">
