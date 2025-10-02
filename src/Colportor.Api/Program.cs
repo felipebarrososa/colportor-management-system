@@ -404,6 +404,8 @@ app.MapPost("/admin/colportors", async (AppDbContext db, DTOsNS.CreateColportorD
     {
         FullName = dto.FullName.Trim(),
         CPF = dto.CPF.Trim(),
+        Gender = dto.Gender?.Trim(),
+        BirthDate = dto.BirthDate,
         City = dto.City?.Trim(),
         PhotoUrl = dto.PhotoUrl,
         RegionId = dto.RegionId,
@@ -496,6 +498,8 @@ app.MapGet("/admin/colportors", async (AppDbContext db, HttpContext ctx, string?
             c.Id,
             c.FullName,
             c.CPF,
+            c.Gender,
+            c.BirthDate,
             Region = regionName,
             c.City,
             c.PhotoUrl,
@@ -684,6 +688,8 @@ app.MapGet("/wallet/me", async (AppDbContext db, HttpContext ctx) =>
         c.Id,
         c.FullName,
         c.CPF,
+        c.Gender,
+        c.BirthDate,
         Region = c.RegionId.HasValue ? (await db.Regions.FindAsync(c.RegionId.Value))?.Name : null,
         Leader = c.LeaderId.HasValue ? (await db.Users.FindAsync(c.LeaderId.Value))?.FullName : null,
         c.City,
@@ -737,6 +743,12 @@ app.MapPut("/wallet/me", async (AppDbContext db, HttpContext ctx, DTOsNS.UpdateC
     
     if (!string.IsNullOrWhiteSpace(dto.CPF))
         colportor.CPF = dto.CPF.Trim();
+    
+    if (!string.IsNullOrWhiteSpace(dto.Gender))
+        colportor.Gender = dto.Gender.Trim();
+    
+    if (dto.BirthDate.HasValue)
+        colportor.BirthDate = dto.BirthDate.Value;
     
     if (dto.City != null)
         colportor.City = dto.City.Trim();

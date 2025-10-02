@@ -79,6 +79,8 @@ const createForm = $("#createForm");
 const cCountry = $("#cCountry");
 const cRegion = $("#cRegion");
 const cLeader = $("#cLeader");
+const cGender = $("#cGender");
+const cBirthDate = $("#cBirthDate");
 const cPhoto = $("#cPhoto");
 const cLastVisit = $("#cLastVisit"); // <<< NOVO
 const btnCreateColp = $("#btnCreateColp");
@@ -526,6 +528,8 @@ createForm?.addEventListener("submit", async (e) => {
     const payload = {
         fullName,
         cpf,
+        gender: cGender.value || null,
+        birthDate: cBirthDate.value || null,
         city: $("#cCity").value.trim() || null,
         photoUrl,
         email,
@@ -654,12 +658,29 @@ async function loadColportors() {
         const last = x.lastVisitDate ? new Date(x.lastVisitDate) : null;
         const status = (x.status || "—").toUpperCase();
         const place = [x.region, x.country].filter(Boolean).join(" / ") || "—";
+        
+        // Calcular idade
+        let age = "—";
+        if (x.birthDate) {
+            const birth = new Date(x.birthDate);
+            const today = new Date();
+            const ageCalc = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age = ageCalc - 1;
+            } else {
+                age = ageCalc;
+            }
+        }
+        
         return `
 <tr>
   <td>${x.id}</td>
   <td>${x.photoUrl ? `<img class="avatar" src="${escapeAttr(x.photoUrl)}" alt="foto">` : "—"}</td>
   <td>${escapeHtml(x.fullName || "—")}</td>
   <td>${escapeHtml(x.cpf || "—")}</td>
+  <td>${escapeHtml(x.gender || "—")}</td>
+  <td>${age}</td>
   <td>${escapeHtml(place)}</td>
   <td>${escapeHtml(x.city || "—")}</td>
   <td>${last ? last.toLocaleDateString("pt-BR") : "—"}</td>
@@ -679,6 +700,21 @@ async function loadColportors() {
             const last = x.lastVisitDate ? new Date(x.lastVisitDate) : null;
             const status = (x.status || "—").toUpperCase();
             const place = [x.region, x.country].filter(Boolean).join(" / ") || "—";
+            
+            // Calcular idade
+            let age = "—";
+            if (x.birthDate) {
+                const birth = new Date(x.birthDate);
+                const today = new Date();
+                const ageCalc = today.getFullYear() - birth.getFullYear();
+                const monthDiff = today.getMonth() - birth.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                    age = ageCalc - 1;
+                } else {
+                    age = ageCalc;
+                }
+            }
+            
             return `
 <div class="mobile-card">
   <div class="mobile-card-header">
@@ -694,6 +730,14 @@ async function loadColportors() {
     </div>
   </div>
   <div class="mobile-card-details">
+    <div class="mobile-card-detail">
+      <div class="mobile-card-detail-label">Sexo</div>
+      <div class="mobile-card-detail-value">${escapeHtml(x.gender || "—")}</div>
+    </div>
+    <div class="mobile-card-detail">
+      <div class="mobile-card-detail-label">Idade</div>
+      <div class="mobile-card-detail-value">${age}</div>
+    </div>
     <div class="mobile-card-detail">
       <div class="mobile-card-detail-label">Região</div>
       <div class="mobile-card-detail-value">${escapeHtml(place)}</div>

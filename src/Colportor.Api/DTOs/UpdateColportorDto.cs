@@ -4,6 +4,8 @@ namespace Colportor.Api.DTOs
     {
         public string? FullName { get; set; }
         public string? CPF { get; set; }
+        public string? Gender { get; set; }
+        public DateTime? BirthDate { get; set; }
         public string? City { get; set; }
         public string? PhotoUrl { get; set; }
         public string? Email { get; set; }

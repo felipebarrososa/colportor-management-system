@@ -110,6 +110,21 @@
                 <input id="eCPF" placeholder="CPF" required />
 
                 <div class="field">
+                    <label for="eGender">Sexo</label>
+                    <select id="eGender">
+                        <option value="">Selecione...</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="eBirthDate">Data de Nascimento</label>
+                    <input id="eBirthDate" type="date" />
+                </div>
+
+                <div class="field">
                     <label for="eCountry">País</label>
                     <select id="eCountry" required></select>
                 </div>
@@ -167,6 +182,8 @@
                 <h2 id="name"></h2>
                 <div class="meta">
                     <span><strong>CPF</strong> <span id="cpf"></span></span>
+                    <span><strong>Sexo</strong> <span id="gender">—</span></span>
+                    <span><strong>Idade</strong> <span id="age">—</span></span>
                     <span><strong>Local</strong> <span id="place"></span></span>
                     <span><strong>Líder</strong> <span id="leader">—</span></span>
                     <span><strong>Última visita</strong> <span id="lastVisit">—</span></span>

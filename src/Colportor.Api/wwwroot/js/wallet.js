@@ -290,6 +290,23 @@ async function renderWallet() {
         $("#photo").src = x.photoUrl || "/css/user.png";
         $("#name").textContent = x.fullName ?? "—";
         $("#cpf").textContent = x.cpf ?? "—";
+        $("#gender").textContent = x.gender ?? "—";
+        
+        // Calcular idade
+        let age = "—";
+        if (x.birthDate) {
+            const birth = new Date(x.birthDate);
+            const today = new Date();
+            const ageCalc = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age = ageCalc - 1;
+            } else {
+                age = ageCalc;
+            }
+        }
+        $("#age").textContent = age;
+        
         $("#place").textContent = [x.city, x.region, x.country].filter(Boolean).join(" / ") || "—";
         $("#leader").textContent = x.leader ?? "—";
         $("#lastVisit").textContent = x.lastVisitDate ? new Date(x.lastVisitDate).toLocaleDateString("pt-BR") : "—";
@@ -384,6 +401,8 @@ async function loadColportorData() {
         // Preencher campos do modal
         $("#eFullName").value = currentColportorData.fullName || "";
         $("#eCPF").value = currentColportorData.cpf || "";
+        $("#eGender").value = currentColportorData.gender || "";
+        $("#eBirthDate").value = currentColportorData.birthDate ? currentColportorData.birthDate.split('T')[0] : "";
         $("#eCity").value = currentColportorData.city || "";
         $("#eEmail").value = currentColportorData.email || "";
         ePhotoUrlH.value = currentColportorData.photoUrl || "";
@@ -487,6 +506,8 @@ $("#editForm")?.addEventListener("submit", async (e) => {
         const body = {
             fullName,
             cpf,
+            gender: $("#eGender").value || null,
+            birthDate: $("#eBirthDate").value || null,
             city: $("#eCity").value.trim() || null,
             photoUrl,
             email,
