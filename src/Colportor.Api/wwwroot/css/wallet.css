@@ -798,10 +798,8 @@ a, button {
     }
 }
 
-/* FORÇA O EM DIA A FUNCIONAR - REGRA MAIS ESPECÍFICA */
-#status.pill.EM\ DIA,
-#status.pill.EM_DIA,
-#status[class*="EM DIA"] {
+/* FORÇA O EM DIA A FUNCIONAR */
+.pill.EM\ DIA {
     background: linear-gradient(135deg, #0f2d1f, #1d7a55) !important;
     color: #19da86 !important;
     border: 1px solid #1d7a55 !important;
