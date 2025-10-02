@@ -932,7 +932,7 @@ function closePacAdmin() {
     unlockBodyScroll();
     
     // Limpar todos os filtros
-    clearPacFilters();
+    clearPacFiltersData();
     
     // Limpar a lista de dados
     if (pacAdminList) {
@@ -974,7 +974,7 @@ async function refreshPacAdminRegions() {
 
 applyPacFilters?.addEventListener("click", loadPacAdmin);
 // Função para limpar filtros PAC
-function clearPacFilters() {
+function clearPacFiltersData() {
     if (pacAdminCountry) pacAdminCountry.selectedIndex = 0;
     if (pacAdminRegion) pacAdminRegion.innerHTML = `<option value="">Todas</option>`;
     if (pacAdminLeader) pacAdminLeader.value = "";
@@ -984,7 +984,7 @@ function clearPacFilters() {
 }
 
 clearPacFilters?.addEventListener("click", () => { 
-    clearPacFilters(); 
+    clearPacFiltersData(); 
     loadPacAdmin(); 
 });
 
