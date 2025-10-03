@@ -1245,6 +1245,9 @@ function renderPacAdminList(requests) {
                     <div class="muted">
                         Líder: ${escapeHtml(request.leader)}
                     </div>
+                    <div class="muted">
+                        Sexo: ${escapeHtml(request.colportor.gender || '—')}
+                    </div>
                 </div>
                 <div>
                     <span class="${statusClass}">${escapeHtml(request.status)}</span>
