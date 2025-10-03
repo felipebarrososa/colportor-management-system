@@ -1406,27 +1406,112 @@ function generatePacReportContent(data) {
     pacReportSummary.innerHTML = `<div class="report-total">QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos</div>`;
     
     pacReportContent.style.display = "block";
-    copyPacReport.style.display = "inline-block";
+    document.getElementById('exportPacPdf').style.display = "inline-block";
     document.getElementById('exportPacReport').style.display = "inline-block";
 }
 
-// Copiar relatório para WhatsApp
-copyPacReport?.addEventListener("click", () => {
-    const fullReport = `APERFEIÇOAMENTO DO PAC NESTA SEMANA\n\n${pacReportData.textContent}\n${pacReportSummary.textContent}`;
-    
-    navigator.clipboard.writeText(fullReport).then(() => {
-        toast("Relatório copiado para a área de transferência!");
-    }).catch(() => {
-        // Fallback para navegadores mais antigos
-        const textArea = document.createElement("textarea");
-        textArea.value = fullReport;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textArea);
-        toast("Relatório copiado para a área de transferência!");
-    });
-});
+// Exportar relatório para PDF
+document.getElementById('exportPacPdf')?.addEventListener('click', exportPacPdf);
+
+// Função para exportar relatório para PDF
+function exportPacPdf() {
+    if (!window.pacReportData) {
+        toast("Nenhum relatório para exportar", "error");
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Configurações
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const margin = 20;
+        let yPosition = margin;
+        
+        // Função para adicionar texto com quebra de linha
+        const addText = (text, fontSize = 12, isBold = false, color = [0, 0, 0]) => {
+            doc.setFontSize(fontSize);
+            doc.setTextColor(color[0], color[1], color[2]);
+            if (isBold) {
+                doc.setFont(undefined, 'bold');
+            } else {
+                doc.setFont(undefined, 'normal');
+            }
+            
+            const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
+            doc.text(lines, margin, yPosition);
+            yPosition += lines.length * (fontSize * 0.4) + 5;
+        };
+        
+        // Título principal
+        addText("APERFEIÇOAMENTO DO PAC NESTA SEMANA", 16, true, [0, 100, 0]);
+        yPosition += 10;
+        
+        // Agrupar dados por região
+        const groupedByRegion = {};
+        window.pacReportData.forEach(item => {
+            const region = item.Region || item.region || "Região não informada";
+            if (!groupedByRegion[region]) {
+                groupedByRegion[region] = [];
+            }
+            groupedByRegion[region].push(item);
+        });
+        
+        // Gerar conteúdo para cada região
+        Object.entries(groupedByRegion).forEach(([region, items]) => {
+            const maleCount = items.filter(item => (item.Gender || item.gender) === "Masculino").length;
+            const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
+            const regionTotal = items.length;
+            
+            // Data de saída (mais comum)
+            const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
+            const mostCommonEndDate = endDates.sort((a,b) => 
+                endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
+            ).pop();
+            
+            // Verificar se precisa de nova página
+            if (yPosition > 250) {
+                doc.addPage();
+                yPosition = margin;
+            }
+            
+            // Nome da região
+            addText(`${region.toUpperCase()} - vão embora dia ${mostCommonEndDate}`, 12, true);
+            
+            // Contadores
+            if (maleCount > 0) {
+                addText(`${maleCount} irmão${maleCount > 1 ? 's' : ''}`, 11);
+            }
+            if (femaleCount > 0) {
+                addText(`${femaleCount} irmã${femaleCount > 1 ? 's' : ''}`, 11);
+            }
+            
+            // Lista de nomes
+            items.forEach(item => {
+                const name = item.Name || item.name || 'Nome não informado';
+                addText(name, 10);
+            });
+            
+            addText(`Total: ${regionTotal}`, 11, true);
+            yPosition += 10;
+        });
+        
+        // Total geral
+        const totalCount = window.pacReportData.length;
+        addText(`QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos`, 12, true, [0, 100, 0]);
+        
+        // Salvar arquivo
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        doc.save(`relatorio_pac_${dateStr}.pdf`);
+        
+        toast("Relatório PDF exportado com sucesso!");
+    } catch (error) {
+        console.error('Erro ao exportar PDF:', error);
+        toast("Erro ao exportar PDF", "error");
+    }
+}
 
 // Exportar relatório para Excel
 document.getElementById('exportPacReport')?.addEventListener('click', exportPacReport);
