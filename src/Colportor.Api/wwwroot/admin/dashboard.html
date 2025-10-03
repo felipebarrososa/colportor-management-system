@@ -28,13 +28,14 @@
             <button id="closeDrawer" class="icon" aria-label="Fechar">✕</button>
         </div>
         <nav class="drawer-nav">
-            <button id="openRegions" class="btn w-100" data-action="regions">Gerenciar Regiões (Admin)</button>
-            <button id="openLeader_fromDrawer" class="btn w-100" data-action="leader">Cadastrar Líder</button>
-            <button id="openLeaders_fromDrawer" class="btn w-100" data-action="leaders">Ver Líderes</button>
-            <button id="openCreate_fromDrawer" class="btn w-100" data-action="create">Cadastrar Colportor</button>
-            <button id="openApprove_fromDrawer" class="btn w-100" data-action="approve">Aprovar Líderes Pendentes</button>
-            <button id="openPacLeader_fromDrawer" class="btn w-100" data-action="pac-leader">Selecionar PAC (Líder)</button>
-            <button id="openPacAdmin_fromDrawer" class="btn w-100" data-action="pac-admin">Gerenciar PAC (Admin)</button>
+            <button id="openRegions" class="btn w-100" data-action="regions">🌍 Gerenciar Regiões (Admin)</button>
+            <button id="openLeader_fromDrawer" class="btn w-100" data-action="leader">👤 Cadastrar Líder</button>
+            <button id="openLeaders_fromDrawer" class="btn w-100" data-action="leaders">👥 Ver Líderes</button>
+            <button id="openCreate_fromDrawer" class="btn w-100" data-action="create">➕ Cadastrar Colportor</button>
+            <button id="openApprove_fromDrawer" class="btn w-100" data-action="approve">✅ Aprovar Líderes Pendentes</button>
+            <button id="openPacLeader_fromDrawer" class="btn w-100" data-action="pac-leader">📋 Selecionar PAC (Líder)</button>
+            <button id="openPacAdmin_fromDrawer" class="btn w-100" data-action="pac-admin">⚙️ Gerenciar PAC (Admin)</button>
+            <button id="openReports_fromDrawer" class="btn w-100" data-action="reports">📊 Relatórios</button>
         </nav>
     </aside>
     <div id="drawerBackdrop" class="drawer-backdrop"></div>
@@ -503,6 +504,51 @@
                     <button id="clearLeaderFilters" class="btn">Limpar</button>
                 </div>
                 <div id="leadersList" class="list"></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Relatórios -->
+    <div class="modal" id="reportsModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 900px;">
+            <header class="modal-header">
+                <h3 class="title">📊 Relatórios</h3>
+                <button class="icon close" id="closeReports" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="reports-tabs">
+                    <button class="tab-btn active" data-tab="pac-report">Relatório PAC</button>
+                </div>
+                
+                <div id="pacReportTab" class="tab-content active">
+                    <div class="report-filters">
+                        <div class="field">
+                            <label for="reportStartDate">Data Início</label>
+                            <input type="date" id="reportStartDate" />
+                        </div>
+                        <div class="field">
+                            <label for="reportEndDate">Data Fim</label>
+                            <input type="date" id="reportEndDate" />
+                        </div>
+                        <div class="field">
+                            <label for="reportRegion">Região</label>
+                            <select id="reportRegion">
+                                <option value="">Todas as regiões</option>
+                            </select>
+                        </div>
+                        <div class="actions">
+                            <button id="generatePacReport" class="btn primary">Gerar Relatório</button>
+                            <button id="copyPacReport" class="btn" style="display: none;">Copiar para WhatsApp</button>
+                        </div>
+                    </div>
+                    
+                    <div id="pacReportContent" class="report-content" style="display: none;">
+                        <h4>APERFEIÇOAMENTO DO PAC NESTA SEMANA</h4>
+                        <div id="pacReportData"></div>
+                        <div id="pacReportSummary"></div>
+                    </div>
+                </div>
             </section>
         </div>
         <div class="modal-backdrop" aria-hidden="true"></div>

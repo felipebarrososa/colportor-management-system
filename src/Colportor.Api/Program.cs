@@ -923,6 +923,42 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
     return Results.Ok();
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+// Relatório de PAC para WhatsApp
+app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, DateTime? endDate, int? regionId) =>
+{
+    var start = startDate ?? DateTime.UtcNow.Date;
+    var end = endDate ?? DateTime.UtcNow.Date.AddDays(7);
+    
+    var enrollments = await db.PacEnrollments
+        .Where(p => p.Status == "Approved" && 
+                   p.StartDate >= start && 
+                   p.EndDate <= end)
+        .ToListAsync();
+    
+    var result = new List<object>();
+    foreach (var enrollment in enrollments)
+    {
+        var colportor = await db.Colportors.FindAsync(enrollment.ColportorId);
+        var leader = await db.Users.FindAsync(enrollment.LeaderId);
+        var region = colportor?.RegionId != null ? await db.Regions.FindAsync(colportor.RegionId) : null;
+        
+        if (regionId is int rid && colportor?.RegionId != rid)
+            continue;
+            
+        result.Add(new
+        {
+            Name = colportor?.FullName,
+            Gender = colportor?.Gender,
+            StartDate = enrollment.StartDate,
+            EndDate = enrollment.EndDate,
+            Region = region?.Name,
+            Leader = leader?.FullName
+        });
+    }
+    
+    return Results.Ok(result);
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
 // Buscar solicitações PAC de um líder específico em um período
 app.MapGet("/admin/pac/enrollments/leader/{leaderId:int}", async (AppDbContext db, int leaderId, DateTime startDate, DateTime endDate) =>
 {

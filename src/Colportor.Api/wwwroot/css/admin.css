@@ -649,6 +649,7 @@ body.nav-open {
     overflow: hidden;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 12px;
     font-size: 14px;
     margin-bottom: 4px;
@@ -680,41 +681,7 @@ body.nav-open {
     transform: translateX(2px) scale(0.98);
 }
 
-/* Menu item icons */
-.drawer-nav .btn[data-action="regions"]::after {
-    content: "🌍";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="leader"]::after {
-    content: "👤";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="leaders"]::after {
-    content: "👥";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="create"]::after {
-    content: "➕";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="approve"]::after {
-    content: "✅";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="pac-leader"]::after {
-    content: "📋";
-    font-size: 16px;
-}
-
-.drawer-nav .btn[data-action="pac-admin"]::after {
-    content: "⚙️";
-    font-size: 16px;
-}
+/* Menu item icons - removed pseudo-elements, using direct HTML emojis */
 
 /* Drawer backdrop */
 .drawer-backdrop {
@@ -2062,4 +2029,101 @@ body.nav-open {
     padding: 6px 12px;
     font-size: 12px;
     border-radius: 6px;
+}
+
+/* ===========================
+   Modal de Relatórios
+   =========================== */
+#reportsModal {
+    z-index: 1000;
+}
+.reports-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--stroke);
+    padding-bottom: 12px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: var(--panel-2);
+    color: var(--text);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.report-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--panel-2);
+    border-radius: 8px;
+    border: 1px solid var(--stroke);
+}
+
+.report-content {
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    white-space: pre-line;
+    line-height: 1.6;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.report-content h4 {
+    color: var(--primary);
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.report-region {
+    background: var(--ok-bg);
+    color: var(--ok-fg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.report-person {
+    margin: 4px 0;
+    padding-left: 16px;
+}
+
+.report-total {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    margin: 12px 0;
+    text-align: center;
 }

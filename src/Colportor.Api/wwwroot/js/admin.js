@@ -1258,6 +1258,169 @@ function renderPacAdminList(requests) {
     }).join('');
 }
 
+// ===========================
+// Modal de Relatórios
+// ===========================
+
+const reportsModal = document.getElementById("reportsModal");
+const closeReports = document.getElementById("closeReports");
+const openReports_fromDrawer = document.getElementById("openReports_fromDrawer");
+const generatePacReport = document.getElementById("generatePacReport");
+const copyPacReport = document.getElementById("copyPacReport");
+const pacReportContent = document.getElementById("pacReportContent");
+const pacReportData = document.getElementById("pacReportData");
+const pacReportSummary = document.getElementById("pacReportSummary");
+const reportStartDate = document.getElementById("reportStartDate");
+const reportEndDate = document.getElementById("reportEndDate");
+const reportRegion = document.getElementById("reportRegion");
+
+// Abrir modal de relatórios
+openReports_fromDrawer?.addEventListener("click", () => {
+    // Fechar o drawer primeiro
+    closeDrawer();
+    // Abrir o modal de relatórios
+    reportsModal.setAttribute("aria-hidden", "false");
+    loadReportRegions();
+    setDefaultDates();
+});
+
+// Fechar modal de relatórios
+closeReports?.addEventListener("click", () => {
+    reportsModal.setAttribute("aria-hidden", "true");
+});
+
+reportsModal?.addEventListener("click", (e) => {
+    if (e.target === reportsModal) {
+        reportsModal.setAttribute("aria-hidden", "true");
+    }
+});
+
+// Carregar regiões para o relatório
+async function loadReportRegions() {
+    if (!reportRegion) return;
+    
+    try {
+        const res = await authFetch("/admin/regions");
+        if (!res.ok) return;
+        
+        const regions = await res.json();
+        reportRegion.innerHTML = '<option value="">Todas as regiões</option>' +
+            regions.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("");
+    } catch (error) {
+        console.error("Erro ao carregar regiões:", error);
+    }
+}
+
+// Definir datas padrão (próxima semana)
+function setDefaultDates() {
+    const today = new Date();
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    
+    if (reportStartDate) reportStartDate.value = today.toISOString().split('T')[0];
+    if (reportEndDate) reportEndDate.value = nextWeek.toISOString().split('T')[0];
+}
+
+// Gerar relatório PAC
+generatePacReport?.addEventListener("click", async () => {
+    if (!reportStartDate?.value || !reportEndDate?.value) {
+        toast("Selecione as datas de início e fim");
+        return;
+    }
+    
+    try {
+        const qs = new URLSearchParams();
+        qs.set("startDate", reportStartDate.value);
+        qs.set("endDate", reportEndDate.value);
+        if (reportRegion?.value) qs.set("regionId", reportRegion.value);
+        
+        const res = await authFetch(`/admin/reports/pac?${qs.toString()}`);
+        if (!res.ok) {
+            toast("Erro ao gerar relatório");
+            return;
+        }
+        
+        const data = await res.json();
+        generatePacReportContent(data);
+        
+    } catch (error) {
+        console.error("Erro ao gerar relatório:", error);
+        toast("Erro ao gerar relatório");
+    }
+});
+
+// Gerar conteúdo do relatório PAC
+function generatePacReportContent(data) {
+    if (!pacReportData || !pacReportSummary) return;
+    
+    // Agrupar por região
+    const groupedByRegion = {};
+    data.forEach(item => {
+        const region = item.region || "Região não informada";
+        if (!groupedByRegion[region]) {
+            groupedByRegion[region] = [];
+        }
+        groupedByRegion[region].push(item);
+    });
+    
+    let reportHtml = "";
+    let totalCount = 0;
+    
+    // Gerar HTML para cada região
+    Object.entries(groupedByRegion).forEach(([region, items]) => {
+        const maleCount = items.filter(item => item.gender === "Masculino").length;
+        const femaleCount = items.filter(item => item.gender === "Feminino").length;
+        const regionTotal = items.length;
+        totalCount += regionTotal;
+        
+        // Data de saída (mais comum)
+        const endDates = items.map(item => new Date(item.endDate).toLocaleDateString('pt-BR'));
+        const mostCommonEndDate = endDates.sort((a,b) => 
+            endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
+        ).pop();
+        
+        reportHtml += `<div class="report-region">${region.toUpperCase()} - vão embora dia ${mostCommonEndDate}</div>`;
+        
+        if (maleCount > 0) {
+            reportHtml += `<div>${maleCount} irmão${maleCount > 1 ? 's' : ''}</div>`;
+        }
+        if (femaleCount > 0) {
+            reportHtml += `<div>${femaleCount} irmã${femaleCount > 1 ? 's' : ''}</div>`;
+        }
+        
+        // Lista de nomes
+        items.forEach(item => {
+            reportHtml += `<div class="report-person">${escapeHtml(item.name || 'Nome não informado')}</div>`;
+        });
+        
+        reportHtml += `<div><strong>Total: ${regionTotal}</strong></div>\n\n`;
+    });
+    
+    pacReportData.innerHTML = reportHtml;
+    pacReportSummary.innerHTML = `<div class="report-total">QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos</div>`;
+    
+    pacReportContent.style.display = "block";
+    copyPacReport.style.display = "inline-block";
+}
+
+// Copiar relatório para WhatsApp
+copyPacReport?.addEventListener("click", () => {
+    const fullReport = `APERFEIÇOAMENTO DO PAC NESTA SEMANA\n\n${pacReportData.textContent}\n${pacReportSummary.textContent}`;
+    
+    navigator.clipboard.writeText(fullReport).then(() => {
+        toast("Relatório copiado para a área de transferência!");
+    }).catch(() => {
+        // Fallback para navegadores mais antigos
+        const textArea = document.createElement("textarea");
+        textArea.value = fullReport;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toast("Relatório copiado para a área de transferência!");
+    });
+});
+
 // Carregar dados do dashboard PAC
 async function loadPacDashboard() {
     try {
