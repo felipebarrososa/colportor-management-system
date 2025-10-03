@@ -1436,21 +1436,36 @@ function exportPacReport() {
     }
 
     try {
-        // Criar dados para Excel
-        const data = window.pacReportData.map(item => ({
-            'Nome': item.Name || 'N/A',
-            'Sexo': item.Gender || 'N/A',
-            'Data Início': new Date(item.StartDate).toLocaleDateString('pt-BR'),
-            'Data Fim': new Date(item.EndDate).toLocaleDateString('pt-BR'),
-            'Região': item.Region || 'N/A',
-            'Líder': item.Leader || 'N/A'
-        }));
+        // Criar dados para Excel com formatação correta
+        const data = window.pacReportData.map(item => {
+            // Formatar datas corretamente para Excel (DD/MM/AAAA)
+            const formatDate = (dateStr) => {
+                if (!dateStr) return 'N/A';
+                const date = new Date(dateStr);
+                if (isNaN(date.getTime())) return 'N/A';
+                return date.toLocaleDateString('pt-BR');
+            };
 
-        // Converter para CSV
+            return {
+                'Nome': item.Name || 'N/A',
+                'Sexo': item.Gender || 'N/A',
+                'Data Início': formatDate(item.StartDate),
+                'Data Fim': formatDate(item.EndDate),
+                'Região': item.Region || 'N/A',
+                'Líder': item.Leader || 'N/A'
+            };
+        });
+
+        // Converter para CSV com separador de ponto e vírgula (melhor para Excel brasileiro)
         const headers = Object.keys(data[0]);
         const csvContent = [
-            headers.join(','),
-            ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+            headers.join(';'), // Usar ; em vez de ,
+            ...data.map(row => headers.map(header => {
+                const value = row[header];
+                // Escapar aspas duplas e quebras de linha
+                const escapedValue = String(value).replace(/"/g, '""');
+                return `"${escapedValue}"`;
+            }).join(';'))
         ].join('\n');
 
         // Adicionar BOM para UTF-8 (para Excel reconhecer acentos)
