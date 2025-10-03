@@ -2046,84 +2046,89 @@ body.nav-open {
     margin-top: 20px;
 }
 
-/* Botões de exportação em linha */
+/* Botões de exportação - estilo integrado */
 #reportsModal .export-buttons {
     display: flex;
-    gap: 12px;
+    gap: 0;
     justify-content: center;
     align-items: center;
-    flex-wrap: wrap;
-    margin-top: 8px;
+    margin-top: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 #reportsModal .export-buttons .btn {
-    flex: 0 0 auto;
-    min-width: 90px;
-    font-size: 14px;
-    padding: 10px 16px;
-    height: 40px;
+    flex: 1;
+    height: 36px;
+    font-size: 13px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
     transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    position: relative;
+    margin: 0 2px;
 }
 
 #reportsModal .export-buttons .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    transform: none;
+    box-shadow: none;
 }
 
-/* Botão do WhatsApp com tamanho fixo para o ícone */
+#reportsModal .export-buttons .btn:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(0.98);
+}
+
+/* Botão do WhatsApp com ícone */
 #reportsModal .export-buttons #copyPacWhatsApp {
-    min-width: 40px;
-    width: 40px;
-    padding: 10px;
     font-size: 16px;
+    padding: 8px;
 }
 
-/* Ajustes para desktop */
+/* Responsividade */
 @media (min-width: 768px) {
     #reportsModal .export-buttons {
-        gap: 16px;
-        justify-content: center;
+        margin-top: 20px;
+        padding: 10px;
     }
     
     #reportsModal .export-buttons .btn {
-        min-width: 100px;
+        height: 40px;
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+    
+    #reportsModal .export-buttons #copyPacWhatsApp {
+        font-size: 18px;
+        padding: 10px;
+    }
+}
+
+@media (min-width: 1200px) {
+    #reportsModal .export-buttons {
+        margin-top: 24px;
+        padding: 12px;
+    }
+    
+    #reportsModal .export-buttons .btn {
         height: 44px;
         font-size: 15px;
         padding: 12px 20px;
     }
     
     #reportsModal .export-buttons #copyPacWhatsApp {
-        min-width: 44px;
-        width: 44px;
-        height: 44px;
-        padding: 12px;
-        font-size: 18px;
-    }
-}
-
-/* Ajustes para telas muito grandes */
-@media (min-width: 1200px) {
-    #reportsModal .export-buttons {
-        gap: 20px;
-    }
-    
-    #reportsModal .export-buttons .btn {
-        min-width: 110px;
-        height: 48px;
-        font-size: 16px;
-        padding: 14px 24px;
-    }
-    
-    #reportsModal .export-buttons #copyPacWhatsApp {
-        min-width: 48px;
-        width: 48px;
-        height: 48px;
-        padding: 14px;
         font-size: 20px;
+        padding: 12px;
     }
 }
 
