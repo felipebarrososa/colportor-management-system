@@ -846,7 +846,8 @@ app.MapGet("/leader/pac/enrollments", async (AppDbContext db, HttpContext ctx) =
             Colportor = new { 
                 colportor?.Id, 
                 colportor?.FullName, 
-                colportor?.CPF 
+                colportor?.CPF,
+                colportor?.Gender
             } 
         });
     }
@@ -896,6 +897,7 @@ app.MapGet("/admin/pac/enrollments", async (AppDbContext db, int? regionId, stri
                 colportor?.Id, 
                 colportor?.FullName, 
                 colportor?.CPF, 
+                colportor?.Gender,
                 colportor?.RegionId 
             } 
         });
@@ -949,6 +951,7 @@ app.MapGet("/admin/pac/enrollments/leader/{leaderId:int}", async (AppDbContext d
                 colportor?.Id, 
                 colportor?.FullName, 
                 colportor?.CPF, 
+                colportor?.Gender,
                 colportor?.RegionId 
             } 
         });
