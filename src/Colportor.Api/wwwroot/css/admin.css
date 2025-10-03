@@ -2049,16 +2049,37 @@ body.nav-open {
 /* Botões de exportação em linha */
 #reportsModal .export-buttons {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     justify-content: center;
+    align-items: center;
     flex-wrap: wrap;
+    margin-top: 8px;
 }
 
 #reportsModal .export-buttons .btn {
-    flex: 1;
-    min-width: 80px;
+    flex: 0 0 auto;
+    min-width: 90px;
     font-size: 14px;
-    padding: 8px 12px;
+    padding: 10px 16px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#reportsModal .export-buttons .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Botão do WhatsApp com tamanho fixo para o ícone */
+#reportsModal .export-buttons #copyPacWhatsApp {
+    min-width: 40px;
+    width: 40px;
+    padding: 10px;
+    font-size: 16px;
 }
 
 /* Prevenir scroll do body quando modal estiver aberto */
