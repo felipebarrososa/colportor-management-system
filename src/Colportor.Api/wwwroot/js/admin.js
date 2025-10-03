@@ -1359,7 +1359,7 @@ function generatePacReportContent(data) {
     // Agrupar por região
     const groupedByRegion = {};
     data.forEach(item => {
-        const region = item.Region || "Região não informada";
+        const region = item.region || "Região não informada";
         if (!groupedByRegion[region]) {
             groupedByRegion[region] = [];
         }
@@ -1371,13 +1371,13 @@ function generatePacReportContent(data) {
     
     // Gerar HTML para cada região
     Object.entries(groupedByRegion).forEach(([region, items]) => {
-        const maleCount = items.filter(item => item.Gender === "Masculino").length;
-        const femaleCount = items.filter(item => item.Gender === "Feminino").length;
+        const maleCount = items.filter(item => item.gender === "Masculino").length;
+        const femaleCount = items.filter(item => item.gender === "Feminino").length;
         const regionTotal = items.length;
         totalCount += regionTotal;
         
         // Data de saída (mais comum)
-        const endDates = items.map(item => new Date(item.EndDate).toLocaleDateString('pt-BR'));
+        const endDates = items.map(item => new Date(item.endDate).toLocaleDateString('pt-BR'));
         const mostCommonEndDate = endDates.sort((a,b) => 
             endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
         ).pop();
@@ -1393,7 +1393,7 @@ function generatePacReportContent(data) {
         
         // Lista de nomes
         items.forEach(item => {
-            reportHtml += `<div class="report-person">${escapeHtml(item.Name || 'Nome não informado')}</div>`;
+            reportHtml += `<div class="report-person">${escapeHtml(item.name || 'Nome não informado')}</div>`;
         });
         
         reportHtml += `<div><strong>Total: ${regionTotal}</strong></div>\n\n`;
@@ -1451,12 +1451,12 @@ function exportPacReport() {
             };
 
             const formattedItem = {
-                'Nome': item.Name || 'N/A',
-                'Sexo': item.Gender || 'N/A',
-                'Data Início': formatDate(item.StartDate),
-                'Data Fim': formatDate(item.EndDate),
-                'Região': item.Region || 'N/A',
-                'Líder': item.Leader || 'N/A'
+                'Nome': item.Name || item.name || 'N/A',
+                'Sexo': item.Gender || item.gender || 'N/A',
+                'Data Início': formatDate(item.StartDate || item.startDate),
+                'Data Fim': formatDate(item.EndDate || item.endDate),
+                'Região': item.Region || item.region || 'N/A',
+                'Líder': item.Leader || item.leader || 'N/A'
             };
             
             console.log("Item formatado:", formattedItem);
