@@ -2082,6 +2082,51 @@ body.nav-open {
     font-size: 16px;
 }
 
+/* Ajustes para desktop */
+@media (min-width: 768px) {
+    #reportsModal .export-buttons {
+        gap: 16px;
+        justify-content: center;
+    }
+    
+    #reportsModal .export-buttons .btn {
+        min-width: 100px;
+        height: 44px;
+        font-size: 15px;
+        padding: 12px 20px;
+    }
+    
+    #reportsModal .export-buttons #copyPacWhatsApp {
+        min-width: 44px;
+        width: 44px;
+        height: 44px;
+        padding: 12px;
+        font-size: 18px;
+    }
+}
+
+/* Ajustes para telas muito grandes */
+@media (min-width: 1200px) {
+    #reportsModal .export-buttons {
+        gap: 20px;
+    }
+    
+    #reportsModal .export-buttons .btn {
+        min-width: 110px;
+        height: 48px;
+        font-size: 16px;
+        padding: 14px 24px;
+    }
+    
+    #reportsModal .export-buttons #copyPacWhatsApp {
+        min-width: 48px;
+        width: 48px;
+        height: 48px;
+        padding: 14px;
+        font-size: 20px;
+    }
+}
+
 /* Prevenir scroll do body quando modal estiver aberto */
 body.modal-open {
     overflow: hidden;
