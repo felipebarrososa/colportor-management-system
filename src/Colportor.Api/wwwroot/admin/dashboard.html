@@ -539,16 +539,27 @@
                         </div>
                         <div class="actions">
                             <button id="generatePacReport" class="btn primary">Gerar Relatório</button>
-                            <div class="export-buttons" style="display: none;">
-                                <button id="exportPacPdf" class="btn">📄 PDF</button>
-                                <button id="exportPacReport" class="btn">📊 Excel</button>
-                                <button id="copyPacWhatsApp" class="btn" title="Copiar para WhatsApp">💬</button>
-                            </div>
                         </div>
                     </div>
                     
                     <div id="pacReportContent" class="report-content" style="display: none;">
-                        <h4>APERFEIÇOAMENTO DO PAC NESTA SEMANA</h4>
+                        <div class="report-header">
+                            <h4>APERFEIÇOAMENTO DO PAC NESTA SEMANA</h4>
+                            <div class="report-toolbar">
+                                <button id="exportPacPdf" class="toolbar-btn" title="Exportar PDF">
+                                    <span class="icon">📄</span>
+                                    <span class="label">PDF</span>
+                                </button>
+                                <button id="exportPacReport" class="toolbar-btn" title="Exportar Excel">
+                                    <span class="icon">📊</span>
+                                    <span class="label">Excel</span>
+                                </button>
+                                <button id="copyPacWhatsApp" class="toolbar-btn" title="Copiar para WhatsApp">
+                                    <span class="icon">💬</span>
+                                    <span class="label">WhatsApp</span>
+                                </button>
+                            </div>
+                        </div>
                         <div id="pacReportData"></div>
                         <div id="pacReportSummary"></div>
                     </div>

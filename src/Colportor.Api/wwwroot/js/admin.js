@@ -1406,7 +1406,6 @@ function generatePacReportContent(data) {
     pacReportSummary.innerHTML = `<div class="report-total">QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos</div>`;
     
     pacReportContent.style.display = "block";
-    document.querySelector('.export-buttons').style.display = "flex";
 }
 
 // Exportar relatório para PDF

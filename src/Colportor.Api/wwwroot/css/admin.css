@@ -2046,89 +2046,128 @@ body.nav-open {
     margin-top: 20px;
 }
 
-/* Botões de exportação - estilo integrado */
-#reportsModal .export-buttons {
+/* Cabeçalho do relatório com barra de ferramentas */
+.report-header {
     display: flex;
-    gap: 0;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    margin-top: 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#reportsModal .export-buttons .btn {
-    flex: 1;
-    height: 36px;
-    font-size: 13px;
+.report-header h4 {
+    margin: 0;
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Barra de ferramentas moderna */
+.report-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 8px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    transition: all 0.2s ease;
-    background: transparent;
-    border: none;
     color: var(--text-secondary);
+    font-size: 13px;
     font-weight: 500;
-    position: relative;
-    margin: 0 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
-#reportsModal .export-buttons .btn:hover {
+.toolbar-btn:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
-    transform: none;
-    box-shadow: none;
+    transform: translateY(-1px);
 }
 
-#reportsModal .export-buttons .btn:active {
+.toolbar-btn:active {
+    transform: translateY(0);
     background: rgba(255, 255, 255, 0.15);
-    transform: scale(0.98);
 }
 
-/* Botão do WhatsApp com ícone */
-#reportsModal .export-buttons #copyPacWhatsApp {
-    font-size: 16px;
-    padding: 8px;
+.toolbar-btn .icon {
+    font-size: 14px;
+    line-height: 1;
 }
 
-/* Responsividade */
+.toolbar-btn .label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Responsividade da barra de ferramentas */
+@media (max-width: 768px) {
+    .report-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .report-toolbar {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar-btn {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+    }
+    
+    .toolbar-btn .label {
+        display: none;
+    }
+    
+    .toolbar-btn .icon {
+        font-size: 16px;
+    }
+}
+
 @media (min-width: 768px) {
-    #reportsModal .export-buttons {
-        margin-top: 20px;
-        padding: 10px;
+    .report-header h4 {
+        font-size: 20px;
     }
     
-    #reportsModal .export-buttons .btn {
-        height: 40px;
-        font-size: 14px;
+    .toolbar-btn {
         padding: 10px 16px;
+        font-size: 14px;
     }
     
-    #reportsModal .export-buttons #copyPacWhatsApp {
-        font-size: 18px;
-        padding: 10px;
+    .toolbar-btn .icon {
+        font-size: 16px;
+    }
+    
+    .toolbar-btn .label {
+        font-size: 13px;
     }
 }
 
 @media (min-width: 1200px) {
-    #reportsModal .export-buttons {
-        margin-top: 24px;
-        padding: 12px;
-    }
-    
-    #reportsModal .export-buttons .btn {
-        height: 44px;
-        font-size: 15px;
+    .toolbar-btn {
         padding: 12px 20px;
+        font-size: 15px;
     }
     
-    #reportsModal .export-buttons #copyPacWhatsApp {
-        font-size: 20px;
-        padding: 12px;
+    .toolbar-btn .icon {
+        font-size: 18px;
+    }
+    
+    .toolbar-btn .label {
+        font-size: 14px;
     }
 }
 
