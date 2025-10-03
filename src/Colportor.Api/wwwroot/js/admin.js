@@ -1353,6 +1353,9 @@ generatePacReport?.addEventListener("click", async () => {
 function generatePacReportContent(data) {
     if (!pacReportData || !pacReportSummary) return;
     
+    // Armazenar dados globalmente para exportação
+    window.pacReportData = data;
+    
     // Agrupar por região
     const groupedByRegion = {};
     data.forEach(item => {
@@ -1401,6 +1404,7 @@ function generatePacReportContent(data) {
     
     pacReportContent.style.display = "block";
     copyPacReport.style.display = "inline-block";
+    document.getElementById('exportPacReport').style.display = "inline-block";
 }
 
 // Copiar relatório para WhatsApp
@@ -1420,6 +1424,61 @@ copyPacReport?.addEventListener("click", () => {
         toast("Relatório copiado para a área de transferência!");
     });
 });
+
+// Exportar relatório para Excel
+document.getElementById('exportPacReport')?.addEventListener('click', exportPacReport);
+
+// Função para exportar relatório para Excel
+function exportPacReport() {
+    if (!window.pacReportData) {
+        toast("Nenhum relatório para exportar", "error");
+        return;
+    }
+
+    try {
+        // Criar dados para Excel
+        const data = window.pacReportData.map(item => ({
+            'Nome': item.Name || 'N/A',
+            'Sexo': item.Gender || 'N/A',
+            'Data Início': new Date(item.StartDate).toLocaleDateString('pt-BR'),
+            'Data Fim': new Date(item.EndDate).toLocaleDateString('pt-BR'),
+            'Região': item.Region || 'N/A',
+            'Líder': item.Leader || 'N/A'
+        }));
+
+        // Converter para CSV
+        const headers = Object.keys(data[0]);
+        const csvContent = [
+            headers.join(','),
+            ...data.map(row => headers.map(header => `"${row[header]}"`).join(','))
+        ].join('\n');
+
+        // Adicionar BOM para UTF-8 (para Excel reconhecer acentos)
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        
+        // Criar link de download
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        
+        // Nome do arquivo com data atual
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        link.setAttribute('download', `relatorio_pac_${dateStr}.csv`);
+        
+        // Fazer download
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast("Relatório exportado com sucesso!");
+    } catch (error) {
+        console.error('Erro ao exportar relatório:', error);
+        toast("Erro ao exportar relatório", "error");
+    }
+}
 
 // Carregar dados do dashboard PAC
 async function loadPacDashboard() {
