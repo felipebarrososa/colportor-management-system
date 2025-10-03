@@ -2037,6 +2037,14 @@ body.nav-open {
 #reportsModal {
     z-index: 1000;
 }
+
+/* Espaçamento entre botões do modal de relatórios */
+#reportsModal .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
 .reports-tabs {
     display: flex;
     gap: 8px;
