@@ -553,6 +553,17 @@ app.MapGet("/admin/countries", (AppDbContext db) =>
     db.Countries.Select(c => new { c.Id, c.Name }))
    .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+// Listar regiões (Admin)
+app.MapGet("/admin/regions", async (AppDbContext db) =>
+{
+    var regions = await db.Regions
+        .Include(r => r.Country)
+        .OrderBy(r => r.Name)
+        .Select(r => new { r.Id, r.Name, Country = r.Country.Name })
+        .ToListAsync();
+    return Results.Ok(regions);
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
 app.MapPost("/admin/regions", async (AppDbContext db, RegionCreateDto dto) =>
 {
     if (!await db.Countries.AnyAsync(c => c.Id == dto.CountryId))
@@ -928,10 +939,22 @@ app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, Da
 {
     try
     {
+        Console.WriteLine("=== PAC REPORT START ===");
+        Console.WriteLine($"StartDate: {startDate}");
+        Console.WriteLine($"EndDate: {endDate}");
+        Console.WriteLine($"RegionId: {regionId}");
+        
         var start = startDate ?? DateTime.UtcNow.Date;
         var end = endDate ?? DateTime.UtcNow.Date.AddDays(7);
         
-        Console.WriteLine($"PAC Report - Start: {start}, End: {end}, RegionId: {regionId}");
+        Console.WriteLine($"Using Start: {start}, End: {end}");
+        
+        // Primeiro, vamos ver quantos enrollments existem no total
+        var totalEnrollments = await db.PacEnrollments.CountAsync();
+        Console.WriteLine($"Total enrollments in database: {totalEnrollments}");
+        
+        var approvedEnrollments = await db.PacEnrollments.CountAsync(p => p.Status == "Approved");
+        Console.WriteLine($"Total approved enrollments: {approvedEnrollments}");
         
         var enrollments = await db.PacEnrollments
             .Where(p => p.Status == "Approved" && 
@@ -939,19 +962,29 @@ app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, Da
                        p.StartDate <= end)
             .ToListAsync();
         
-        Console.WriteLine($"Found {enrollments.Count} approved enrollments");
+        Console.WriteLine($"Found {enrollments.Count} enrollments matching criteria");
         
         var result = new List<object>();
         foreach (var enrollment in enrollments)
         {
             try
             {
+                Console.WriteLine($"Processing enrollment {enrollment.Id}");
+                
                 var colportor = await db.Colportors.FindAsync(enrollment.ColportorId);
+                Console.WriteLine($"Colportor found: {colportor?.FullName ?? "NULL"}");
+                
                 var leader = await db.Users.FindAsync(enrollment.LeaderId);
+                Console.WriteLine($"Leader found: {leader?.FullName ?? "NULL"}");
+                
                 var region = colportor?.RegionId != null ? await db.Regions.FindAsync(colportor.RegionId) : null;
+                Console.WriteLine($"Region found: {region?.Name ?? "NULL"}");
                 
                 if (regionId is int rid && colportor?.RegionId != rid)
+                {
+                    Console.WriteLine($"Skipping due to region filter: {colportor?.RegionId} != {rid}");
                     continue;
+                }
                     
                 result.Add(new
                 {
@@ -962,14 +995,18 @@ app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, Da
                     Region = region?.Name ?? "N/A",
                     Leader = leader?.FullName ?? "N/A"
                 });
+                
+                Console.WriteLine($"Added to result: {colportor?.FullName}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error processing enrollment {enrollment.Id}: {ex.Message}");
+                Console.WriteLine($"Stack: {ex.StackTrace}");
             }
         }
         
         Console.WriteLine($"Returning {result.Count} results");
+        Console.WriteLine("=== PAC REPORT END ===");
         return Results.Ok(result);
     }
     catch (Exception ex)
