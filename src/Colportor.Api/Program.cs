@@ -926,37 +926,58 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
 // Relatório de PAC para WhatsApp
 app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, DateTime? endDate, int? regionId) =>
 {
-    var start = startDate ?? DateTime.UtcNow.Date;
-    var end = endDate ?? DateTime.UtcNow.Date.AddDays(7);
-    
-    var enrollments = await db.PacEnrollments
-        .Where(p => p.Status == "Approved" && 
-                   p.EndDate >= start && 
-                   p.StartDate <= end)
-        .ToListAsync();
-    
-    var result = new List<object>();
-    foreach (var enrollment in enrollments)
+    try
     {
-        var colportor = await db.Colportors.FindAsync(enrollment.ColportorId);
-        var leader = await db.Users.FindAsync(enrollment.LeaderId);
-        var region = colportor?.RegionId != null ? await db.Regions.FindAsync(colportor.RegionId) : null;
+        var start = startDate ?? DateTime.UtcNow.Date;
+        var end = endDate ?? DateTime.UtcNow.Date.AddDays(7);
         
-        if (regionId is int rid && colportor?.RegionId != rid)
-            continue;
-            
-        result.Add(new
+        Console.WriteLine($"PAC Report - Start: {start}, End: {end}, RegionId: {regionId}");
+        
+        var enrollments = await db.PacEnrollments
+            .Where(p => p.Status == "Approved" && 
+                       p.EndDate >= start && 
+                       p.StartDate <= end)
+            .ToListAsync();
+        
+        Console.WriteLine($"Found {enrollments.Count} approved enrollments");
+        
+        var result = new List<object>();
+        foreach (var enrollment in enrollments)
         {
-            Name = colportor?.FullName,
-            Gender = colportor?.Gender,
-            StartDate = enrollment.StartDate,
-            EndDate = enrollment.EndDate,
-            Region = region?.Name,
-            Leader = leader?.FullName
-        });
+            try
+            {
+                var colportor = await db.Colportors.FindAsync(enrollment.ColportorId);
+                var leader = await db.Users.FindAsync(enrollment.LeaderId);
+                var region = colportor?.RegionId != null ? await db.Regions.FindAsync(colportor.RegionId) : null;
+                
+                if (regionId is int rid && colportor?.RegionId != rid)
+                    continue;
+                    
+                result.Add(new
+                {
+                    Name = colportor?.FullName ?? "N/A",
+                    Gender = colportor?.Gender ?? "N/A",
+                    StartDate = enrollment.StartDate,
+                    EndDate = enrollment.EndDate,
+                    Region = region?.Name ?? "N/A",
+                    Leader = leader?.FullName ?? "N/A"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing enrollment {enrollment.Id}: {ex.Message}");
+            }
+        }
+        
+        Console.WriteLine($"Returning {result.Count} results");
+        return Results.Ok(result);
     }
-    
-    return Results.Ok(result);
+    catch (Exception ex)
+    {
+        Console.WriteLine($"PAC Report Error: {ex.Message}");
+        Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+        return Results.Problem($"Erro interno: {ex.Message}");
+    }
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
 // Buscar solicitações PAC de um líder específico em um período
