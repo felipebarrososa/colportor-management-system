@@ -1280,6 +1280,7 @@ openReports_fromDrawer?.addEventListener("click", () => {
     closeDrawer();
     // Abrir o modal de relatórios
     reportsModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add('modal-open');
     loadReportRegions();
     setDefaultDates();
 });
@@ -1287,11 +1288,13 @@ openReports_fromDrawer?.addEventListener("click", () => {
 // Fechar modal de relatórios
 closeReports?.addEventListener("click", () => {
     reportsModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove('modal-open');
 });
 
 reportsModal?.addEventListener("click", (e) => {
     if (e.target === reportsModal) {
         reportsModal.setAttribute("aria-hidden", "true");
+        document.body.classList.remove('modal-open');
     }
 });
 

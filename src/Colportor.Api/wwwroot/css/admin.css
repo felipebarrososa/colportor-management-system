@@ -2045,6 +2045,26 @@ body.nav-open {
     gap: 12px;
     margin-top: 20px;
 }
+
+/* Prevenir scroll do body quando modal estiver aberto */
+body.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* Melhorar scroll do modal no mobile */
+#reportsModal .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    overscroll-behavior: contain; /* Previne scroll do background */
+}
+
+/* Garantir que o modal tenha prioridade de scroll */
+#reportsModal {
+    overscroll-behavior: contain;
+}
 .reports-tabs {
     display: flex;
     gap: 8px;
