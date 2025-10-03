@@ -1379,13 +1379,19 @@ function generatePacReportContent(data) {
         const regionTotal = items.length;
         totalCount += regionTotal;
         
+        // Data de chegada (mais comum)
+        const startDates = items.map(item => new Date(item.startDate).toLocaleDateString('pt-BR'));
+        const mostCommonStartDate = startDates.sort((a,b) => 
+            startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
+        ).pop();
+        
         // Data de saída (mais comum)
         const endDates = items.map(item => new Date(item.endDate).toLocaleDateString('pt-BR'));
         const mostCommonEndDate = endDates.sort((a,b) => 
             endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
         ).pop();
         
-        reportHtml += `<div class="report-region">${region.toUpperCase()} - vão embora dia ${mostCommonEndDate}</div>`;
+        reportHtml += `<div class="report-region">${region.toUpperCase()} - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}</div>`;
         
         if (maleCount > 0) {
             reportHtml += `<div>${maleCount} irmão${maleCount > 1 ? 's' : ''}</div>`;
@@ -1462,6 +1468,12 @@ function exportPacPdf() {
             const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
             const regionTotal = items.length;
             
+            // Data de chegada (mais comum)
+            const startDates = items.map(item => new Date(item.StartDate || item.startDate).toLocaleDateString('pt-BR'));
+            const mostCommonStartDate = startDates.sort((a,b) => 
+                startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
+            ).pop();
+            
             // Data de saída (mais comum)
             const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
             const mostCommonEndDate = endDates.sort((a,b) => 
@@ -1475,7 +1487,7 @@ function exportPacPdf() {
             }
             
             // Nome da região
-            addText(`${region.toUpperCase()} - vão embora dia ${mostCommonEndDate}`, 12, true);
+            addText(`${region.toUpperCase()} - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}`, 12, true);
             
             // Contadores
             if (maleCount > 0) {
@@ -1568,6 +1580,12 @@ function generateWhatsAppFormattedReport() {
         const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
         const regionTotal = items.length;
         
+        // Data de chegada (mais comum)
+        const startDates = items.map(item => new Date(item.StartDate || item.startDate).toLocaleDateString('pt-BR'));
+        const mostCommonStartDate = startDates.sort((a,b) => 
+            startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
+        ).pop();
+        
         // Data de saída (mais comum)
         const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
         const mostCommonEndDate = endDates.sort((a,b) => 
@@ -1575,7 +1593,7 @@ function generateWhatsAppFormattedReport() {
         ).pop();
         
         // Nome da região em negrito
-        report += `*${region.toUpperCase()}* - vão embora dia ${mostCommonEndDate}\n`;
+        report += `*${region.toUpperCase()}* - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}\n`;
         
         // Contadores
         if (maleCount > 0) {
