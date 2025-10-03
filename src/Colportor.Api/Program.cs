@@ -931,8 +931,8 @@ app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, Da
     
     var enrollments = await db.PacEnrollments
         .Where(p => p.Status == "Approved" && 
-                   p.StartDate >= start && 
-                   p.EndDate <= end)
+                   p.EndDate >= start && 
+                   p.StartDate <= end)
         .ToListAsync();
     
     var result = new List<object>();
