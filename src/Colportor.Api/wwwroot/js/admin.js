@@ -1526,14 +1526,15 @@ function copyPacWhatsApp() {
     }
 
     try {
-        const fullReport = `APERFEIÇOAMENTO DO PAC NESTA SEMANA\n\n${pacReportData.textContent}\n${pacReportSummary.textContent}`;
+        // Gerar relatório formatado para WhatsApp
+        const formattedReport = generateWhatsAppFormattedReport();
         
-        navigator.clipboard.writeText(fullReport).then(() => {
+        navigator.clipboard.writeText(formattedReport).then(() => {
             toast("Relatório copiado! Cole no WhatsApp para enviar");
         }).catch(() => {
             // Fallback para navegadores mais antigos
             const textArea = document.createElement("textarea");
-            textArea.value = fullReport;
+            textArea.value = formattedReport;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand("copy");
@@ -1544,6 +1545,61 @@ function copyPacWhatsApp() {
         console.error('Erro ao copiar relatório:', error);
         toast("Erro ao copiar relatório", "error");
     }
+}
+
+// Função para gerar relatório formatado para WhatsApp
+function generateWhatsAppFormattedReport() {
+    if (!window.pacReportData) return "";
+
+    let report = "*APERFEIÇOAMENTO DO PAC NESTA SEMANA*\n\n";
+    
+    // Agrupar dados por região
+    const groupedByRegion = {};
+    window.pacReportData.forEach(item => {
+        const region = item.Region || item.region || "Região não informada";
+        if (!groupedByRegion[region]) {
+            groupedByRegion[region] = [];
+        }
+        groupedByRegion[region].push(item);
+    });
+    
+    // Gerar conteúdo para cada região
+    Object.entries(groupedByRegion).forEach(([region, items]) => {
+        const maleCount = items.filter(item => (item.Gender || item.gender) === "Masculino").length;
+        const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
+        const regionTotal = items.length;
+        
+        // Data de saída (mais comum)
+        const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
+        const mostCommonEndDate = endDates.sort((a,b) => 
+            endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
+        ).pop();
+        
+        // Nome da região em negrito
+        report += `*${region.toUpperCase()}* - vão embora dia ${mostCommonEndDate}\n`;
+        
+        // Contadores
+        if (maleCount > 0) {
+            report += `${maleCount} irmão${maleCount > 1 ? 's' : ''}\n`;
+        }
+        if (femaleCount > 0) {
+            report += `${femaleCount} irmã${femaleCount > 1 ? 's' : ''}\n`;
+        }
+        
+        // Lista de nomes
+        items.forEach(item => {
+            const name = item.Name || item.name || 'Nome não informado';
+            report += `${name}\n`;
+        });
+        
+        report += `*Total: ${regionTotal}*\n\n`;
+    });
+    
+    // Total geral
+    const totalCount = window.pacReportData.length;
+    report += `*QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos*`;
+    
+    return report;
 }
 
 // Função para exportar relatório para Excel
