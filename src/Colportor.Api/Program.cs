@@ -934,6 +934,57 @@ app.MapPost("/admin/pac/enrollments/{id:int}/reject", async (AppDbContext db, in
     return Results.Ok();
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+// Teste simples para debugar
+app.MapGet("/admin/reports/test", async (AppDbContext db) =>
+{
+    try
+    {
+        Console.WriteLine("=== TEST ENDPOINT START ===");
+        
+        // Teste 1: Verificar se consegue conectar no banco
+        var canConnect = await db.Database.CanConnectAsync();
+        Console.WriteLine($"Can connect to database: {canConnect}");
+        
+        // Teste 2: Contar registros em cada tabela
+        var colportorsCount = await db.Colportors.CountAsync();
+        Console.WriteLine($"Colportors count: {colportorsCount}");
+        
+        var usersCount = await db.Users.CountAsync();
+        Console.WriteLine($"Users count: {usersCount}");
+        
+        var regionsCount = await db.Regions.CountAsync();
+        Console.WriteLine($"Regions count: {regionsCount}");
+        
+        var pacEnrollmentsCount = await db.PacEnrollments.CountAsync();
+        Console.WriteLine($"PacEnrollments count: {pacEnrollmentsCount}");
+        
+        // Teste 3: Listar alguns enrollments
+        var enrollments = await db.PacEnrollments.Take(5).ToListAsync();
+        Console.WriteLine($"Sample enrollments: {enrollments.Count}");
+        foreach (var e in enrollments)
+        {
+            Console.WriteLine($"  - ID: {e.Id}, Status: {e.Status}, StartDate: {e.StartDate}, EndDate: {e.EndDate}");
+        }
+        
+        Console.WriteLine("=== TEST ENDPOINT END ===");
+        
+        return Results.Ok(new { 
+            canConnect, 
+            colportorsCount, 
+            usersCount, 
+            regionsCount, 
+            pacEnrollmentsCount,
+            sampleEnrollments = enrollments.Select(e => new { e.Id, e.Status, e.StartDate, e.EndDate })
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Test Error: {ex.Message}");
+        Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+        return Results.Problem($"Erro no teste: {ex.Message}");
+    }
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
 // Relatório de PAC para WhatsApp
 app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, DateTime? endDate, int? regionId) =>
 {
