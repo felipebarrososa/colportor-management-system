@@ -1406,8 +1406,7 @@ function generatePacReportContent(data) {
     pacReportSummary.innerHTML = `<div class="report-total">QUANTIDADE DE IRMÃOS DE APERFEIÇOAMENTO: ${totalCount} irmãos</div>`;
     
     pacReportContent.style.display = "block";
-    document.getElementById('exportPacPdf').style.display = "inline-block";
-    document.getElementById('exportPacReport').style.display = "inline-block";
+    document.querySelector('.export-buttons').style.display = "flex";
 }
 
 // Exportar relatório para PDF
@@ -1515,6 +1514,37 @@ function exportPacPdf() {
 
 // Exportar relatório para Excel
 document.getElementById('exportPacReport')?.addEventListener('click', exportPacReport);
+
+// Copiar relatório para WhatsApp
+document.getElementById('copyPacWhatsApp')?.addEventListener('click', copyPacWhatsApp);
+
+// Função para copiar relatório para WhatsApp
+function copyPacWhatsApp() {
+    if (!pacReportData || !pacReportSummary) {
+        toast("Nenhum relatório para copiar", "error");
+        return;
+    }
+
+    try {
+        const fullReport = `APERFEIÇOAMENTO DO PAC NESTA SEMANA\n\n${pacReportData.textContent}\n${pacReportSummary.textContent}`;
+        
+        navigator.clipboard.writeText(fullReport).then(() => {
+            toast("Relatório copiado! Cole no WhatsApp para enviar");
+        }).catch(() => {
+            // Fallback para navegadores mais antigos
+            const textArea = document.createElement("textarea");
+            textArea.value = fullReport;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textArea);
+            toast("Relatório copiado! Cole no WhatsApp para enviar");
+        });
+    } catch (error) {
+        console.error('Erro ao copiar relatório:', error);
+        toast("Erro ao copiar relatório", "error");
+    }
+}
 
 // Função para exportar relatório para Excel
 function exportPacReport() {

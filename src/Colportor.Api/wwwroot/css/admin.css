@@ -2046,6 +2046,21 @@ body.nav-open {
     margin-top: 20px;
 }
 
+/* Botões de exportação em linha */
+#reportsModal .export-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#reportsModal .export-buttons .btn {
+    flex: 1;
+    min-width: 80px;
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
 /* Prevenir scroll do body quando modal estiver aberto */
 body.modal-open {
     overflow: hidden;
