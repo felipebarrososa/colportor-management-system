@@ -995,8 +995,8 @@ app.MapGet("/admin/reports/pac", async (AppDbContext db, DateTime? startDate, Da
         Console.WriteLine($"EndDate: {endDate}");
         Console.WriteLine($"RegionId: {regionId}");
         
-        var start = startDate ?? DateTime.UtcNow.Date;
-        var end = endDate ?? DateTime.UtcNow.Date.AddDays(7);
+        var start = DateTime.SpecifyKind(startDate ?? DateTime.UtcNow.Date, DateTimeKind.Utc);
+        var end = DateTime.SpecifyKind(endDate ?? DateTime.UtcNow.Date.AddDays(7), DateTimeKind.Utc);
         
         Console.WriteLine($"Using Start: {start}, End: {end}");
         
