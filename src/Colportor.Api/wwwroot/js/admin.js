@@ -1359,7 +1359,7 @@ function generatePacReportContent(data) {
     // Agrupar por região
     const groupedByRegion = {};
     data.forEach(item => {
-        const region = item.region || "Região não informada";
+        const region = item.Region || "Região não informada";
         if (!groupedByRegion[region]) {
             groupedByRegion[region] = [];
         }
@@ -1371,13 +1371,13 @@ function generatePacReportContent(data) {
     
     // Gerar HTML para cada região
     Object.entries(groupedByRegion).forEach(([region, items]) => {
-        const maleCount = items.filter(item => item.gender === "Masculino").length;
-        const femaleCount = items.filter(item => item.gender === "Feminino").length;
+        const maleCount = items.filter(item => item.Gender === "Masculino").length;
+        const femaleCount = items.filter(item => item.Gender === "Feminino").length;
         const regionTotal = items.length;
         totalCount += regionTotal;
         
         // Data de saída (mais comum)
-        const endDates = items.map(item => new Date(item.endDate).toLocaleDateString('pt-BR'));
+        const endDates = items.map(item => new Date(item.EndDate).toLocaleDateString('pt-BR'));
         const mostCommonEndDate = endDates.sort((a,b) => 
             endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
         ).pop();
@@ -1393,7 +1393,7 @@ function generatePacReportContent(data) {
         
         // Lista de nomes
         items.forEach(item => {
-            reportHtml += `<div class="report-person">${escapeHtml(item.name || 'Nome não informado')}</div>`;
+            reportHtml += `<div class="report-person">${escapeHtml(item.Name || 'Nome não informado')}</div>`;
         });
         
         reportHtml += `<div><strong>Total: ${regionTotal}</strong></div>\n\n`;
@@ -1435,9 +1435,13 @@ function exportPacReport() {
         return;
     }
 
+    console.log("Dados para exportação:", window.pacReportData);
+
     try {
         // Criar dados para Excel com formatação correta
         const data = window.pacReportData.map(item => {
+            console.log("Item sendo processado:", item);
+            
             // Formatar datas corretamente para Excel (DD/MM/AAAA)
             const formatDate = (dateStr) => {
                 if (!dateStr) return 'N/A';
@@ -1446,7 +1450,7 @@ function exportPacReport() {
                 return date.toLocaleDateString('pt-BR');
             };
 
-            return {
+            const formattedItem = {
                 'Nome': item.Name || 'N/A',
                 'Sexo': item.Gender || 'N/A',
                 'Data Início': formatDate(item.StartDate),
@@ -1454,6 +1458,9 @@ function exportPacReport() {
                 'Região': item.Region || 'N/A',
                 'Líder': item.Leader || 'N/A'
             };
+            
+            console.log("Item formatado:", formattedItem);
+            return formattedItem;
         });
 
         // Converter para CSV com separador de ponto e vírgula (melhor para Excel brasileiro)
