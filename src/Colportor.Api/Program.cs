@@ -88,7 +88,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddSingleton<EmailService>();
 
-// JSON - ignora ciclos se alguém esquecer de projetar DTO
+// JSON - ignora ciclos se alguém esquecer de projetar 
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
     o.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
