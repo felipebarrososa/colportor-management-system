@@ -1112,8 +1112,8 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
     {
         Console.WriteLine($"Calendar API called for {year}-{month}");
         
-        // Calcular o primeiro e último dia do mês
-        var firstDay = new DateTime(year, month, 1);
+        // Calcular o primeiro e último dia do mês (UTC)
+        var firstDay = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
         var lastDay = firstDay.AddMonths(1).AddDays(-1);
         
         Console.WriteLine($"Searching enrollments from {firstDay:yyyy-MM-dd} to {lastDay:yyyy-MM-dd}");
@@ -1256,11 +1256,11 @@ app.MapPost("/admin/test-data", async (AppDbContext db) =>
         db.Colportors.AddRange(testColportors);
         await db.SaveChangesAsync();
         
-        // Criar enrollments PAC para o mês atual
-        var currentMonth = DateTime.Now.Month;
-        var currentYear = DateTime.Now.Year;
-        var startDate = new DateTime(currentYear, currentMonth, 1);
-        var endDate = new DateTime(currentYear, currentMonth, 15); // 15 dias do mês
+        // Criar enrollments PAC para o mês atual (UTC)
+        var currentMonth = DateTime.UtcNow.Month;
+        var currentYear = DateTime.UtcNow.Year;
+        var startDate = new DateTime(currentYear, currentMonth, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = new DateTime(currentYear, currentMonth, 15, 0, 0, 0, DateTimeKind.Utc); // 15 dias do mês
         
         var testEnrollments = new List<PacEnrollment>();
         foreach (var colportor in testColportors)
