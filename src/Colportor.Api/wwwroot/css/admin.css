@@ -2697,7 +2697,17 @@ body.modal-open {
     }
     
     .day-stats {
+        gap: 2px;
+        font-size: 9px;
+    }
+    
+    .day-stat-label {
         font-size: 8px;
+    }
+    
+    .day-stat-value {
+        font-size: 9px;
+        font-weight: 600;
     }
     
     .day-summary-stats {
@@ -2735,7 +2745,23 @@ body.modal-open {
     }
     
     .day-stats {
-        display: none;
+        gap: 1px;
+        font-size: 8px;
+    }
+    
+    .day-stat {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .day-stat-label {
+        font-size: 7px;
+        line-height: 1;
+    }
+    
+    .day-stat-value {
+        font-size: 8px;
+        font-weight: 600;
     }
     
     .region-card-stats {
