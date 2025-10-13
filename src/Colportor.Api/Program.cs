@@ -1185,11 +1185,18 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
         
         Console.WriteLine($"Returning calendar data with {calendarData.Count} days");
         
+        // Nomes dos meses em português
+        var monthNames = new[]
+        {
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        };
+        
         return Results.Ok(new
         {
             Year = year,
             Month = month,
-            MonthName = firstDay.ToString("MMMM", new System.Globalization.CultureInfo("pt-BR")),
+            MonthName = monthNames[month - 1],
             CalendarData = calendarData
         });
     }

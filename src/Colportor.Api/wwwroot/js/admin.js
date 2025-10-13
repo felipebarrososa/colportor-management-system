@@ -1954,9 +1954,14 @@ const regionSummary = $("#regionSummary");
 const colportorsList = $("#colportorsList");
 
 // Estado do calendário
-let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth() + 1; // JavaScript usa 0-11, nós usamos 1-12
+const now = new Date();
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth() + 1; // JavaScript usa 0-11, nós usamos 1-12
 let calendarData = {};
+
+console.log('Current date:', now);
+console.log('Current year:', currentYear);
+console.log('Current month:', currentMonth);
 
 // Mostrar calendário apenas para admin
 if (ROLE === "admin") {
