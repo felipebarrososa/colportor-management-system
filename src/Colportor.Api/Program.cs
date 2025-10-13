@@ -1227,32 +1227,29 @@ app.MapPost("/admin/test-data", async (AppDbContext db) =>
             new ColpColportor
             {
                 FullName = "João Silva",
-                Email = "joao@test.com",
                 CPF = "12345678901",
                 Gender = "Masculino",
                 LeaderId = leader.Id,
                 RegionId = region.Id,
-                CreatedAt = DateTime.UtcNow
+                City = "São Paulo"
             },
             new ColpColportor
             {
                 FullName = "Maria Santos",
-                Email = "maria@test.com",
                 CPF = "12345678902",
                 Gender = "Feminino",
                 LeaderId = leader.Id,
                 RegionId = region.Id,
-                CreatedAt = DateTime.UtcNow
+                City = "Rio de Janeiro"
             },
             new ColpColportor
             {
                 FullName = "Pedro Costa",
-                Email = "pedro@test.com",
                 CPF = "12345678903",
                 Gender = "Masculino",
                 LeaderId = leader.Id,
                 RegionId = region.Id,
-                CreatedAt = DateTime.UtcNow
+                City = "Belo Horizonte"
             }
         };
         
