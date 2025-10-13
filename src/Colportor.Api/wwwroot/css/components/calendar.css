@@ -1,0 +1,309 @@
+/**
+ * Componente do Calendário
+ * Estilos específicos para o calendário PAC
+ */
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+}
+
+.calendar-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.calendar-grid {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.weekday {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    padding: 0.5rem;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.calendar-day {
+    min-height: 80px;
+    padding: 0.5rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.calendar-day.other-month {
+    opacity: 0.3;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.calendar-day.today {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+}
+
+.day-number {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.day-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: auto;
+}
+
+.day-stats.empty {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 0.25rem;
+}
+
+.day-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.day-stat-label {
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.day-stat-value {
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+/* Responsividade para calendário */
+@media (max-width: 768px) {
+    .calendar-days {
+        gap: 0.25rem;
+    }
+    
+    .calendar-day {
+        min-height: 60px;
+        padding: 0.25rem;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+    }
+    
+    .day-stats {
+        gap: 0.125rem;
+    }
+    
+    .day-stat {
+        font-size: 0.625rem;
+        padding: 0.0625rem 0.125rem;
+    }
+    
+    .day-stat-label {
+        font-size: 0.625rem;
+    }
+    
+    .day-stat-value {
+        font-size: 0.625rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day {
+        min-height: 50px;
+        padding: 0.125rem;
+    }
+    
+    .day-number {
+        font-size: 0.625rem;
+    }
+    
+    .day-stats {
+        gap: 0.0625rem;
+    }
+    
+    .day-stat {
+        font-size: 0.5rem;
+        padding: 0.03125rem 0.0625rem;
+    }
+    
+    .day-stat-label {
+        font-size: 0.5rem;
+    }
+    
+    .day-stat-value {
+        font-size: 0.5rem;
+    }
+}
+
+/* Modal de detalhes do dia */
+.day-summary {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.day-summary h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+.summary-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 80px;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.regions-list h5 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.region-card {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 0.75rem;
+}
+
+.region-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.region-info h6 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.region-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Modal de detalhes da região */
+.region-summary {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.region-summary h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+.region-summary p {
+    margin: 0 0 1rem 0;
+    color: var(--text-muted);
+}
+
+.colportors-list h5 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.colportor-item {
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.colportor-info h6 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.colportor-info p {
+    margin: 0 0 0.125rem 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.colportor-info p:last-child {
+    margin-bottom: 0;
+}

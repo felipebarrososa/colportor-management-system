@@ -1,0 +1,253 @@
+/**
+ * Componente de Loading
+ * Estilos para indicadores de carregamento
+ */
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+
+.loading-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loading-text {
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Spinner de botão */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Spinner inline */
+.inline-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+}
+
+/* Skeleton loading */
+.skeleton {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.1) 25%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0.1) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.medium {
+    width: 80%;
+}
+
+.skeleton-text.long {
+    width: 100%;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-card {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.skeleton-card .skeleton-text {
+    margin-bottom: 0.75rem;
+}
+
+.skeleton-card .skeleton-text:last-child {
+    margin-bottom: 0;
+}
+
+/* Loading states para elementos específicos */
+.calendar-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendar-loading .loading-spinner {
+    margin-bottom: 1rem;
+}
+
+.table-loading {
+    position: relative;
+}
+
+.table-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.table-loading .loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Progress bar */
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    animation: progress-shimmer 2s infinite;
+}
+
+/* Pulse animation para elementos */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Animações */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes progress-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .loading-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border-width: 2px;
+    }
+    
+    .skeleton-card {
+        padding: 0.75rem;
+    }
+    
+    .skeleton-text {
+        height: 0.875rem;
+        margin-bottom: 0.375rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-container {
+        padding: 1rem;
+        margin: 0.5rem;
+    }
+    
+    .loading-spinner {
+        width: 28px;
+        height: 28px;
+        border-width: 2px;
+    }
+    
+    .skeleton-card {
+        padding: 0.5rem;
+    }
+    
+    .skeleton-text {
+        height: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
+}
