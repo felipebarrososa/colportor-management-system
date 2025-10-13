@@ -2214,11 +2214,15 @@ function openRegionDetails(dateKey, regionId, regionName) {
     const dayData = calendarData[dateKey];
     if (!dayData) return;
     
-    const region = dayData.Regions.find(r => r.RegionId == regionId);
+    const regions = dayData.regions || dayData.Regions || [];
+    const region = regions.find(r => r.regionId == regionId || r.RegionId == regionId);
     if (!region) return;
     
     const date = new Date(dateKey);
-    const dateStr = date.toLocaleDateString('pt-BR');
+    // Usar formato manual para evitar problemas de cultura
+    const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const dateStr = `${weekdays[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
     
     if (regionDetailsTitle) {
         regionDetailsTitle.textContent = `${escapeHtml(regionName)} - ${dateStr}`;
@@ -2230,15 +2234,15 @@ function openRegionDetails(dateKey, regionId, regionName) {
             <h4>🌍 ${escapeHtml(regionName)}</h4>
             <div class="day-summary-stats">
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value males">${region.Males}</span>
+                    <span class="day-summary-stat-value males">${region.males || 0}</span>
                     <div class="day-summary-stat-label">Homens</div>
                 </div>
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value females">${region.Females}</span>
+                    <span class="day-summary-stat-value females">${region.females || 0}</span>
                     <div class="day-summary-stat-label">Mulheres</div>
                 </div>
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value">${region.Total}</span>
+                    <span class="day-summary-stat-value">${region.total || 0}</span>
                     <div class="day-summary-stat-label">Total</div>
                 </div>
             </div>
@@ -2247,17 +2251,18 @@ function openRegionDetails(dateKey, regionId, regionName) {
     
     // Atualizar lista de colportores
     if (colportorsList) {
-        colportorsList.innerHTML = region.Colportors.map(colportor => `
+        const colportors = region.colportors || region.Colportors || [];
+        colportorsList.innerHTML = colportors.map(colportor => `
             <div class="colportor-item">
                 <div class="colportor-avatar">
-                    ${colportor.Gender === 'Masculino' ? '👨' : '👩'}
+                    ${(colportor.gender || colportor.Gender) === 'Masculino' ? '👨' : '👩'}
                 </div>
                 <div class="colportor-info">
-                    <div class="colportor-name">${escapeHtml(colportor.FullName)}</div>
+                    <div class="colportor-name">${escapeHtml(colportor.fullName || colportor.FullName)}</div>
                     <div class="colportor-details">
-                        <span>CPF: ${escapeHtml(colportor.CPF)}</span>
-                        <span>Líder: ${escapeHtml(colportor.LeaderName)}</span>
-                        <span class="colportor-gender ${colportor.Gender.toLowerCase()}">${escapeHtml(colportor.Gender)}</span>
+                        <span>CPF: ${escapeHtml(colportor.cpf || colportor.CPF)}</span>
+                        <span>Líder: ${escapeHtml(colportor.leaderName || colportor.LeaderName)}</span>
+                        <span class="colportor-gender ${(colportor.gender || colportor.Gender || '').toLowerCase()}">${escapeHtml(colportor.gender || colportor.Gender)}</span>
                     </div>
                 </div>
             </div>
