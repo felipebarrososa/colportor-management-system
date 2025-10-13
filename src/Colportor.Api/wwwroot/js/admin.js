@@ -1949,6 +1949,7 @@ const regionsGrid = $("#regionsGrid");
 
 const regionDetailsModal = $("#regionDetailsModal");
 const closeRegionDetails = $("#closeRegionDetails");
+const backToDayDetails = $("#backToDayDetails");
 const regionDetailsTitle = $("#regionDetailsTitle");
 const regionSummary = $("#regionSummary");
 const colportorsList = $("#colportorsList");
@@ -2017,6 +2018,12 @@ closeDayDetails?.addEventListener("click", () => {
 
 closeRegionDetails?.addEventListener("click", () => {
     regionDetailsModal.setAttribute("aria-hidden", "true");
+});
+
+backToDayDetails?.addEventListener("click", () => {
+    // Fechar modal de região e abrir modal de dia
+    regionDetailsModal.setAttribute("aria-hidden", "true");
+    dayDetailsModal.setAttribute("aria-hidden", "false");
 });
 
 // Carregar dados do calendário
