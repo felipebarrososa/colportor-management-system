@@ -1964,7 +1964,10 @@ if (ROLE === "admin") {
     if (calendarPanel) {
         calendarPanel.style.display = "block";
     }
-    loadCalendar();
+    // Aguardar um pouco para garantir que o DOM está pronto
+    setTimeout(() => {
+        loadCalendar();
+    }, 100);
 } else {
     console.log('Not an admin, hiding calendar');
     if (calendarPanel) {
@@ -2017,13 +2020,20 @@ async function loadCalendar() {
         console.log(`Loading calendar for ${currentYear}-${currentMonth}`);
         
         const res = await authFetch(`/admin/calendar/monthly?year=${currentYear}&month=${currentMonth}`);
+        console.log('Calendar API response status:', res.status);
+        
         if (!res.ok) {
             console.error('Failed to load calendar data:', res.status);
+            const errorText = await res.text();
+            console.error('Error response:', errorText);
             return;
         }
         
         const data = await res.json();
+        console.log('Calendar data received:', data);
+        
         calendarData = data.CalendarData || {};
+        console.log('Calendar data assigned:', calendarData);
         
         updateCalendarUI(data);
         
@@ -2057,8 +2067,10 @@ function updateCalendarUI(data) {
 function generateCalendarDays() {
     if (!calendarDays) return;
     
+    console.log('Generating calendar days for:', currentYear, currentMonth);
+    console.log('Calendar data:', calendarData);
+    
     const firstDay = new Date(currentYear, currentMonth - 1, 1);
-    const lastDay = new Date(currentYear, currentMonth, 0);
     const startDate = new Date(firstDay);
     
     // Ajustar para começar na segunda-feira
@@ -2068,6 +2080,9 @@ function generateCalendarDays() {
     
     let html = '';
     const today = new Date();
+    
+    console.log('First day:', firstDay);
+    console.log('Start date (adjusted):', startDate);
     
     // Gerar 42 dias (6 semanas)
     for (let i = 0; i < 42; i++) {
@@ -2089,19 +2104,20 @@ function generateCalendarDays() {
         `;
         
         if (dayData) {
+            console.log('Day data for', dateKey, ':', dayData);
             dayContent += `
                 <div class="day-stats">
                     <div class="day-stat males">
                         <span class="day-stat-label">H</span>
-                        <span class="day-stat-value">${dayData.Males}</span>
+                        <span class="day-stat-value">${dayData.Males || 0}</span>
                     </div>
                     <div class="day-stat females">
                         <span class="day-stat-label">M</span>
-                        <span class="day-stat-value">${dayData.Females}</span>
+                        <span class="day-stat-value">${dayData.Females || 0}</span>
                     </div>
                     <div class="day-stat total">
                         <span class="day-stat-label">T</span>
-                        <span class="day-stat-value">${dayData.Total}</span>
+                        <span class="day-stat-value">${dayData.Total || 0}</span>
                     </div>
                 </div>
             `;
@@ -2114,6 +2130,7 @@ function generateCalendarDays() {
         `;
     }
     
+    console.log('Generated HTML length:', html.length);
     calendarDays.innerHTML = html;
 }
 

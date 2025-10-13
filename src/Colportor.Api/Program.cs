@@ -1110,9 +1110,13 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
 {
     try
     {
+        Console.WriteLine($"Calendar API called for {year}-{month}");
+        
         // Calcular o primeiro e último dia do mês
         var firstDay = new DateTime(year, month, 1);
         var lastDay = firstDay.AddMonths(1).AddDays(-1);
+        
+        Console.WriteLine($"Searching enrollments from {firstDay:yyyy-MM-dd} to {lastDay:yyyy-MM-dd}");
         
         // Buscar todos os enrollments aprovados no período
         var enrollments = await db.PacEnrollments
@@ -1123,6 +1127,8 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
             .Include(p => p.Leader)
             .ThenInclude(l => l.Region)
             .ToListAsync();
+        
+        Console.WriteLine($"Found {enrollments.Count} approved enrollments in period");
         
         // Criar dicionário para agrupar por dia
         var calendarData = new Dictionary<string, object>();
@@ -1142,6 +1148,8 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
                 var males = dayEnrollments.Count(e => e.Colportor.Gender == "Masculino");
                 var females = dayEnrollments.Count(e => e.Colportor.Gender == "Feminino");
                 var total = dayEnrollments.Count;
+                
+                Console.WriteLine($"Day {dayKey}: {total} colportors (M: {males}, F: {females})");
                 
                 // Agrupar por região
                 var regions = dayEnrollments
@@ -1175,6 +1183,8 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
             }
         }
         
+        Console.WriteLine($"Returning calendar data with {calendarData.Count} days");
+        
         return Results.Ok(new
         {
             Year = year,
@@ -1186,7 +1196,98 @@ app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int mont
     catch (Exception ex)
     {
         Console.WriteLine($"Calendar API Error: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
         return Results.Problem($"Erro interno: {ex.Message}");
+    }
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
+// ========= TEST DATA =========
+// Endpoint temporário para criar dados de teste
+app.MapPost("/admin/test-data", async (AppDbContext db) =>
+{
+    try
+    {
+        // Buscar um líder existente
+        var leader = await db.Users.FirstOrDefaultAsync(u => u.Role == "Leader");
+        if (leader == null)
+        {
+            return Results.Problem("Nenhum líder encontrado");
+        }
+        
+        // Buscar uma região existente
+        var region = await db.Regions.FirstOrDefaultAsync();
+        if (region == null)
+        {
+            return Results.Problem("Nenhuma região encontrada");
+        }
+        
+        // Criar alguns colportores de teste
+        var testColportors = new List<Colportor>
+        {
+            new Colportor
+            {
+                FullName = "João Silva",
+                Email = "joao@test.com",
+                CPF = "12345678901",
+                Gender = "Masculino",
+                LeaderId = leader.Id,
+                RegionId = region.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Colportor
+            {
+                FullName = "Maria Santos",
+                Email = "maria@test.com",
+                CPF = "12345678902",
+                Gender = "Feminino",
+                LeaderId = leader.Id,
+                RegionId = region.Id,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Colportor
+            {
+                FullName = "Pedro Costa",
+                Email = "pedro@test.com",
+                CPF = "12345678903",
+                Gender = "Masculino",
+                LeaderId = leader.Id,
+                RegionId = region.Id,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        
+        db.Colportors.AddRange(testColportors);
+        await db.SaveChangesAsync();
+        
+        // Criar enrollments PAC para o mês atual
+        var currentMonth = DateTime.Now.Month;
+        var currentYear = DateTime.Now.Year;
+        var startDate = new DateTime(currentYear, currentMonth, 1);
+        var endDate = new DateTime(currentYear, currentMonth, 15); // 15 dias do mês
+        
+        var testEnrollments = new List<PacEnrollment>();
+        foreach (var colportor in testColportors)
+        {
+            testEnrollments.Add(new PacEnrollment
+            {
+                ColportorId = colportor.Id,
+                LeaderId = leader.Id,
+                StartDate = startDate,
+                EndDate = endDate,
+                Status = "Approved",
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        
+        db.PacEnrollments.AddRange(testEnrollments);
+        await db.SaveChangesAsync();
+        
+        return Results.Ok(new { message = "Dados de teste criados com sucesso", count = testColportors.Count });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Test data creation error: {ex.Message}");
+        return Results.Problem($"Erro ao criar dados de teste: {ex.Message}");
     }
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
