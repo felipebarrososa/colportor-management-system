@@ -48,6 +48,8 @@ public static class ServiceCollectionExtensions
 
         // Serviços de infraestrutura
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<ICacheService, CacheService>();
+        services.AddScoped<IPaginationService, PaginationService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(AutoMapperProfile));

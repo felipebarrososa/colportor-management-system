@@ -14,12 +14,14 @@ public class CalendarService : ICalendarService
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<CalendarService> _logger;
+    private readonly ICacheService _cacheService;
 
-    public CalendarService(AppDbContext context, IMapper mapper, ILogger<CalendarService> logger)
+    public CalendarService(AppDbContext context, IMapper mapper, ILogger<CalendarService> logger, ICacheService cacheService)
     {
         _context = context;
         _mapper = mapper;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     public async Task<MonthlyCalendarDto> GetMonthlyCalendarAsync(int year, int month)
@@ -27,6 +29,15 @@ public class CalendarService : ICalendarService
         try
         {
             _logger.LogInformation("Obtendo calendário mensal para {Year}-{Month}", year, month);
+
+            // Tentar obter do cache primeiro
+            var cacheKey = $"calendar:monthly:{year}-{month}";
+            var cachedResult = await _cacheService.GetAsync<MonthlyCalendarDto>(cacheKey);
+            if (cachedResult != null)
+            {
+                _logger.LogDebug("Calendário obtido do cache para {Year}-{Month}", year, month);
+                return cachedResult;
+            }
 
             var firstDay = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
             var lastDay = firstDay.AddMonths(1).AddDays(-1);
@@ -84,6 +95,9 @@ public class CalendarService : ICalendarService
                 MonthName = monthNames[month - 1],
                 CalendarData = calendarData
             };
+
+            // Cachear o resultado por 10 minutos
+            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
             _logger.LogInformation("Calendário mensal gerado com {Days} dias com dados", calendarData.Count);
             return result;

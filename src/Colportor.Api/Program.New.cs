@@ -74,6 +74,9 @@ if (app.Environment.IsDevelopment())
 // Rate limiting
 app.UseIpRateLimiting();
 
+// Cache middleware
+app.UseCacheMiddleware();
+
 // CORS
 app.UseCors("AllowSpecificOrigins");
 
