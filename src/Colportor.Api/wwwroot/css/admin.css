@@ -2693,21 +2693,37 @@ body.modal-open {
     }
     
     .day-number {
-        font-size: 12px;
+        font-size: 11px;
     }
     
     .day-stats {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 3px;
+        margin-top: 3px;
+    }
+    
+    .day-stat {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
         gap: 2px;
-        font-size: 9px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        background: rgba(255,255,255,.05);
     }
     
     .day-stat-label {
         font-size: 8px;
+        line-height: 1;
+        color: rgba(255,255,255,.6);
     }
     
     .day-stat-value {
         font-size: 9px;
-        font-weight: 600;
+        font-weight: 700;
+        color: var(--text-color, white);
     }
     
     .day-summary-stats {
@@ -2745,23 +2761,33 @@ body.modal-open {
     }
     
     .day-stats {
-        gap: 1px;
-        font-size: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+        margin-top: 2px;
     }
     
     .day-stat {
-        flex-direction: column;
-        gap: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1px;
+        padding: 1px 3px;
+        border-radius: 3px;
+        background: rgba(255,255,255,.05);
     }
     
     .day-stat-label {
         font-size: 7px;
         line-height: 1;
+        color: rgba(255,255,255,.6);
     }
     
     .day-stat-value {
         font-size: 8px;
-        font-weight: 600;
+        font-weight: 700;
+        color: var(--text-color, white);
     }
     
     .region-card-stats {
