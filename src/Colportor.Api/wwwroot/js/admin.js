@@ -2037,9 +2037,13 @@ async function loadCalendar() {
         const data = await res.json();
         console.log('Calendar data received:', data);
         console.log('Calendar data received - data.calendarData:', data.calendarData);
+        console.log('Calendar data received - data.CalendarData:', data.CalendarData);
+        console.log('All keys in data:', Object.keys(data));
         
-        calendarData = data.calendarData || {};
+        // Tentar ambos os casos (camelCase e PascalCase)
+        calendarData = data.calendarData || data.CalendarData || {};
         console.log('Calendar data assigned:', calendarData);
+        console.log('Calendar data keys:', Object.keys(calendarData));
         
         updateCalendarUI(data);
         
@@ -2146,12 +2150,10 @@ function openDayDetails(dateKey) {
     if (!dayData) return;
     
     const date = new Date(dateKey);
-    const dateStr = date.toLocaleDateString('pt-BR', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
+    // Usar formato manual para evitar problemas de cultura
+    const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const dateStr = `${weekdays[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
     
     if (dayDetailsTitle) {
         dayDetailsTitle.textContent = `Detalhes - ${dateStr}`;
@@ -2180,7 +2182,8 @@ function openDayDetails(dateKey) {
     
     // Atualizar cards das regiões
     if (regionsGrid) {
-        regionsGrid.innerHTML = dayData.Regions.map(region => `
+        const regions = dayData.Regions || [];
+        regionsGrid.innerHTML = regions.map(region => `
             <div class="region-card" onclick="openRegionDetails('${dateKey}', '${region.RegionId}', '${region.RegionName}')">
                 <div class="region-card-header">
                     <h3 class="region-card-title">${escapeHtml(region.RegionName)}</h3>
