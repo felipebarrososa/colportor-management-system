@@ -2115,22 +2115,22 @@ function generateCalendarDays() {
         
         if (dayData) {
             console.log('Day data for', dateKey, ':', dayData);
-            dayContent += `
-                <div class="day-stats">
-                    <div class="day-stat males">
-                        <span class="day-stat-label">H</span>
-                        <span class="day-stat-value">${dayData.Males || 0}</span>
-                    </div>
-                    <div class="day-stat females">
-                        <span class="day-stat-label">M</span>
-                        <span class="day-stat-value">${dayData.Females || 0}</span>
-                    </div>
-                    <div class="day-stat total">
-                        <span class="day-stat-label">T</span>
-                        <span class="day-stat-value">${dayData.Total || 0}</span>
-                    </div>
-                </div>
-            `;
+                    dayContent += `
+                        <div class="day-stats">
+                            <div class="day-stat males">
+                                <span class="day-stat-label">H</span>
+                                <span class="day-stat-value">${dayData.males || 0}</span>
+                            </div>
+                            <div class="day-stat females">
+                                <span class="day-stat-label">M</span>
+                                <span class="day-stat-value">${dayData.females || 0}</span>
+                            </div>
+                            <div class="day-stat total">
+                                <span class="day-stat-label">T</span>
+                                <span class="day-stat-value">${dayData.total || 0}</span>
+                            </div>
+                        </div>
+                    `;
         }
         
         html += `
@@ -2165,15 +2165,15 @@ function openDayDetails(dateKey) {
             <h4>📅 ${dateStr}</h4>
             <div class="day-summary-stats">
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value males">${dayData.Males}</span>
+                    <span class="day-summary-stat-value males">${dayData.males || 0}</span>
                     <div class="day-summary-stat-label">Homens</div>
                 </div>
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value females">${dayData.Females}</span>
+                    <span class="day-summary-stat-value females">${dayData.females || 0}</span>
                     <div class="day-summary-stat-label">Mulheres</div>
                 </div>
                 <div class="day-summary-stat">
-                    <span class="day-summary-stat-value">${dayData.Total}</span>
+                    <span class="day-summary-stat-value">${dayData.total || 0}</span>
                     <div class="day-summary-stat-label">Total</div>
                 </div>
             </div>
@@ -2182,23 +2182,23 @@ function openDayDetails(dateKey) {
     
     // Atualizar cards das regiões
     if (regionsGrid) {
-        const regions = dayData.Regions || [];
+        const regions = dayData.regions || dayData.Regions || [];
         regionsGrid.innerHTML = regions.map(region => `
-            <div class="region-card" onclick="openRegionDetails('${dateKey}', '${region.RegionId}', '${region.RegionName}')">
+            <div class="region-card" onclick="openRegionDetails('${dateKey}', '${region.regionId}', '${region.regionName}')">
                 <div class="region-card-header">
-                    <h3 class="region-card-title">${escapeHtml(region.RegionName)}</h3>
+                    <h3 class="region-card-title">${escapeHtml(region.regionName)}</h3>
                 </div>
                 <div class="region-card-stats">
                     <div class="region-card-stat">
-                        <span class="region-card-stat-value males">${region.Males}</span>
+                        <span class="region-card-stat-value males">${region.males || 0}</span>
                         <div class="region-card-stat-label">Homens</div>
                     </div>
                     <div class="region-card-stat">
-                        <span class="region-card-stat-value females">${region.Females}</span>
+                        <span class="region-card-stat-value females">${region.females || 0}</span>
                         <div class="region-card-stat-label">Mulheres</div>
                     </div>
                     <div class="region-card-stat">
-                        <span class="region-card-stat-value">${region.Total}</span>
+                        <span class="region-card-stat-value">${region.total || 0}</span>
                         <div class="region-card-stat-label">Total</div>
                     </div>
                 </div>
