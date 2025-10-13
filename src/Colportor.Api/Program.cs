@@ -1222,9 +1222,9 @@ app.MapPost("/admin/test-data", async (AppDbContext db) =>
         }
         
         // Criar alguns colportores de teste
-        var testColportors = new List<Models.Colportor>
+        var testColportors = new List<ColpColportor>
         {
-            new Models.Colportor
+            new ColpColportor
             {
                 FullName = "João Silva",
                 Email = "joao@test.com",
@@ -1234,7 +1234,7 @@ app.MapPost("/admin/test-data", async (AppDbContext db) =>
                 RegionId = region.Id,
                 CreatedAt = DateTime.UtcNow
             },
-            new Models.Colportor
+            new ColpColportor
             {
                 FullName = "Maria Santos",
                 Email = "maria@test.com",
@@ -1244,7 +1244,7 @@ app.MapPost("/admin/test-data", async (AppDbContext db) =>
                 RegionId = region.Id,
                 CreatedAt = DateTime.UtcNow
             },
-            new Models.Colportor
+            new ColpColportor
             {
                 FullName = "Pedro Costa",
                 Email = "pedro@test.com",
