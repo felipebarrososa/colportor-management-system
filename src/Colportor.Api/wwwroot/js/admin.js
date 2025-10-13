@@ -1928,3 +1928,320 @@ window.filterByPeriod = function(startDate, endDate) {
     openPacAdmin();
     loadPacAdmin();
 };
+
+// ================== CALENDÁRIO PAC ==================
+// Elementos do calendário
+const openCalendar_fromDrawer = $("#openCalendar_fromDrawer");
+const calendarPanel = $("#calendarPanel");
+const prevMonth = $("#prevMonth");
+const nextMonth = $("#nextMonth");
+const currentMonthYear = $("#currentMonthYear");
+const refreshCalendar = $("#refreshCalendar");
+const calendarDays = $("#calendarDays");
+const calendarEmpty = $("#calendarEmpty");
+
+// Modais do calendário
+const dayDetailsModal = $("#dayDetailsModal");
+const closeDayDetails = $("#closeDayDetails");
+const dayDetailsTitle = $("#dayDetailsTitle");
+const daySummary = $("#daySummary");
+const regionsGrid = $("#regionsGrid");
+
+const regionDetailsModal = $("#regionDetailsModal");
+const closeRegionDetails = $("#closeRegionDetails");
+const regionDetailsTitle = $("#regionDetailsTitle");
+const regionSummary = $("#regionSummary");
+const colportorsList = $("#colportorsList");
+
+// Estado do calendário
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1; // JavaScript usa 0-11, nós usamos 1-12
+let calendarData = {};
+
+// Mostrar calendário apenas para admin
+if (ROLE === "admin") {
+    console.log('Setting up calendar for admin...');
+    if (calendarPanel) {
+        calendarPanel.style.display = "block";
+    }
+    loadCalendar();
+} else {
+    console.log('Not an admin, hiding calendar');
+    if (calendarPanel) {
+        calendarPanel.style.display = "none";
+    }
+}
+
+// Event listeners do calendário
+openCalendar_fromDrawer?.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeDrawer();
+    calendarPanel.style.display = "block";
+    loadCalendar();
+});
+
+prevMonth?.addEventListener("click", () => {
+    currentMonth--;
+    if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+    }
+    loadCalendar();
+});
+
+nextMonth?.addEventListener("click", () => {
+    currentMonth++;
+    if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+    }
+    loadCalendar();
+});
+
+refreshCalendar?.addEventListener("click", () => {
+    loadCalendar();
+});
+
+// Event listeners dos modais
+closeDayDetails?.addEventListener("click", () => {
+    dayDetailsModal.setAttribute("aria-hidden", "true");
+});
+
+closeRegionDetails?.addEventListener("click", () => {
+    regionDetailsModal.setAttribute("aria-hidden", "true");
+});
+
+// Carregar dados do calendário
+async function loadCalendar() {
+    try {
+        console.log(`Loading calendar for ${currentYear}-${currentMonth}`);
+        
+        const res = await authFetch(`/admin/calendar/monthly?year=${currentYear}&month=${currentMonth}`);
+        if (!res.ok) {
+            console.error('Failed to load calendar data:', res.status);
+            return;
+        }
+        
+        const data = await res.json();
+        calendarData = data.CalendarData || {};
+        
+        updateCalendarUI(data);
+        
+    } catch (err) {
+        console.error('Error loading calendar:', err);
+    }
+}
+
+// Atualizar interface do calendário
+function updateCalendarUI(data) {
+    // Atualizar título do mês/ano
+    if (currentMonthYear) {
+        const monthNames = [
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        ];
+        currentMonthYear.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+    }
+    
+    // Gerar dias do calendário
+    generateCalendarDays();
+    
+    // Verificar se há dados
+    const hasData = Object.keys(calendarData).length > 0;
+    if (calendarEmpty) {
+        calendarEmpty.style.display = hasData ? "none" : "block";
+    }
+}
+
+// Gerar dias do calendário
+function generateCalendarDays() {
+    if (!calendarDays) return;
+    
+    const firstDay = new Date(currentYear, currentMonth - 1, 1);
+    const lastDay = new Date(currentYear, currentMonth, 0);
+    const startDate = new Date(firstDay);
+    
+    // Ajustar para começar na segunda-feira
+    const dayOfWeek = firstDay.getDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    startDate.setDate(startDate.getDate() - daysToSubtract);
+    
+    let html = '';
+    const today = new Date();
+    
+    // Gerar 42 dias (6 semanas)
+    for (let i = 0; i < 42; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        
+        const dateKey = currentDate.toISOString().split('T')[0];
+        const dayData = calendarData[dateKey];
+        const isCurrentMonth = currentDate.getMonth() === currentMonth - 1;
+        const isToday = currentDate.toDateString() === today.toDateString();
+        
+        let dayClass = 'calendar-day';
+        if (isToday) dayClass += ' today';
+        if (dayData) dayClass += ' has-data';
+        if (!isCurrentMonth) dayClass += ' other-month';
+        
+        let dayContent = `
+            <div class="day-number">${currentDate.getDate()}</div>
+        `;
+        
+        if (dayData) {
+            dayContent += `
+                <div class="day-stats">
+                    <div class="day-stat males">
+                        <span class="day-stat-label">H</span>
+                        <span class="day-stat-value">${dayData.Males}</span>
+                    </div>
+                    <div class="day-stat females">
+                        <span class="day-stat-label">M</span>
+                        <span class="day-stat-value">${dayData.Females}</span>
+                    </div>
+                    <div class="day-stat total">
+                        <span class="day-stat-label">T</span>
+                        <span class="day-stat-value">${dayData.Total}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="${dayClass}" data-date="${dateKey}" ${dayData ? 'onclick="openDayDetails(\'' + dateKey + '\')"' : ''}>
+                ${dayContent}
+            </div>
+        `;
+    }
+    
+    calendarDays.innerHTML = html;
+}
+
+// Abrir modal de detalhes do dia
+function openDayDetails(dateKey) {
+    const dayData = calendarData[dateKey];
+    if (!dayData) return;
+    
+    const date = new Date(dateKey);
+    const dateStr = date.toLocaleDateString('pt-BR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    if (dayDetailsTitle) {
+        dayDetailsTitle.textContent = `Detalhes - ${dateStr}`;
+    }
+    
+    // Atualizar resumo do dia
+    if (daySummary) {
+        daySummary.innerHTML = `
+            <h4>📅 ${dateStr}</h4>
+            <div class="day-summary-stats">
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value males">${dayData.Males}</span>
+                    <div class="day-summary-stat-label">Homens</div>
+                </div>
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value females">${dayData.Females}</span>
+                    <div class="day-summary-stat-label">Mulheres</div>
+                </div>
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value">${dayData.Total}</span>
+                    <div class="day-summary-stat-label">Total</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Atualizar cards das regiões
+    if (regionsGrid) {
+        regionsGrid.innerHTML = dayData.Regions.map(region => `
+            <div class="region-card" onclick="openRegionDetails('${dateKey}', '${region.RegionId}', '${region.RegionName}')">
+                <div class="region-card-header">
+                    <h3 class="region-card-title">${escapeHtml(region.RegionName)}</h3>
+                </div>
+                <div class="region-card-stats">
+                    <div class="region-card-stat">
+                        <span class="region-card-stat-value males">${region.Males}</span>
+                        <div class="region-card-stat-label">Homens</div>
+                    </div>
+                    <div class="region-card-stat">
+                        <span class="region-card-stat-value females">${region.Females}</span>
+                        <div class="region-card-stat-label">Mulheres</div>
+                    </div>
+                    <div class="region-card-stat">
+                        <span class="region-card-stat-value">${region.Total}</span>
+                        <div class="region-card-stat-label">Total</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    dayDetailsModal.setAttribute("aria-hidden", "false");
+}
+
+// Abrir modal de detalhes da região
+function openRegionDetails(dateKey, regionId, regionName) {
+    const dayData = calendarData[dateKey];
+    if (!dayData) return;
+    
+    const region = dayData.Regions.find(r => r.RegionId == regionId);
+    if (!region) return;
+    
+    const date = new Date(dateKey);
+    const dateStr = date.toLocaleDateString('pt-BR');
+    
+    if (regionDetailsTitle) {
+        regionDetailsTitle.textContent = `${escapeHtml(regionName)} - ${dateStr}`;
+    }
+    
+    // Atualizar resumo da região
+    if (regionSummary) {
+        regionSummary.innerHTML = `
+            <h4>🌍 ${escapeHtml(regionName)}</h4>
+            <div class="day-summary-stats">
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value males">${region.Males}</span>
+                    <div class="day-summary-stat-label">Homens</div>
+                </div>
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value females">${region.Females}</span>
+                    <div class="day-summary-stat-label">Mulheres</div>
+                </div>
+                <div class="day-summary-stat">
+                    <span class="day-summary-stat-value">${region.Total}</span>
+                    <div class="day-summary-stat-label">Total</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Atualizar lista de colportores
+    if (colportorsList) {
+        colportorsList.innerHTML = region.Colportors.map(colportor => `
+            <div class="colportor-item">
+                <div class="colportor-avatar">
+                    ${colportor.Gender === 'Masculino' ? '👨' : '👩'}
+                </div>
+                <div class="colportor-info">
+                    <div class="colportor-name">${escapeHtml(colportor.FullName)}</div>
+                    <div class="colportor-details">
+                        <span>CPF: ${escapeHtml(colportor.CPF)}</span>
+                        <span>Líder: ${escapeHtml(colportor.LeaderName)}</span>
+                        <span class="colportor-gender ${colportor.Gender.toLowerCase()}">${escapeHtml(colportor.Gender)}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    dayDetailsModal.setAttribute("aria-hidden", "true");
+    regionDetailsModal.setAttribute("aria-hidden", "false");
+}
+
+// Funções globais para usar nos onclick
+window.openDayDetails = openDayDetails;
+window.openRegionDetails = openRegionDetails;

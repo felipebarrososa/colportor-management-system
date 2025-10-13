@@ -35,6 +35,7 @@
             <button id="openApprove_fromDrawer" class="btn w-100" data-action="approve">✅ Aprovar Líderes Pendentes</button>
             <button id="openPacLeader_fromDrawer" class="btn w-100" data-action="pac-leader">📋 Selecionar PAC (Líder)</button>
             <button id="openPacAdmin_fromDrawer" class="btn w-100" data-action="pac-admin">⚙️ Gerenciar PAC (Admin)</button>
+            <button id="openCalendar_fromDrawer" class="btn w-100" data-action="calendar">📅 Calendário PAC</button>
             <button id="openReports_fromDrawer" class="btn w-100" data-action="reports">📊 Relatórios</button>
         </nav>
     </aside>
@@ -95,6 +96,43 @@
             </div>
         </section>
 
+        <!-- Calendário PAC Mensal -->
+        <section class="card glass" id="calendarPanel" style="display: none;">
+            <div class="panel-header">
+                <h3 class="panel-title">📅 Calendário PAC</h3>
+                <div class="panel-actions">
+                    <button id="prevMonth" class="btn subtle" title="Mês anterior">←</button>
+                    <span id="currentMonthYear" class="month-year">Janeiro 2025</span>
+                    <button id="nextMonth" class="btn subtle" title="Próximo mês">→</button>
+                    <button id="refreshCalendar" class="btn subtle" title="Atualizar calendário">🔄</button>
+                </div>
+            </div>
+            
+            <div class="calendar-container">
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Dias da semana -->
+                    <div class="calendar-header">
+                        <div class="day-header">Dom</div>
+                        <div class="day-header">Seg</div>
+                        <div class="day-header">Ter</div>
+                        <div class="day-header">Qua</div>
+                        <div class="day-header">Qui</div>
+                        <div class="day-header">Sex</div>
+                        <div class="day-header">Sáb</div>
+                    </div>
+                    
+                    <!-- Dias do mês -->
+                    <div class="calendar-days" id="calendarDays">
+                        <!-- Dias serão carregados via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="calendarEmpty" class="empty-state" style="display: none;">
+                <div class="empty-icon">📅</div>
+                <div class="empty-text">Nenhum colportor confirmado para este mês</div>
+            </div>
+        </section>
 
         <!-- Leader: resumo PAC -->
         <section class="card glass" id="leaderPacPanel" style="display: none;">
@@ -563,6 +601,44 @@
                         <div id="pacReportData"></div>
                         <div id="pacReportSummary"></div>
                     </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Detalhes do Dia -->
+    <div class="modal" id="dayDetailsModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 800px;">
+            <header class="modal-header">
+                <h3 class="title" id="dayDetailsTitle">Detalhes do Dia</h3>
+                <button class="icon close" id="closeDayDetails" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="day-summary" id="daySummary">
+                    <!-- Resumo do dia será carregado via JS -->
+                </div>
+                <div class="regions-grid" id="regionsGrid">
+                    <!-- Cards das regiões serão carregados via JS -->
+                </div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Detalhes da Região -->
+    <div class="modal" id="regionDetailsModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog" style="max-width: 700px;">
+            <header class="modal-header">
+                <h3 class="title" id="regionDetailsTitle">Colportores da Região</h3>
+                <button class="icon close" id="closeRegionDetails" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="region-summary" id="regionSummary">
+                    <!-- Resumo da região será carregado via JS -->
+                </div>
+                <div class="colportors-list" id="colportorsList">
+                    <!-- Lista de colportores será carregada via JS -->
                 </div>
             </section>
         </div>

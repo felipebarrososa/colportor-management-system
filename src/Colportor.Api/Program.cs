@@ -1104,6 +1104,92 @@ app.MapGet("/admin/pac/enrollments/leader/{leaderId:int}", async (AppDbContext d
     return Results.Ok(result);
 }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
+// ========= CALENDAR API =========
+// Endpoint para buscar dados do calendário mensal
+app.MapGet("/admin/calendar/monthly", async (AppDbContext db, int year, int month) =>
+{
+    try
+    {
+        // Calcular o primeiro e último dia do mês
+        var firstDay = new DateTime(year, month, 1);
+        var lastDay = firstDay.AddMonths(1).AddDays(-1);
+        
+        // Buscar todos os enrollments aprovados no período
+        var enrollments = await db.PacEnrollments
+            .Where(p => p.Status == "Approved" && 
+                       p.EndDate >= firstDay && 
+                       p.StartDate <= lastDay)
+            .Include(p => p.Colportor)
+            .Include(p => p.Leader)
+            .ThenInclude(l => l.Region)
+            .ToListAsync();
+        
+        // Criar dicionário para agrupar por dia
+        var calendarData = new Dictionary<string, object>();
+        
+        // Para cada dia do mês
+        for (var day = firstDay; day <= lastDay; day = day.AddDays(1))
+        {
+            var dayKey = day.ToString("yyyy-MM-dd");
+            
+            // Filtrar enrollments que incluem este dia
+            var dayEnrollments = enrollments.Where(e => 
+                e.StartDate <= day && e.EndDate >= day).ToList();
+            
+            if (dayEnrollments.Any())
+            {
+                // Contar por gênero
+                var males = dayEnrollments.Count(e => e.Colportor.Gender == "Masculino");
+                var females = dayEnrollments.Count(e => e.Colportor.Gender == "Feminino");
+                var total = dayEnrollments.Count;
+                
+                // Agrupar por região
+                var regions = dayEnrollments
+                    .GroupBy(e => e.Colportor.RegionId)
+                    .Select(g => new
+                    {
+                        RegionId = g.Key,
+                        RegionName = g.First().Colportor.Region?.Name ?? "Sem região",
+                        Males = g.Count(e => e.Colportor.Gender == "Masculino"),
+                        Females = g.Count(e => e.Colportor.Gender == "Feminino"),
+                        Total = g.Count(),
+                        Colportors = g.Select(e => new
+                        {
+                            e.Colportor.Id,
+                            e.Colportor.FullName,
+                            e.Colportor.Gender,
+                            e.Colportor.CPF,
+                            LeaderName = e.Leader?.FullName ?? e.Leader?.Email ?? "Sem líder"
+                        }).ToList()
+                    })
+                    .ToList();
+                
+                calendarData[dayKey] = new
+                {
+                    Date = dayKey,
+                    Males = males,
+                    Females = females,
+                    Total = total,
+                    Regions = regions
+                };
+            }
+        }
+        
+        return Results.Ok(new
+        {
+            Year = year,
+            Month = month,
+            MonthName = firstDay.ToString("MMMM", new System.Globalization.CultureInfo("pt-BR")),
+            CalendarData = calendarData
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Calendar API Error: {ex.Message}");
+        return Results.Problem($"Erro interno: {ex.Message}");
+    }
+}).RequireAuthorization(policy => policy.RequireRole("Admin"));
+
 // ========= HEALTH =========
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
