@@ -2036,8 +2036,9 @@ async function loadCalendar() {
         
         const data = await res.json();
         console.log('Calendar data received:', data);
+        console.log('Calendar data received - data.calendarData:', data.calendarData);
         
-        calendarData = data.CalendarData || {};
+        calendarData = data.calendarData || {};
         console.log('Calendar data assigned:', calendarData);
         
         updateCalendarUI(data);
