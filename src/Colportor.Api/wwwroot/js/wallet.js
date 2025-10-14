@@ -433,13 +433,14 @@ async function loadColportorData() {
         console.log("✅ Dados carregados:", currentColportorData);
         
         // Preencher campos do modal
-        $("#eFullName").value = currentColportorData.fullName || "";
-        $("#eCPF").value = currentColportorData.cpf || "";
-        $("#eGender").value = currentColportorData.gender || "";
-        $("#eBirthDate").value = currentColportorData.birthDate ? currentColportorData.birthDate.split('T')[0] : "";
-        $("#eCity").value = currentColportorData.city || "";
+        const colportor = currentColportorData.colportor || {};
+        $("#eFullName").value = colportor.fullName || currentColportorData.fullName || "";
+        $("#eCPF").value = colportor.cpf || currentColportorData.cpf || "";
+        $("#eGender").value = colportor.gender || "";
+        $("#eBirthDate").value = colportor.birthDate ? colportor.birthDate.split('T')[0] : "";
+        $("#eCity").value = colportor.city || currentColportorData.city || "";
         $("#eEmail").value = currentColportorData.email || "";
-        ePhotoUrlH.value = currentColportorData.photoUrl || "";
+        ePhotoUrlH.value = colportor.photoUrl || "";
         
         console.log("✅ Campos preenchidos no modal");
         
@@ -447,13 +448,14 @@ async function loadColportorData() {
         await hydrateEditGeo();
         
         // Se tiver região, carregar líderes
-        if (currentColportorData.regionId) {
-            eRegionSel.value = currentColportorData.regionId;
-            await loadLeadersForEdit(currentColportorData.regionId);
+        const regionId = colportor.regionId || currentColportorData.regionId;
+        if (regionId) {
+            eRegionSel.value = regionId;
+            await loadLeadersForEdit(regionId);
             
             // Se tiver líder, selecionar
-            if (currentColportorData.leaderId) {
-                eLeaderSel.value = currentColportorData.leaderId;
+            if (colportor.leaderId) {
+                eLeaderSel.value = colportor.leaderId;
             }
         }
         
