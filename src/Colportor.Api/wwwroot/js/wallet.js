@@ -299,8 +299,8 @@ async function renderWallet() {
         const region = x.region || {};
         
         $("#photo").src = colportor.photoUrl || "/css/user.png";
-        $("#name").textContent = x.fullName ?? "—";
-        $("#cpf").textContent = x.cpf ?? "—";
+        $("#name").textContent = colportor.fullName || x.fullName || "—";
+        $("#cpf").textContent = colportor.cpf || x.cpf || "—";
         $("#gender").textContent = colportor.gender ?? "—";
         
         // Calcular idade
