@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="/css/styles.css" />
     <link rel="stylesheet" href="/css/admin.css" />
     <link rel="stylesheet" href="/css/loading.css" />
-    <link rel="stylesheet" href="/css/components/notifications.css">
-    <link rel="stylesheet" href="/css/components/calendar.css">
-    <link rel="stylesheet" href="/css/components/loading.css">
 </head>
 <body class="bg">
     <!-- Topbar -->
@@ -77,7 +74,18 @@
 
             <!-- Visualização por Período -->
             <div class="pac-periods">
-                <h4 class="section-title">📅 Períodos Solicitados</h4>
+                <div class="section-header">
+                    <h4 class="section-title">📅 Períodos Solicitados</h4>
+                    <div class="periods-pagination">
+                        <button id="prevPeriods" class="pagination-btn" disabled>
+                            <span>‹</span>
+                        </button>
+                        <span id="periodsPageInfo" class="pagination-info">1 / 1</span>
+                        <button id="nextPeriods" class="pagination-btn" disabled>
+                            <span>›</span>
+                        </button>
+                    </div>
+                </div>
                 <div id="pacPeriodsGrid" class="periods-grid">
                     <!-- Períodos serão carregados via JS -->
                 </div>
@@ -262,7 +270,10 @@
                 <div class="grid-3">
                     <div class="field">
                         <label for="regCountry">País</label>
-                        <select id="regCountry"></select>
+                        <div class="input-group">
+                            <select id="regCountry"></select>
+                            <button id="addCountry" class="btn subtle" title="Cadastrar novo país">+</button>
+                        </div>
                     </div>
                     <div class="field">
                         <label for="regName">Nova Região</label>
@@ -274,6 +285,30 @@
                     </div>
                 </div>
                 <div class="list" id="regionsList"><!-- via JS --></div>
+            </section>
+        </div>
+        <div class="modal-backdrop" aria-hidden="true"></div>
+    </div>
+
+    <!-- Modal: Cadastrar País -->
+    <div class="modal" id="countryModal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-dialog">
+            <header class="modal-header">
+                <h3 class="title">Cadastrar País</h3>
+                <button class="icon close" id="closeCountry" aria-label="Fechar">✕</button>
+            </header>
+            <section class="modal-body">
+                <div class="field">
+                    <label for="countryName">Nome do País</label>
+                    <input id="countryName" placeholder="Ex.: Brasil" />
+                </div>
+                <div class="field">
+                    <label for="countryCode">Código</label>
+                    <input id="countryCode" placeholder="Ex.: BR" maxlength="3" />
+                </div>
+                <div class="field">
+                    <button id="saveCountry" class="btn primary w-100" type="button">Salvar País</button>
+                </div>
             </section>
         </div>
         <div class="modal-backdrop" aria-hidden="true"></div>
@@ -652,6 +687,6 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script type="module" src="/js/app.js"></script>
+    <script src="/js/admin.js"></script>
 </body>
 </html>

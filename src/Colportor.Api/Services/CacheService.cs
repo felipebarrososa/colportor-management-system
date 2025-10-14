@@ -19,12 +19,11 @@ public class CacheService : ICacheService
     public CacheService(
         IDistributedCache distributedCache,
         IMemoryCache memoryCache,
-        IConnectionMultiplexer? redis,
         ILogger<CacheService> logger)
     {
         _distributedCache = distributedCache;
         _memoryCache = memoryCache;
-        _redis = redis;
+        _redis = null; // Redis não está configurado ainda
         _logger = logger;
         _jsonOptions = new JsonSerializerOptions
         {

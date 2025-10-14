@@ -12,5 +12,6 @@ namespace Colportor.Api.DTOs
         public string? Password { get; set; }
         public int? RegionId { get; set; }
         public int? LeaderId { get; set; }
+        public DateTime? LastVisitDate { get; set; }
     }
 }

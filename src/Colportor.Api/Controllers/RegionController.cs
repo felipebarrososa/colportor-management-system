@@ -181,4 +181,67 @@ public class RegionController : BaseController
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
     }
+
+    /// <summary>
+    /// Listar todos os países
+    /// </summary>
+    [HttpGet("countries")]
+    public async Task<IActionResult> GetCountries()
+    {
+        try
+        {
+            var countries = await _regionService.GetCountriesAsync();
+            return Ok(countries);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Erro ao listar países");
+            return StatusCode(500, new { message = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
+    /// Criar novo país (Admin)
+    /// </summary>
+    [HttpPost("countries")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CreateCountry([FromBody] CountryCreateDto createDto)
+    {
+        try
+        {
+            var result = await _regionService.CreateCountryAsync(createDto);
+            
+            if (result.Success)
+            {
+                Logger.LogInformation("País criado com sucesso: {CountryId}", result.Data?.Id);
+                return CreatedAtAction(nameof(GetCountries), result);
+            }
+
+            Logger.LogWarning("Falha ao criar país. Motivo: {Reason}", result.Message);
+            return BadRequest(new { message = result.Message });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Erro ao criar país");
+            return StatusCode(500, new { message = "Erro interno do servidor" });
+        }
+    }
+
+    /// <summary>
+    /// Listar regiões por país (para uso no frontend)
+    /// </summary>
+    [HttpGet("regions")]
+    public async Task<IActionResult> GetRegionsByCountry([FromQuery] int countryId)
+    {
+        try
+        {
+            var regions = await _regionService.GetRegionsByCountryAsync(countryId);
+            return Ok(regions);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Erro ao listar regiões por país {CountryId}", countryId);
+            return StatusCode(500, new { message = "Erro interno do servidor" });
+        }
+    }
 }

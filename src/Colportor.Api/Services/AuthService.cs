@@ -83,11 +83,12 @@ public class AuthService : IAuthService
                 return ApiResponse<AuthResultDto>.ErrorResponse("Email já está em uso");
             }
 
+            // Criar o usuário primeiro
             var user = new User
             {
                 Email = registerDto.Email,
                 PasswordHash = HashPassword(registerDto.Password),
-                Role = registerDto.Role,
+                Role = "Pending", // Usuários sempre começam como pendentes
                 FullName = registerDto.FullName,
                 CPF = registerDto.CPF,
                 City = registerDto.City,
@@ -96,19 +97,42 @@ public class AuthService : IAuthService
 
             var createdUser = await _userRepository.AddAsync(user);
 
-            var token = _jwtService.GenerateToken(createdUser);
-            var refreshToken = GenerateRefreshToken();
-
-            var authResult = new AuthResultDto
+            // Criar o registro de colportor se os dados estiverem presentes
+            if (!string.IsNullOrEmpty(registerDto.FullName) && !string.IsNullOrEmpty(registerDto.CPF))
             {
-                Token = token,
-                RefreshToken = refreshToken,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                User = _mapper.Map<UserDto>(createdUser)
-            };
+                var colportor = new Models.Colportor
+                {
+                    FullName = registerDto.FullName,
+                    CPF = registerDto.CPF,
+                    Gender = registerDto.Gender,
+                    BirthDate = registerDto.BirthDate?.Kind == DateTimeKind.Unspecified 
+                        ? DateTime.SpecifyKind(registerDto.BirthDate.Value, DateTimeKind.Utc) 
+                        : registerDto.BirthDate,
+                    City = registerDto.City,
+                    PhotoUrl = registerDto.PhotoUrl,
+                    RegionId = registerDto.RegionId,
+                    LeaderId = registerDto.LeaderId,
+                    LastVisitDate = registerDto.LastVisitDate?.Kind == DateTimeKind.Unspecified 
+                        ? DateTime.SpecifyKind(registerDto.LastVisitDate.Value, DateTimeKind.Utc) 
+                        : registerDto.LastVisitDate
+                };
 
-            _logger.LogInformation("Registro bem-sucedido para usuário: {UserId}", createdUser.Id);
-            return ApiResponse<AuthResultDto>.SuccessResponse(authResult, "Registro realizado com sucesso");
+                // Usar o contexto diretamente para adicionar o colportor
+                var context = _userRepository.GetContext(); // Assumindo que temos acesso ao contexto
+                context.Colportors.Add(colportor);
+                await context.SaveChangesAsync();
+
+                // Associar o usuário ao colportor
+                createdUser.ColportorId = colportor.Id;
+                await _userRepository.UpdateAsync(createdUser);
+
+                _logger.LogInformation("Colportor criado e associado ao usuário: UserId={UserId}, ColportorId={ColportorId}", 
+                    createdUser.Id, colportor.Id);
+            }
+
+            // Não gerar token para usuários pendentes - apenas retornar sucesso
+            _logger.LogInformation("Registro realizado com sucesso para: {Email}. Aguardando aprovação.", registerDto.Email);
+            return ApiResponse<AuthResultDto>.SuccessResponse(new AuthResultDto { User = _mapper.Map<UserDto>(createdUser) });
         }
         catch (Exception ex)
         {
@@ -176,5 +200,110 @@ public class AuthService : IAuthService
     private string GenerateRefreshToken()
     {
         return Guid.NewGuid().ToString();
+    }
+
+    public async Task<IEnumerable<UserDto>> GetPendingUsersAsync()
+    {
+        try
+        {
+            var users = await _userRepository.GetPendingUsersAsync();
+            return users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                FullName = u.FullName,
+                CPF = u.CPF,
+                City = u.City,
+                RegionId = u.RegionId,
+                RegionName = u.Region?.Name,
+                ColportorId = u.ColportorId
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar usuários pendentes");
+            throw;
+        }
+    }
+
+    public async Task<ApiResponse<bool>> ApproveUserAsync(int userId)
+    {
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return ApiResponse<bool>.ErrorResponse("Usuário não encontrado");
+            }
+
+            if (user.Role != "Pending")
+            {
+                return ApiResponse<bool>.ErrorResponse("Usuário já foi processado");
+            }
+
+            user.Role = "Leader";
+            await _userRepository.UpdateAsync(user);
+
+            _logger.LogInformation("Usuário {UserId} aprovado com sucesso", userId);
+            return ApiResponse<bool>.SuccessResponse(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao aprovar usuário {UserId}", userId);
+            return ApiResponse<bool>.ErrorResponse("Erro interno ao aprovar usuário");
+        }
+    }
+
+    public async Task<IEnumerable<UserDto>> GetLeadersByRegionAsync(int regionId)
+    {
+        try
+        {
+            var leaders = await _userRepository.GetByRegionAsync(regionId);
+            return leaders
+                .Where(u => u.Role == "Leader") // Apenas líderes aprovados
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    Role = u.Role,
+                    FullName = u.FullName,
+                    CPF = u.CPF,
+                    City = u.City,
+                    RegionId = u.RegionId,
+                    RegionName = u.Region?.Name,
+                    ColportorId = u.ColportorId
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar líderes por região: {RegionId}", regionId);
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<UserDto>> GetAllLeadersAsync()
+    {
+        try
+        {
+            var leaders = await _userRepository.GetByRoleAsync("Leader");
+            return leaders.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                Role = u.Role,
+                FullName = u.FullName,
+                CPF = u.CPF,
+                City = u.City,
+                RegionId = u.RegionId,
+                RegionName = u.Region?.Name,
+                ColportorId = u.ColportorId
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar todos os líderes");
+            throw;
+        }
     }
 }

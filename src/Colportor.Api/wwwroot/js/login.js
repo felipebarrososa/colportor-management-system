@@ -8,20 +8,28 @@ const btn = document.getElementById("loginBtn");
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("🔐 Login started, setting busy...");
+    
+    // Limpa tokens antigos antes do login
+    sessionStorage.clear();
+    localStorage.clear();
+    
     setBusy(btn, true);
 
     try {
         const email = form.email.value.trim();
         const password = form.password.value;
 
-        const res = await apiJSON("/auth/login", {
+        const res = await apiJSON("/api/auth/login", {
             method: "POST",
             body: JSON.stringify({ email, password }),
         });
 
         // extrai string do token de vários formatos
-        const token = res.token || res.Token || res.access_token || res.AccessToken || res.value || (res.jwt?.token);
-        if (!token) throw new Error("Token ausente na resposta.");
+        const token = res.data?.token || res.token || res.Token || res.access_token || res.AccessToken || res.value || (res.jwt?.token);
+        if (!token) {
+            console.error("Resposta completa:", res);
+            throw new Error("Token ausente na resposta.");
+        }
 
         // salva a STRING na sessão/local
         saveToken(token);
@@ -84,7 +92,7 @@ async function loadCountries(sel) {
 }
 async function loadRegions(countryId, sel) {
     if (!countryId) { sel.innerHTML = ""; return; }
-    const list = await apiJSON(`/geo/regions?countryId=${countryId}`);
+    const list = await apiJSON(`/api/region/regions?countryId=${countryId}`);
     sel.innerHTML = list.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
 }
 

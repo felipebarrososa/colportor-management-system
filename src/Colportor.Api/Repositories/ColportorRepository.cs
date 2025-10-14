@@ -7,13 +7,13 @@ namespace Colportor.Api.Repositories;
 /// <summary>
 /// Implementação do repositório de colportores
 /// </summary>
-public class ColportorRepository : BaseRepository<Colportor>, IColportorRepository
+public class ColportorRepository : BaseRepository<Models.Colportor>, IColportorRepository
 {
     public ColportorRepository(AppDbContext context) : base(context)
     {
     }
 
-    public async Task<Colportor?> GetByIdWithRelationsAsync(int id)
+    public async Task<Models.Colportor?> GetByIdWithRelationsAsync(int id)
     {
         return await DbSet
             .Include(c => c.Region)
@@ -24,7 +24,7 @@ public class ColportorRepository : BaseRepository<Colportor>, IColportorReposito
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task<IEnumerable<Colportor>> GetByRegionAsync(int regionId)
+    public async Task<IEnumerable<Models.Colportor>> GetByRegionAsync(int regionId)
     {
         return await DbSet
             .Include(c => c.Region)
@@ -33,7 +33,7 @@ public class ColportorRepository : BaseRepository<Colportor>, IColportorReposito
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Colportor>> GetByLeaderAsync(int leaderId)
+    public async Task<IEnumerable<Models.Colportor>> GetByLeaderAsync(int leaderId)
     {
         return await DbSet
             .Include(c => c.Region)
@@ -42,7 +42,7 @@ public class ColportorRepository : BaseRepository<Colportor>, IColportorReposito
             .ToListAsync();
     }
 
-    public async Task<Colportor?> GetByCPFAsync(string cpf)
+    public async Task<Models.Colportor?> GetByCPFAsync(string cpf)
     {
         return await DbSet
             .Include(c => c.Region)
@@ -79,7 +79,7 @@ public class ColportorRepository : BaseRepository<Colportor>, IColportorReposito
         };
     }
 
-    public async Task<(IEnumerable<Colportor> Items, int TotalCount)> GetPagedWithFiltersAsync(
+    public async Task<(IEnumerable<Models.Colportor> Items, int TotalCount)> GetPagedWithFiltersAsync(
         int page, 
         int pageSize, 
         int? regionId = null,
@@ -117,5 +117,78 @@ public class ColportorRepository : BaseRepository<Colportor>, IColportorReposito
             .ToListAsync();
 
         return (items, totalCount);
+    }
+
+    public async Task<IEnumerable<Models.PacEnrollment>> GetPacEnrollmentsAsync(DateTime? from = null, DateTime? to = null, int? leaderId = null)
+    {
+        var query = Context.PacEnrollments.AsQueryable();
+
+        if (from.HasValue && to.HasValue)
+        {
+            // Para relatórios: buscar solicitações que CHEGAM no período solicitado
+            // Filtra por StartDate (dia de chegada) dentro do período
+            query = query.Where(p => p.StartDate >= from.Value && p.StartDate <= to.Value);
+        }
+        else
+        {
+            // Lógica original para outros casos
+            if (from.HasValue)
+                query = query.Where(p => p.StartDate >= from.Value);
+
+            if (to.HasValue)
+                query = query.Where(p => p.EndDate <= to.Value);
+        }
+
+        if (leaderId.HasValue)
+            query = query.Where(p => p.LeaderId == leaderId.Value);
+
+        return await query
+            .Include(p => p.Leader)
+            .Include(p => p.Colportor)
+                .ThenInclude(c => c.Region)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+    }
+
+    public async Task<Models.PacEnrollment> AddPacEnrollmentAsync(Models.PacEnrollment enrollment)
+    {
+        Context.PacEnrollments.Add(enrollment);
+        await Context.SaveChangesAsync();
+        return enrollment;
+    }
+
+    public async Task<bool> ApprovePacEnrollmentAsync(int enrollmentId)
+    {
+        var enrollment = await Context.PacEnrollments
+            .FirstOrDefaultAsync(p => p.Id == enrollmentId);
+
+        if (enrollment == null || enrollment.Status != "Pending")
+        {
+            return false;
+        }
+
+        enrollment.Status = "Approved";
+        await Context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> RejectPacEnrollmentAsync(int enrollmentId)
+    {
+        var enrollment = await Context.PacEnrollments
+            .FirstOrDefaultAsync(p => p.Id == enrollmentId);
+
+        if (enrollment == null || enrollment.Status != "Pending")
+        {
+            return false;
+        }
+
+        enrollment.Status = "Rejected";
+        await Context.SaveChangesAsync();
+        return true;
+    }
+
+    public AppDbContext GetContext()
+    {
+        return Context;
     }
 }

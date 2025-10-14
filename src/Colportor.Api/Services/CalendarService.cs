@@ -30,14 +30,14 @@ public class CalendarService : ICalendarService
         {
             _logger.LogInformation("Obtendo calendário mensal para {Year}-{Month}", year, month);
 
-            // Tentar obter do cache primeiro
-            var cacheKey = $"calendar:monthly:{year}-{month}";
-            var cachedResult = await _cacheService.GetAsync<MonthlyCalendarDto>(cacheKey);
-            if (cachedResult != null)
-            {
-                _logger.LogDebug("Calendário obtido do cache para {Year}-{Month}", year, month);
-                return cachedResult;
-            }
+            // Cache temporariamente desabilitado para garantir dados atualizados
+            // var cacheKey = $"calendar:monthly:{year}-{month}";
+            // var cachedResult = await _cacheService.GetAsync<MonthlyCalendarDto>(cacheKey);
+            // if (cachedResult != null)
+            // {
+            //     _logger.LogDebug("Calendário obtido do cache para {Year}-{Month}", year, month);
+            //     return cachedResult;
+            // }
 
             var firstDay = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
             var lastDay = firstDay.AddMonths(1).AddDays(-1);
@@ -46,7 +46,7 @@ public class CalendarService : ICalendarService
                 .Include(p => p.Colportor)
                     .ThenInclude(c => c.Region)
                 .Include(p => p.Leader)
-                .Where(p => p.StartDate <= lastDay && p.EndDate >= firstDay)
+                .Where(p => p.StartDate <= lastDay && p.EndDate >= firstDay && p.Status == "Approved")
                 .ToListAsync();
 
             var calendarData = new Dictionary<string, DayStatsDto>();
@@ -69,7 +69,7 @@ public class CalendarService : ICalendarService
                     .GroupBy(e => new { e.Colportor.RegionId, e.Colportor.Region!.Name })
                     .Select(g => new RegionDayStatsDto
                     {
-                        RegionId = g.Key.RegionId,
+                        RegionId = g.Key.RegionId ?? 0,
                         RegionName = g.Key.Name,
                         Males = g.Count(e => e.Colportor.Gender == "Masculino"),
                         Females = g.Count(e => e.Colportor.Gender == "Feminino"),
@@ -96,8 +96,8 @@ public class CalendarService : ICalendarService
                 CalendarData = calendarData
             };
 
-            // Cachear o resultado por 10 minutos
-            await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(10));
+            // Cache temporariamente desabilitado
+            // await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromMinutes(10));
 
             _logger.LogInformation("Calendário mensal gerado com {Days} dias com dados", calendarData.Count);
             return result;
@@ -119,7 +119,7 @@ public class CalendarService : ICalendarService
                 .Include(p => p.Colportor)
                     .ThenInclude(c => c.Region)
                 .Include(p => p.Leader)
-                .Where(p => p.StartDate <= date && p.EndDate >= date)
+                .Where(p => p.StartDate <= date && p.EndDate >= date && p.Status == "Approved")
                 .ToListAsync();
 
             if (!enrollments.Any())
@@ -129,7 +129,7 @@ public class CalendarService : ICalendarService
                 .GroupBy(e => new { e.Colportor.RegionId, e.Colportor.Region!.Name })
                 .Select(g => new RegionDayStatsDto
                 {
-                    RegionId = g.Key.RegionId,
+                    RegionId = g.Key.RegionId ?? 0,
                     RegionName = g.Key.Name,
                     Males = g.Count(e => e.Colportor.Gender == "Masculino"),
                     Females = g.Count(e => e.Colportor.Gender == "Feminino"),
@@ -166,7 +166,8 @@ public class CalendarService : ICalendarService
                 .Include(p => p.Leader)
                 .Where(p => p.StartDate <= date && 
                            p.EndDate >= date && 
-                           p.Colportor.RegionId == regionId)
+                           p.Colportor.RegionId == regionId &&
+                           p.Status == "Approved")
                 .ToListAsync();
 
             if (!enrollments.Any())

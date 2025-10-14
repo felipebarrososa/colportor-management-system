@@ -124,17 +124,21 @@ public class ColportorService : IColportorService
                 }
             }
 
-            var colportor = new Colportor
+            var colportor = new Models.Colportor
             {
                 FullName = createDto.FullName,
                 CPF = createDto.CPF,
                 Gender = createDto.Gender,
-                BirthDate = createDto.BirthDate,
+                BirthDate = createDto.BirthDate.HasValue ? 
+                    DateTime.SpecifyKind(createDto.BirthDate.Value, DateTimeKind.Local).ToUniversalTime() : 
+                    null,
                 RegionId = createDto.RegionId,
                 LeaderId = createDto.LeaderId ?? (userRole == "Leader" ? userId : null),
                 City = createDto.City,
                 PhotoUrl = createDto.PhotoUrl,
-                LastVisitDate = createDto.LastVisitDate
+                LastVisitDate = createDto.LastVisitDate.HasValue ? 
+                    DateTime.SpecifyKind(createDto.LastVisitDate.Value, DateTimeKind.Local).ToUniversalTime() : 
+                    null
             };
 
             var createdColportor = await _colportorRepository.AddAsync(colportor);
@@ -228,7 +232,7 @@ public class ColportorService : IColportorService
                 MaleColportors = stats.MaleColportors,
                 FemaleColportors = stats.FemaleColportors,
                 ColportorsByRegion = stats.ColportorsByRegion,
-                ColportorsByStatus = new Dictionary<string, int> // Implementar se necessário
+                ColportorsByStatus = new Dictionary<string, int>() // Implementar se necessário
             };
         }
         catch (Exception ex)
@@ -237,4 +241,158 @@ public class ColportorService : IColportorService
             throw;
         }
     }
-}
+
+    public async Task<PagedResult<ColportorDto>> GetPagedAsync(int page = 1, int pageSize = 10, int? regionId = null, int? leaderId = null, string? gender = null, string? searchTerm = null)
+    {
+        try
+        {
+            _logger.LogInformation("Listando colportores com paginação - Page: {Page}, PageSize: {PageSize}", page, pageSize);
+
+            var (items, totalCount) = await _colportorRepository.GetPagedWithFiltersAsync(page, pageSize, regionId, leaderId, gender, searchTerm);
+            var colportorDtos = _mapper.Map<List<ColportorDto>>(items);
+
+            return new PagedResult<ColportorDto>
+            {
+                Items = colportorDtos,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar colportores com paginação");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<PacEnrollmentDto>> GetPacEnrollmentsAsync(DateTime? from = null, DateTime? to = null, int? leaderId = null)
+    {
+        try
+        {
+            _logger.LogInformation("Listando inscrições PAC - From: {From}, To: {To}, LeaderId: {LeaderId}", from, to, leaderId);
+
+            var enrollments = await _colportorRepository.GetPacEnrollmentsAsync(from, to, leaderId);
+            return _mapper.Map<List<PacEnrollmentDto>>(enrollments);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar inscrições PAC");
+            throw;
+        }
+    }
+
+    public async Task<ApiResponse<bool>> CreatePacEnrollmentAsync(int leaderId, List<int> colportorIds, DateTime startDate, DateTime endDate)
+    {
+        try
+        {
+            _logger.LogInformation("Criando inscrição PAC para líder {LeaderId} com {ColportorCount} colportores", leaderId, colportorIds.Count);
+            _logger.LogInformation("Datas recebidas - StartDate: {StartDate}, EndDate: {EndDate}", startDate, endDate);
+
+            foreach (var colportorId in colportorIds)
+            {
+                var enrollment = new Models.PacEnrollment
+                {
+                    ColportorId = colportorId,
+                    LeaderId = leaderId,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Status = "Pending",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _colportorRepository.AddPacEnrollmentAsync(enrollment);
+            }
+
+            _logger.LogInformation("Inscrição PAC criada com sucesso para líder {LeaderId}", leaderId);
+            return ApiResponse<bool>.SuccessResponse(true, "Inscrição PAC criada com sucesso");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao criar inscrição PAC para líder {LeaderId}", leaderId);
+                     return ApiResponse<bool>.ErrorResponse("Erro interno ao criar inscrição PAC");
+                 }
+             }
+
+             public async Task<ApiResponse<bool>> ApprovePacEnrollmentAsync(int enrollmentId)
+             {
+                 try
+                 {
+                     _logger.LogInformation("Aprovando inscrição PAC {EnrollmentId}", enrollmentId);
+
+                     var success = await _colportorRepository.ApprovePacEnrollmentAsync(enrollmentId);
+
+                     if (!success)
+                     {
+                         return ApiResponse<bool>.ErrorResponse("Inscrição PAC não encontrada ou já foi processada");
+                     }
+
+                     _logger.LogInformation("Inscrição PAC {EnrollmentId} aprovada com sucesso", enrollmentId);
+                     return ApiResponse<bool>.SuccessResponse(true, "Inscrição PAC aprovada com sucesso");
+                 }
+                 catch (Exception ex)
+                 {
+                     _logger.LogError(ex, "Erro ao aprovar inscrição PAC {EnrollmentId}", enrollmentId);
+                     return ApiResponse<bool>.ErrorResponse("Erro interno ao aprovar inscrição PAC");
+                 }
+             }
+
+             public async Task<ApiResponse<bool>> RejectPacEnrollmentAsync(int enrollmentId)
+             {
+                 try
+                 {
+                     _logger.LogInformation("Rejeitando inscrição PAC {EnrollmentId}", enrollmentId);
+
+                     var success = await _colportorRepository.RejectPacEnrollmentAsync(enrollmentId);
+
+                     if (!success)
+                     {
+                         return ApiResponse<bool>.ErrorResponse("Inscrição PAC não encontrada ou já foi processada");
+                     }
+
+                     _logger.LogInformation("Inscrição PAC {EnrollmentId} rejeitada com sucesso", enrollmentId);
+                     return ApiResponse<bool>.SuccessResponse(true, "Inscrição PAC rejeitada");
+                 }
+                 catch (Exception ex)
+                 {
+                     _logger.LogError(ex, "Erro ao rejeitar inscrição PAC {EnrollmentId}", enrollmentId);
+                     return ApiResponse<bool>.ErrorResponse("Erro interno ao rejeitar inscrição PAC");
+                 }
+             }
+
+         public async Task<ApiResponse<VisitDto>> CreateVisitAsync(int colportorId, DateTime date)
+         {
+             try
+             {
+                 var visit = new Models.Visit
+                 {
+                     ColportorId = colportorId,
+                     Date = DateTime.SpecifyKind(date, DateTimeKind.Local).ToUniversalTime()
+                 };
+
+                 var createdVisit = await _colportorRepository.GetContext().Visits.AddAsync(visit);
+                 await _colportorRepository.GetContext().SaveChangesAsync();
+
+                 // Atualizar LastVisitDate do colportor
+                 var colportor = await _colportorRepository.GetByIdAsync(colportorId);
+                 if (colportor != null)
+                 {
+                     colportor.LastVisitDate = visit.Date;
+                     await _colportorRepository.GetContext().SaveChangesAsync();
+                 }
+
+                 var visitDto = new VisitDto
+                 {
+                     Id = visit.Id,
+                     Date = visit.Date
+                 };
+
+                 _logger.LogInformation("Visita criada com sucesso: ID {VisitId}", visit.Id);
+                 return ApiResponse<VisitDto>.SuccessResponse(visitDto, "Visita registrada com sucesso");
+             }
+             catch (Exception ex)
+             {
+                 _logger.LogError(ex, "Erro ao criar visita para colportor {ColportorId}", colportorId);
+                 return ApiResponse<VisitDto>.ErrorResponse("Erro interno ao criar visita");
+             }
+         }
+     }

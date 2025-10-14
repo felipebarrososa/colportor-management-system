@@ -26,6 +26,16 @@ public interface IRegionRepository : IRepository<Region>
     /// Obtém estatísticas da região
     /// </summary>
     Task<RegionStats> GetRegionStatsAsync(int regionId);
+
+    /// <summary>
+    /// Obtém todos os países
+    /// </summary>
+    Task<IEnumerable<Country>> GetCountriesAsync();
+
+    /// <summary>
+    /// Cria um novo país
+    /// </summary>
+    Task<Country> CreateCountryAsync(string name, string code);
 }
 
 /// <summary>

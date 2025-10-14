@@ -50,9 +50,7 @@ public class PaginationService : IPaginationService
             Items = itemsList,
             TotalCount = totalCount,
             Page = page,
-            PageSize = pageSize,
-            HasPreviousPage = page > 1,
-            HasNextPage = page < totalPages
+            PageSize = pageSize
         };
     }
 

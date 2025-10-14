@@ -229,4 +229,94 @@ public class RegionService : IRegionService
             throw;
         }
     }
+
+    public async Task<IEnumerable<RegionDto>> GetAllAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Listando todas as regiões");
+
+            var regions = await _regionRepository.GetAllAsync();
+            return _mapper.Map<List<RegionDto>>(regions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar todas as regiões");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<CountryDto>> GetCountriesAsync()
+    {
+        try
+        {
+            _logger.LogInformation("Listando todos os países");
+
+            var countries = await _regionRepository.GetCountriesAsync();
+            return _mapper.Map<List<CountryDto>>(countries);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar países");
+            throw;
+        }
+    }
+
+    public async Task<ApiResponse<CountryDto>> CreateCountryAsync(CountryCreateDto createDto)
+    {
+        try
+        {
+            _logger.LogInformation("Criando novo país: {CountryName}", createDto.Name);
+
+            // Validação básica
+            if (string.IsNullOrWhiteSpace(createDto.Name))
+            {
+                return ApiResponse<CountryDto>.ErrorResponse("Nome do país é obrigatório");
+            }
+
+            if (string.IsNullOrWhiteSpace(createDto.Code))
+            {
+                return ApiResponse<CountryDto>.ErrorResponse("Código do país é obrigatório");
+            }
+
+            // Verificar se já existe um país com o mesmo nome ou código
+            var existingCountries = await _regionRepository.GetCountriesAsync();
+            if (existingCountries.Any(c => c.Name.Equals(createDto.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                return ApiResponse<CountryDto>.ErrorResponse("Já existe um país com este nome");
+            }
+
+            if (existingCountries.Any(c => c.Iso2?.Equals(createDto.Code, StringComparison.OrdinalIgnoreCase) == true))
+            {
+                return ApiResponse<CountryDto>.ErrorResponse("Já existe um país com este código");
+            }
+
+            var result = await _regionRepository.CreateCountryAsync(createDto.Name, createDto.Code);
+            var countryDto = _mapper.Map<CountryDto>(result);
+
+            _logger.LogInformation("País criado com sucesso: {CountryId} - {CountryName}", result.Id, result.Name);
+            return ApiResponse<CountryDto>.SuccessResponse(countryDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao criar país: {CountryName}", createDto.Name);
+            return ApiResponse<CountryDto>.ErrorResponse("Erro interno ao criar país");
+        }
+    }
+
+    public async Task<IEnumerable<RegionDto>> GetRegionsByCountryAsync(int countryId)
+    {
+        try
+        {
+            _logger.LogInformation("Listando regiões por país: {CountryId}", countryId);
+
+            var regions = await _regionRepository.GetByCountryAsync(countryId);
+            return _mapper.Map<List<RegionDto>>(regions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao listar regiões por país: {CountryId}", countryId);
+            throw;
+        }
+    }
 }

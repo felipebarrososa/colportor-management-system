@@ -1,0 +1,8 @@
+{
+  "fullName": "Administrador",
+  "email": "admin@colportor.local",
+  "password": "admin123",
+  "role": "Admin",
+  "cpf": "00000000000",
+  "city": "São Paulo"
+}

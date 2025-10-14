@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Colportor.Api.Services;
 using Colportor.Api.DTOs;
-using Colportor.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Colportor.Api.Controllers;
 
 /// <summary>
-/// Controller para autenticação e autorização
+/// Controller para autenticação e registro
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Route("auth")]
 public class AuthController : BaseController
 {
     private readonly IAuthService _authService;
@@ -21,147 +22,124 @@ public class AuthController : BaseController
     }
 
     /// <summary>
-    /// Login de usuário
+    /// Login do usuário
     /// </summary>
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
         try
         {
-            Logger.LogInformation("Tentativa de login para email: {Email}", loginDto.Email);
-            
             var result = await _authService.LoginAsync(loginDto.Email, loginDto.Password);
             
             if (result.Success)
             {
-                Logger.LogInformation("Login bem-sucedido para email: {Email}", loginDto.Email);
-                return Ok(result);
+                Logger.LogInformation("Login realizado com sucesso para: {Email}", loginDto.Email);
+                return Ok(result.Data);
             }
 
-            Logger.LogWarning("Falha no login para email: {Email}", loginDto.Email);
+            Logger.LogWarning("Tentativa de login falhada para: {Email}", loginDto.Email);
             return Unauthorized(new { message = result.Message });
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Erro durante login para email: {Email}", loginDto.Email);
+            Logger.LogError(ex, "Erro durante login para: {Email}", loginDto.Email);
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
     }
 
     /// <summary>
-    /// Registro de novo usuário
+    /// Obtém dados do usuário logado (para wallet)
     /// </summary>
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
+    [HttpGet("wallet/me")]
+    [Route("wallet/me")]
+    [Route("/wallet/me")]
+    public async Task<IActionResult> GetWalletUser()
     {
         try
         {
-            Logger.LogInformation("Tentativa de registro para email: {Email}", registerDto.Email);
-            
-            var result = await _authService.RegisterAsync(registerDto);
-            
-            if (result.Success)
-            {
-                Logger.LogInformation("Registro bem-sucedido para email: {Email}", registerDto.Email);
-                return Ok(result);
-            }
-
-            Logger.LogWarning("Falha no registro para email: {Email}. Motivo: {Reason}", 
-                registerDto.Email, result.Message);
-            return BadRequest(new { message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Erro durante registro para email: {Email}", registerDto.Email);
-            return StatusCode(500, new { message = "Erro interno do servidor" });
-        }
-    }
-
-    /// <summary>
-    /// Refresh do token JWT
-    /// </summary>
-    [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken()
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == 0)
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
             {
                 return Unauthorized(new { message = "Token inválido" });
             }
 
-            var result = await _authService.RefreshTokenAsync(userId);
-            
-            if (result.Success)
-            {
-                return Ok(result);
-            }
-
-            return Unauthorized(new { message = result.Message });
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Erro durante refresh do token para usuário: {UserId}", GetCurrentUserId());
-            return StatusCode(500, new { message = "Erro interno do servidor" });
-        }
-    }
-
-    /// <summary>
-    /// Logout do usuário
-    /// </summary>
-    [HttpPost("logout")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public IActionResult Logout()
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
-            Logger.LogInformation("Logout realizado para usuário: {UserId}", userId);
-            
-            // Aqui você pode implementar blacklist de tokens se necessário
-            return Ok(new { message = "Logout realizado com sucesso" });
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Erro durante logout para usuário: {UserId}", GetCurrentUserId());
-            return StatusCode(500, new { message = "Erro interno do servidor" });
-        }
-    }
-
-    /// <summary>
-    /// Obter informações do usuário logado
-    /// </summary>
-    [HttpGet("me")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public async Task<IActionResult> GetCurrentUser()
-    {
-        try
-        {
-            var userId = GetCurrentUserId();
             var user = await _authService.GetUserByIdAsync(userId);
-            
             if (user == null)
             {
                 return NotFound(new { message = "Usuário não encontrado" });
             }
 
-            return Ok(new
+            var userDto = new
             {
-                Id = user.Id,
-                Email = user.Email,
-                Role = user.Role,
-                FullName = user.FullName,
-                CPF = user.CPF,
-                City = user.City,
-                RegionId = user.RegionId,
-                ColportorId = user.ColportorId
-            });
+                id = user.Id,
+                email = user.Email,
+                fullName = user.FullName,
+                role = user.Role,
+                cpf = user.CPF,
+                city = user.City,
+                regionId = user.RegionId,
+                colportorId = user.ColportorId,
+                status = user.Colportor != null ? CalculateStatus(user.Colportor.LastVisitDate) : "PENDENTE",
+                // Dados do colportor se existir
+                colportor = user.Colportor != null ? new
+                {
+                    id = user.Colportor.Id,
+                    fullName = user.Colportor.FullName,
+                    cpf = user.Colportor.CPF,
+                    city = user.Colportor.City,
+                    gender = user.Colportor.Gender,
+                    birthDate = user.Colportor.BirthDate,
+                    lastVisitDate = user.Colportor.LastVisitDate,
+                    photoUrl = user.Colportor.PhotoUrl,
+                    regionId = user.Colportor.RegionId,
+                    leaderId = user.Colportor.LeaderId,
+                    leaderName = user.Colportor.Leader?.FullName ?? user.Colportor.Leader?.Email,
+                    dueDate = user.Colportor.LastVisitDate?.AddYears(1) // Data de vencimento = última visita + 1 ano
+                } : null,
+                // Dados da região se existir
+                region = user.Region != null ? new
+                {
+                    id = user.Region.Id,
+                    name = user.Region.Name
+                } : null
+            };
+
+            return Ok(userDto);
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Erro ao obter informações do usuário: {UserId}", GetCurrentUserId());
+            Logger.LogError(ex, "Erro ao obter dados do usuário");
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
     }
+
+    /// <summary>
+    /// Calcula o status do colportor baseado na última visita
+    /// </summary>
+    private static string CalculateStatus(DateTime? lastVisitDate)
+    {
+        if (!lastVisitDate.HasValue)
+        {
+            return "PENDENTE";
+        }
+
+        var dueDate = lastVisitDate.Value.AddYears(1);
+        var today = DateTime.UtcNow.Date;
+        var daysUntilDue = (dueDate.Date - today).TotalDays;
+
+        if (daysUntilDue < 0)
+        {
+            return "VENCIDO";
+        }
+        else if (daysUntilDue <= 30)
+        {
+            return "AVISO";
+        }
+        else
+        {
+            return "EM DIA";
+        }
+    }
+
 }

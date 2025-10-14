@@ -42,6 +42,26 @@ public interface IAuthService
     /// Gera hash da senha
     /// </summary>
     string HashPassword(string password);
+
+    /// <summary>
+    /// Lista usuários pendentes de aprovação
+    /// </summary>
+    Task<IEnumerable<UserDto>> GetPendingUsersAsync();
+
+    /// <summary>
+    /// Aprova um usuário pendente
+    /// </summary>
+    Task<ApiResponse<bool>> ApproveUserAsync(int userId);
+
+    /// <summary>
+    /// Lista líderes por região
+    /// </summary>
+    Task<IEnumerable<UserDto>> GetLeadersByRegionAsync(int regionId);
+
+    /// <summary>
+    /// Lista todos os líderes (Admin)
+    /// </summary>
+    Task<IEnumerable<UserDto>> GetAllLeadersAsync();
 }
 
 /// <summary>
@@ -67,5 +87,6 @@ public class UserDto
     public string? CPF { get; set; }
     public string? City { get; set; }
     public int? RegionId { get; set; }
+    public string? RegionName { get; set; }
     public int? ColportorId { get; set; }
 }

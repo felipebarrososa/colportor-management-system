@@ -37,6 +37,26 @@ public interface IRegionService
     /// Obtém estatísticas de uma região
     /// </summary>
     Task<RegionStatsDto?> GetRegionStatsAsync(int id);
+
+    /// <summary>
+    /// Lista todas as regiões (para admin)
+    /// </summary>
+    Task<IEnumerable<RegionDto>> GetAllAsync();
+
+    /// <summary>
+    /// Lista todos os países
+    /// </summary>
+    Task<IEnumerable<CountryDto>> GetCountriesAsync();
+
+    /// <summary>
+    /// Cria um novo país
+    /// </summary>
+    Task<ApiResponse<CountryDto>> CreateCountryAsync(CountryCreateDto createDto);
+
+    /// <summary>
+    /// Lista regiões por país
+    /// </summary>
+    Task<IEnumerable<RegionDto>> GetRegionsByCountryAsync(int countryId);
 }
 
 /// <summary>
@@ -70,4 +90,15 @@ public class RegionStatsDto
     public DateTime LastActivity { get; set; }
     public Dictionary<string, int> ColportorsByGender { get; set; } = new();
     public Dictionary<string, int> ActivityByMonth { get; set; } = new();
+}
+
+/// <summary>
+/// DTO para dados do país
+/// </summary>
+public class CountryDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty; // Mapeado de Iso2
+    public int RegionsCount { get; set; }
 }

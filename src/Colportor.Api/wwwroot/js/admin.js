@@ -28,6 +28,18 @@ function getRole(token) {
 const ROLE = (getRole(token) || "").toLowerCase();
 console.log('Detected role:', ROLE);
 
+// Ocultar menus que não devem aparecer para líderes
+if (ROLE === 'leader') {
+    // Ocultar Calendário PAC e Relatórios para líderes
+    const calendarMenu = document.getElementById('openCalendar_fromDrawer');
+    const reportsMenu = document.getElementById('openReports_fromDrawer');
+    
+    if (calendarMenu) calendarMenu.style.display = 'none';
+    if (reportsMenu) reportsMenu.style.display = 'none';
+    
+    console.log('Menus de Calendário PAC e Relatórios ocultados para líder');
+}
+
 async function authFetch(path, init = {}) {
     const res = await fetch(path, {
         ...init,
@@ -69,6 +81,14 @@ const regCountry = $("#regCountry");
 const regName = $("#regName");
 const addRegionBtn = $("#addRegion");
 const regionsList = $("#regionsList");
+const addCountryBtn = $("#addCountry");
+
+// Country modal
+const countryModal = $("#countryModal");
+const closeCountryBtn = $("#closeCountry");
+const countryName = $("#countryName");
+const countryCode = $("#countryCode");
+const saveCountryBtn = $("#saveCountry");
 
 // Create Colportor modal
 const openCreateBtn = $("#openCreate");
@@ -241,7 +261,7 @@ regCountry?.addEventListener("change", refreshRegionList);
 async function refreshRegionList() {
     const countryId = parseInt(regCountry.value || "0", 10);
     if (!countryId) { regionsList.innerHTML = ""; return; }
-    const res = await fetch(`/geo/regions?countryId=${countryId}`);
+    const res = await authFetch(`/api/region/regions?countryId=${countryId}`);
     const list = (await res.json()) || [];
     regionsList.innerHTML = list.length
         ? list.map((r) => `<div class="item"><span>${escapeHtml(r.name)}</span></div>`).join("")
@@ -258,6 +278,78 @@ addRegionBtn?.addEventListener("click", async (e) => {
     regName.value = "";
     await refreshRegionList();
     toast("Região criada!");
+});
+
+// ================== Cadastrar País (modal) ==================
+function openCountryModal() {
+    countryModal.setAttribute("aria-hidden", "false");
+    countryName.value = "";
+    countryCode.value = "";
+}
+
+function closeCountryModal() {
+    countryModal.setAttribute("aria-hidden", "true");
+}
+
+// Event listeners
+addCountryBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openCountryModal();
+});
+
+closeCountryBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeCountryModal();
+});
+
+saveCountryBtn?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const name = (countryName.value || "").trim();
+    const code = (countryCode.value || "").trim().toUpperCase();
+    
+    if (!name || !code) {
+        toast("Informe o nome e o código do país.");
+        return;
+    }
+    
+    if (code.length < 2 || code.length > 3) {
+        toast("O código deve ter 2 ou 3 caracteres.");
+        return;
+    }
+    
+    try {
+        setBusy(saveCountryBtn, true);
+        
+        const res = await authFetch("/api/region/countries", {
+            method: "POST",
+            body: JSON.stringify({ name, code })
+        });
+        
+        if (!res.ok) {
+            const error = await res.json();
+            toast(error.message || "Não foi possível criar o país.");
+            return;
+        }
+        
+        toast("País criado com sucesso!");
+        closeCountryModal();
+        
+        // Recarregar a lista de países no modal de regiões
+        await loadCountriesForModal();
+        
+        // Selecionar o país recém-criado
+        const newCountry = await res.json();
+        if (newCountry?.data?.id) {
+            regCountry.value = newCountry.data.id;
+            await refreshRegionList();
+        }
+        
+    } catch (error) {
+        console.error("Erro ao criar país:", error);
+        toast("Erro ao criar país.");
+    } finally {
+        setBusy(saveCountryBtn, false);
+    }
 });
 
 // ================== Cadastrar Colportor (modal) ==================
@@ -306,7 +398,7 @@ async function refreshCreateLeaders() {
             cLeader.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
         } else {
             cLeader.innerHTML = `<option value="">Opcional - selecione um líder...</option>` + 
-                list.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.fullName || l.name || 'Nome não informado')}</option>`).join("");
         }
     } catch (err) {
         console.error("Erro ao carregar líderes:", err);
@@ -326,7 +418,7 @@ async function refreshLeaderRegions() {
     lRegion.innerHTML = `<option value="">Selecione…</option>`;
     const id = parseInt(lCountry.value || "0", 10);
     if (!id) return;
-    const rRes = await fetch(`/geo/regions?countryId=${id}`);
+    const rRes = await authFetch(`/api/region/regions?countryId=${id}`);
     const rList = (await rRes.json()) || [];
     lRegion.innerHTML = `<option value="">Selecione…</option>` + rList.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("");
 }
@@ -371,7 +463,7 @@ async function loadPendingLeaders() {
         <div class="item">
             <div>
                 <strong>${escapeHtml(x.email)}</strong>
-                <div class="muted">Região: ${escapeHtml(x.region || `#${x.regionId}`)}</div>
+                <div class="muted">Região: ${escapeHtml(x.regionName || `#${x.regionId}`)}</div>
             </div>
             <div>
                 <button class="btn primary" data-approve="${x.id}">Aprovar</button>
@@ -414,8 +506,9 @@ async function loadLeaders() {
     leadersList.innerHTML = list.map(x => `
         <div class="item">
             <div>
-                <strong>${escapeHtml(x.email)}</strong>
-                <div class="muted">Região: ${escapeHtml(x.region || `#${x.regionId}`)}</div>
+                <strong>${escapeHtml(x.fullName || x.email)}</strong>
+                <div class="muted">${escapeHtml(x.email)}</div>
+                <div class="muted">Região: ${escapeHtml(x.regionName || `#${x.regionId}`)}</div>
             </div>
             <div>
                 <button class="btn" data-edit="${x.id}">Editar</button>
@@ -438,7 +531,7 @@ async function refreshLeadersRegions() {
     leadersRegion.innerHTML = `<option value="">Todas</option>`;
     const id = parseInt(leadersCountry.value || "0", 10);
     if (!id) return;
-    const rRes = await fetch(`/geo/regions?countryId=${id}`);
+    const rRes = await authFetch(`/api/region/regions?countryId=${id}`);
     const rList = (await rRes.json()) || [];
     leadersRegion.innerHTML = `<option value="">Todas</option>` + rList.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("");
 }
@@ -475,7 +568,7 @@ async function refreshCreateRegions() {
     cRegion.innerHTML = `<option value="">Selecione…</option>`;
     const id = parseInt(cCountry.value || "0", 10);
     if (!id) return;
-    const rRes = await fetch(`/geo/regions?countryId=${id}`);
+    const rRes = await authFetch(`/api/region/regions?countryId=${id}`);
     const rList = (await rRes.json()) || [];
     cRegion.innerHTML = `<option value="">Selecione…</option>` + rList.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("");
 }
@@ -549,7 +642,7 @@ createForm?.addEventListener("submit", async (e) => {
 
     try {
         // 1) Cria o colportor
-        const res = await authFetch("/admin/colportors", { method: "POST", body: JSON.stringify(payload) });
+        const res = await authFetch("/api/colportor", { method: "POST", body: JSON.stringify(payload) });
         if (!res.ok) {
             const t = await res.text().catch(() => "");
             console.error("Create error:", t);
@@ -641,28 +734,51 @@ async function loadColportors() {
         kpiTotal.textContent = "0"; kpiOk.textContent = "0"; kpiWarn.textContent = "0"; kpiDanger.textContent = "0";
         return;
     }
-    const list = (await res.json()) || [];
+    const response = await res.json();
+    const list = Array.isArray(response?.items) ? response.items : 
+                 Array.isArray(response?.Items) ? response.Items :
+                 Array.isArray(response) ? response : [];
+
+    console.log('Colportors data received:', list.length, 'items');
+    console.log('Full response:', response);
+    if (list.length > 0) {
+        console.log('First colportor:', list[0]);
+        console.log('First colportor keys:', Object.keys(list[0]));
+    } else {
+        console.log('No colportors found in response');
+    }
 
     // KPIs
     const total = list.length;
     const ok = list.filter((x) => (x.status || "").toUpperCase() === "EM DIA").length;
     const warn = list.filter((x) => (x.status || "").toUpperCase() === "AVISO").length;
     const danger = list.filter((x) => (x.status || "").toUpperCase() === "VENCIDO").length;
+    
+    console.log('KPI calculations:', { total, ok, warn, danger });
+    console.log('Status values found:', list.map(x => (x.status || x.Status || 'undefined')));
+    
     kpiTotal.textContent = total; kpiOk.textContent = ok; kpiWarn.textContent = warn; kpiDanger.textContent = danger;
 
-    if (!total) { rows.innerHTML = ""; empty.hidden = false; return; }
+    if (!total) { 
+        console.log('No total found, showing empty state');
+        rows.innerHTML = ""; 
+        empty.hidden = false; 
+        return; 
+    }
+    
+    console.log('Total found:', total, 'hiding empty state and rendering table');
     empty.hidden = true;
 
     // Desktop table
-    rows.innerHTML = list.map((x) => {
-        const last = x.lastVisitDate ? new Date(x.lastVisitDate) : null;
-        const status = (x.status || "—").toUpperCase();
-        const place = [x.region, x.country].filter(Boolean).join(" / ") || "—";
+    const tableHTML = list.map((x) => {
+        const last = (x.lastVisitDate || x.LastVisitDate) ? new Date(x.lastVisitDate || x.LastVisitDate) : null;
+        const status = (x.status || x.Status || "—").toUpperCase();
+        const place = (x.regionName || x.RegionName) || "—";
         
         // Calcular idade
         let age = "—";
-        if (x.birthDate) {
-            const birth = new Date(x.birthDate);
+        if (x.birthDate || x.BirthDate) {
+            const birth = new Date(x.birthDate || x.BirthDate);
             const today = new Date();
             const ageCalc = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
@@ -676,13 +792,13 @@ async function loadColportors() {
         return `
 <tr>
   <td>${x.id}</td>
-  <td>${x.photoUrl ? `<img class="avatar" src="${escapeAttr(x.photoUrl)}" alt="foto">` : "—"}</td>
-  <td>${escapeHtml(x.fullName || "—")}</td>
-  <td>${escapeHtml(x.cpf || "—")}</td>
-  <td>${escapeHtml(x.gender || "—")}</td>
+  <td>${(x.photoUrl || x.PhotoUrl) ? `<img class="avatar" src="${escapeAttr(x.photoUrl || x.PhotoUrl)}" alt="foto">` : "—"}</td>
+  <td>${escapeHtml(x.fullName || x.FullName || "—")}</td>
+  <td>${escapeHtml(x.cpf || x.CPF || "—")}</td>
+  <td>${escapeHtml(x.gender || x.Gender || "—")}</td>
   <td>${age}</td>
   <td>${escapeHtml(place)}</td>
-  <td>${escapeHtml(x.city || "—")}</td>
+  <td>${escapeHtml(x.city || x.City || "—")}</td>
   <td>${last ? last.toLocaleDateString("pt-BR") : "—"}</td>
   <td><span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}" ${status === 'EM DIA' ? 'style="background: linear-gradient(135deg, #0f2d1f, #1d7a55); color: #19da86; border: 1px solid #1d7a55; box-shadow: 0 2px 8px rgba(25,218,134,.2);"' : ''}>${status}</span></td>
   <td>
@@ -693,13 +809,17 @@ async function loadColportors() {
 </tr>`;
     }).join("");
 
+    console.log('Table HTML generated, length:', tableHTML.length);
+    rows.innerHTML = tableHTML;
+    console.log('Table rendered to DOM');
+
     // Mobile cards
     const mobileCards = document.getElementById('mobileCards');
     if (mobileCards) {
         mobileCards.innerHTML = list.map((x) => {
             const last = x.lastVisitDate ? new Date(x.lastVisitDate) : null;
             const status = (x.status || "—").toUpperCase();
-            const place = [x.region, x.country].filter(Boolean).join(" / ") || "—";
+            const place = x.regionName || "—";
             
             // Calcular idade
             let age = "—";
@@ -719,11 +839,11 @@ async function loadColportors() {
 <div class="mobile-card">
   <div class="mobile-card-header">
     <div class="mobile-card-avatar">
-      ${x.photoUrl ? `<img src="${escapeHtml(x.photoUrl)}" alt="Foto" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` : '👤'}
+      ${(x.photoUrl || x.PhotoUrl) ? `<img src="${escapeHtml(x.photoUrl || x.PhotoUrl)}" alt="Foto" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` : '👤'}
     </div>
     <div class="mobile-card-info">
-      <div class="mobile-card-name">${escapeHtml(x.fullName || "—")}</div>
-      <div class="mobile-card-cpf">${escapeHtml(x.cpf || "—")}</div>
+      <div class="mobile-card-name">${escapeHtml(x.fullName || x.FullName || "—")}</div>
+      <div class="mobile-card-cpf">${escapeHtml(x.cpf || x.CPF || "—")}</div>
     </div>
     <div class="mobile-card-status">
       <span class="pill ${status === 'EM DIA' ? 'EM\\ DIA' : status}" ${status === 'EM DIA' ? 'style="background: linear-gradient(135deg, #0f2d1f, #1d7a55); color: #19da86; border: 1px solid #1d7a55; box-shadow: 0 2px 8px rgba(25,218,134,.2);"' : ''}>${status}</span>
@@ -732,7 +852,7 @@ async function loadColportors() {
   <div class="mobile-card-details">
     <div class="mobile-card-detail">
       <div class="mobile-card-detail-label">Sexo</div>
-      <div class="mobile-card-detail-value">${escapeHtml(x.gender || "—")}</div>
+      <div class="mobile-card-detail-value">${escapeHtml(x.gender || x.Gender || "—")}</div>
     </div>
     <div class="mobile-card-detail">
       <div class="mobile-card-detail-label">Idade</div>
@@ -744,7 +864,7 @@ async function loadColportors() {
     </div>
     <div class="mobile-card-detail">
       <div class="mobile-card-detail-label">Cidade</div>
-      <div class="mobile-card-detail-value">${escapeHtml(x.city || "—")}</div>
+      <div class="mobile-card-detail-value">${escapeHtml(x.city || x.City || "—")}</div>
     </div>
     <div class="mobile-card-detail">
       <div class="mobile-card-detail-label">Últ. Visita</div>
@@ -790,6 +910,11 @@ function toUtcMidnightIso(yyyyMmDd) {
     const dt = new Date(Date.UTC(y, (m - 1), d, 0, 0, 0));
     return dt.toISOString();
 }
+function isValidDateString(dateString) {
+    if (!dateString || typeof dateString !== 'string') return false;
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+}
 
 // ================== Boot ==================
 loadColportors();
@@ -805,7 +930,8 @@ async function loadLeaderPacOverview() {
             if (leaderPacPanel) leaderPacPanel.style.display = "none"; 
             return; 
         }
-        const list = await res.json();
+        const response = await res.json();
+        const list = Array.isArray(response) ? response : [];
         console.log('PAC list:', list);
         if (!list || !list.length) {
             if (leaderPacList) leaderPacList.innerHTML = '';
@@ -816,17 +942,19 @@ async function loadLeaderPacOverview() {
             return;
         }
         if (leaderPacEmpty) leaderPacEmpty.hidden = true;
-        const pend = list.filter(x => x.status === 'Pending').length;
-        const apr = list.filter(x => x.status === 'Approved').length;
-        const rej = list.filter(x => x.status === 'Rejected').length;
+        const pend = list.filter(x => (x.status || x.Status) === 'Pending').length;
+        const apr = list.filter(x => (x.status || x.Status) === 'Approved').length;
+        const rej = list.filter(x => (x.status || x.Status) === 'Rejected').length;
         if (lPacPend) lPacPend.textContent = pend; 
         if (lPacApr) lPacApr.textContent = apr; 
         if (lPacRej) lPacRej.textContent = rej;
         if (leaderPacList) {
             leaderPacList.innerHTML = list.slice(0, 10).map(x => {
-                const range = `${new Date(x.startDate).toLocaleDateString('pt-BR')} - ${new Date(x.endDate).toLocaleDateString('pt-BR')}`;
-                const cls = `pill ${x.status}`;
-                return `<div class="item"><div><strong>${escapeHtml(x.colportor.fullName)}</strong> — ${escapeHtml(x.colportor.cpf)}<div class="muted">${range}</div></div><div><span class="${cls}">${escapeHtml(x.status)}</span></div></div>`;
+                const range = `${formatDateForDisplay(x.startDate || x.StartDate)} - ${formatDateForDisplay(x.endDate || x.EndDate)}`;
+                const cls = `pill ${x.status || x.Status}`;
+                const colportorName = (x.colportorName || x.ColportorName || 'Nome não informado');
+                const colportorCpf = (x.colportorCPF || x.ColportorCPF || 'CPF não informado');
+                return `<div class="item"><div><strong>${escapeHtml(colportorName)}</strong> — ${escapeHtml(colportorCpf)}<div class="muted">${range}</div></div><div><span class="${cls}">${escapeHtml(x.status || x.Status)}</span></div></div>`;
             }).join('');
         }
     } catch (err) { 
@@ -845,7 +973,7 @@ openPacLeader_fromDrawer?.addEventListener("click", (e) => { e.preventDefault?.(
 closePacLeaderBtn?.addEventListener("click", (e) => { e.preventDefault?.(); closePacLeader(); });
 
 async function loadLeaderColportors() {
-    const res = await authFetch(`/admin/colportors`);
+    const res = await authFetch(`/leader/pac/colportors`);
     if (!res.ok) { pacColportors.innerHTML = `<div class="muted">Falha ao carregar.</div>`; return; }
     const list = await res.json();
     if (!list.length) { pacColportors.innerHTML = `<div class="muted">Nenhum colportor na sua região.</div>`; return; }
@@ -960,8 +1088,8 @@ submitPacLeader?.addEventListener("click", async () => {
     
     const body = {
         colportorIds: ids,
-        startDate: new Date(pacStart.value + "T00:00:00Z").toISOString(),
-        endDate: new Date(pacEnd.value + "T00:00:00Z").toISOString(),
+        startDate: pacStart.value, // Enviar apenas a data no formato YYYY-MM-DD
+        endDate: pacEnd.value, // Enviar apenas a data no formato YYYY-MM-DD
     };
     const res = await authFetch(`/leader/pac/enrollments`, { method: "POST", body: JSON.stringify(body) });
     if (!res.ok) { 
@@ -1019,7 +1147,7 @@ async function refreshPacAdminRegions() {
     pacAdminRegion.innerHTML = `<option value="">Todas</option>`;
     const id = parseInt(pacAdminCountry.value || "0", 10);
     if (!id) return;
-    const rRes = await fetch(`/geo/regions?countryId=${id}`);
+    const rRes = await authFetch(`/api/region/regions?countryId=${id}`);
     const rList = (await rRes.json()) || [];
     pacAdminRegion.innerHTML = `<option value="">Todas</option>` + rList.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("");
 }
@@ -1091,6 +1219,16 @@ const pacTotalRejected = $("#pacTotalRejected");
 const pacTotalRequests = $("#pacTotalRequests");
 const pacPeriodsGrid = $("#pacPeriodsGrid");
 const pacPeriodsEmpty = $("#pacPeriodsEmpty");
+
+// Controles de paginação para períodos
+const prevPeriods = $("#prevPeriods");
+const nextPeriods = $("#nextPeriods");
+const periodsPageInfo = $("#periodsPageInfo");
+
+// Variáveis de controle da paginação de períodos
+let currentPeriodsPage = 1;
+let periodsPerPage = 2; // Mostrar 2 períodos por página
+let allPeriods = []; // Armazenar todos os períodos
 const pacRecentList = $("#pacRecentList");
 const refreshPacDashboard = $("#refreshPacDashboard");
 const openPacAdmin_fromDashboard = $("#openPacAdmin_fromDashboard");
@@ -1180,8 +1318,14 @@ async function loadPacAdminSpecific(leaderId, startDate, endDate, status) {
         // Carregar dados específicos usando filtros normais
         const qs = new URLSearchParams();
         qs.set("leaderId", leaderId);
-        qs.set("from", new Date(startDate + "T00:00:00Z").toISOString());
-        qs.set("to", new Date(endDate + "T23:59:59Z").toISOString());
+        
+        // Validar e converter datas
+        if (startDate && isValidDateString(startDate)) {
+            qs.set("from", new Date(startDate + "T00:00:00Z").toISOString());
+        }
+        if (endDate && isValidDateString(endDate)) {
+            qs.set("to", new Date(endDate + "T23:59:59Z").toISOString());
+        }
         
         const res = await authFetch(`/admin/pac/enrollments?${qs.toString()}`);
         if (!res.ok) {
@@ -1222,8 +1366,8 @@ function renderPacAdminList(requests) {
     }
     
     pacAdminList.innerHTML = requests.map(request => {
-        const startDate = new Date(request.startDate).toLocaleDateString('pt-BR');
-        const endDate = new Date(request.endDate).toLocaleDateString('pt-BR');
+        const startDate = formatDateForDisplay(request.startDate || request.StartDate);
+        const endDate = formatDateForDisplay(request.endDate || request.EndDate);
         const statusClass = `pill ${request.status}`;
         
         const actionButtons = request.status === 'Pending' 
@@ -1238,15 +1382,15 @@ function renderPacAdminList(requests) {
         return `
             <div class="item">
                 <div>
-                    <strong>${escapeHtml(request.colportor.fullName)}</strong>
+                    <strong>${escapeHtml(request.colportorName)}</strong>
                     <div class="muted">
                         ${startDate} - ${endDate}
                     </div>
                     <div class="muted">
-                        Líder: ${escapeHtml(request.leader)}
+                        Líder: ${escapeHtml(request.leaderName)}
                     </div>
                     <div class="muted">
-                        Sexo: ${escapeHtml(request.colportor.gender || '—')}
+                        Região: ${escapeHtml(request.colportorRegionName || 'Não informada')}
                     </div>
                 </div>
                 <div>
@@ -1359,39 +1503,37 @@ function generatePacReportContent(data) {
     // Armazenar dados globalmente para exportação
     window.pacReportData = data;
     
-    // Agrupar por região
-    const groupedByRegion = {};
+    // Agrupar por região e período (data de chegada + saída)
+    const groupedByRegionPeriod = {};
     data.forEach(item => {
         const region = item.region || "Região não informada";
-        if (!groupedByRegion[region]) {
-            groupedByRegion[region] = [];
+        const startDate = new Date(item.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(item.endDate).toLocaleDateString('pt-BR');
+        const periodKey = `${region}|${startDate}|${endDate}`;
+        
+        if (!groupedByRegionPeriod[periodKey]) {
+            groupedByRegionPeriod[periodKey] = {
+                region: region,
+                startDate: startDate,
+                endDate: endDate,
+                items: []
+            };
         }
-        groupedByRegion[region].push(item);
+        groupedByRegionPeriod[periodKey].items.push(item);
     });
     
     let reportHtml = "";
     let totalCount = 0;
     
-    // Gerar HTML para cada região
-    Object.entries(groupedByRegion).forEach(([region, items]) => {
+    // Gerar HTML para cada região e período
+    Object.entries(groupedByRegionPeriod).forEach(([periodKey, group]) => {
+        const items = group.items;
         const maleCount = items.filter(item => item.gender === "Masculino").length;
         const femaleCount = items.filter(item => item.gender === "Feminino").length;
-        const regionTotal = items.length;
-        totalCount += regionTotal;
+        const groupTotal = items.length;
+        totalCount += groupTotal;
         
-        // Data de chegada (mais comum)
-        const startDates = items.map(item => new Date(item.startDate).toLocaleDateString('pt-BR'));
-        const mostCommonStartDate = startDates.sort((a,b) => 
-            startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
-        ).pop();
-        
-        // Data de saída (mais comum)
-        const endDates = items.map(item => new Date(item.endDate).toLocaleDateString('pt-BR'));
-        const mostCommonEndDate = endDates.sort((a,b) => 
-            endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
-        ).pop();
-        
-        reportHtml += `<div class="report-region">${region.toUpperCase()} - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}</div>`;
+        reportHtml += `<div class="report-region">${group.region.toUpperCase()} - chegam dia ${group.startDate} / vão embora dia ${group.endDate}</div>`;
         
         if (maleCount > 0) {
             reportHtml += `<div>${maleCount} irmão${maleCount > 1 ? 's' : ''}</div>`;
@@ -1402,10 +1544,10 @@ function generatePacReportContent(data) {
         
         // Lista de nomes
         items.forEach(item => {
-            reportHtml += `<div class="report-person">${escapeHtml(item.name || 'Nome não informado')}</div>`;
+            reportHtml += `<div class="report-person">${escapeHtml(item.colportorName || 'Nome não informado')}</div>`;
         });
         
-        reportHtml += `<div><strong>Total: ${regionTotal}</strong></div>\n\n`;
+        reportHtml += `<div><strong>Total: ${groupTotal}</strong></div>\n\n`;
     });
     
     pacReportData.innerHTML = reportHtml;
@@ -1452,33 +1594,31 @@ function exportPacPdf() {
         addText("APERFEIÇOAMENTO DO PAC NESTA SEMANA", 16, true, [0, 100, 0]);
         yPosition += 10;
         
-        // Agrupar dados por região
-        const groupedByRegion = {};
+        // Agrupar dados por região e período (igual ao relatório)
+        const groupedByRegionPeriod = {};
         window.pacReportData.forEach(item => {
-            const region = item.Region || item.region || "Região não informada";
-            if (!groupedByRegion[region]) {
-                groupedByRegion[region] = [];
+            const region = item.region || "Região não informada";
+            const startDate = new Date(item.startDate).toLocaleDateString('pt-BR');
+            const endDate = new Date(item.endDate).toLocaleDateString('pt-BR');
+            const periodKey = `${region}|${startDate}|${endDate}`;
+            
+            if (!groupedByRegionPeriod[periodKey]) {
+                groupedByRegionPeriod[periodKey] = {
+                    region: region,
+                    startDate: startDate,
+                    endDate: endDate,
+                    items: []
+                };
             }
-            groupedByRegion[region].push(item);
+            groupedByRegionPeriod[periodKey].items.push(item);
         });
         
-        // Gerar conteúdo para cada região
-        Object.entries(groupedByRegion).forEach(([region, items]) => {
-            const maleCount = items.filter(item => (item.Gender || item.gender) === "Masculino").length;
-            const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
-            const regionTotal = items.length;
-            
-            // Data de chegada (mais comum)
-            const startDates = items.map(item => new Date(item.StartDate || item.startDate).toLocaleDateString('pt-BR'));
-            const mostCommonStartDate = startDates.sort((a,b) => 
-                startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
-            ).pop();
-            
-            // Data de saída (mais comum)
-            const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
-            const mostCommonEndDate = endDates.sort((a,b) => 
-                endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
-            ).pop();
+        // Gerar conteúdo para cada região e período
+        Object.entries(groupedByRegionPeriod).forEach(([periodKey, group]) => {
+            const items = group.items;
+            const maleCount = items.filter(item => item.gender === "Masculino").length;
+            const femaleCount = items.filter(item => item.gender === "Feminino").length;
+            const groupTotal = items.length;
             
             // Verificar se precisa de nova página
             if (yPosition > 250) {
@@ -1487,7 +1627,7 @@ function exportPacPdf() {
             }
             
             // Nome da região
-            addText(`${region.toUpperCase()} - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}`, 12, true);
+            addText(`${group.region.toUpperCase()} - chegam dia ${group.startDate} / vão embora dia ${group.endDate}`, 12, true);
             
             // Contadores
             if (maleCount > 0) {
@@ -1499,11 +1639,11 @@ function exportPacPdf() {
             
             // Lista de nomes
             items.forEach(item => {
-                const name = item.Name || item.name || 'Nome não informado';
+                const name = item.colportorName || 'Nome não informado';
                 addText(name, 10);
             });
             
-            addText(`Total: ${regionTotal}`, 11, true);
+            addText(`Total: ${groupTotal}`, 11, true);
             yPosition += 10;
         });
         
@@ -1564,36 +1704,34 @@ function generateWhatsAppFormattedReport() {
 
     let report = "*APERFEIÇOAMENTO DO PAC NESTA SEMANA*\n\n";
     
-    // Agrupar dados por região
-    const groupedByRegion = {};
+    // Agrupar dados por região e período (igual ao relatório)
+    const groupedByRegionPeriod = {};
     window.pacReportData.forEach(item => {
-        const region = item.Region || item.region || "Região não informada";
-        if (!groupedByRegion[region]) {
-            groupedByRegion[region] = [];
+        const region = item.region || "Região não informada";
+        const startDate = new Date(item.startDate).toLocaleDateString('pt-BR');
+        const endDate = new Date(item.endDate).toLocaleDateString('pt-BR');
+        const periodKey = `${region}|${startDate}|${endDate}`;
+        
+        if (!groupedByRegionPeriod[periodKey]) {
+            groupedByRegionPeriod[periodKey] = {
+                region: region,
+                startDate: startDate,
+                endDate: endDate,
+                items: []
+            };
         }
-        groupedByRegion[region].push(item);
+        groupedByRegionPeriod[periodKey].items.push(item);
     });
     
-    // Gerar conteúdo para cada região
-    Object.entries(groupedByRegion).forEach(([region, items]) => {
-        const maleCount = items.filter(item => (item.Gender || item.gender) === "Masculino").length;
-        const femaleCount = items.filter(item => (item.Gender || item.gender) === "Feminino").length;
-        const regionTotal = items.length;
-        
-        // Data de chegada (mais comum)
-        const startDates = items.map(item => new Date(item.StartDate || item.startDate).toLocaleDateString('pt-BR'));
-        const mostCommonStartDate = startDates.sort((a,b) => 
-            startDates.filter(v => v === a).length - startDates.filter(v => v === b).length
-        ).pop();
-        
-        // Data de saída (mais comum)
-        const endDates = items.map(item => new Date(item.EndDate || item.endDate).toLocaleDateString('pt-BR'));
-        const mostCommonEndDate = endDates.sort((a,b) => 
-            endDates.filter(v => v === a).length - endDates.filter(v => v === b).length
-        ).pop();
+    // Gerar conteúdo para cada região e período
+    Object.entries(groupedByRegionPeriod).forEach(([periodKey, group]) => {
+        const items = group.items;
+        const maleCount = items.filter(item => item.gender === "Masculino").length;
+        const femaleCount = items.filter(item => item.gender === "Feminino").length;
+        const groupTotal = items.length;
         
         // Nome da região em negrito
-        report += `*${region.toUpperCase()}* - chegam dia ${mostCommonStartDate} / vão embora dia ${mostCommonEndDate}\n`;
+        report += `*${group.region.toUpperCase()}* - chegam dia ${group.startDate} / vão embora dia ${group.endDate}\n`;
         
         // Contadores
         if (maleCount > 0) {
@@ -1605,11 +1743,11 @@ function generateWhatsAppFormattedReport() {
         
         // Lista de nomes
         items.forEach(item => {
-            const name = item.Name || item.name || 'Nome não informado';
+            const name = item.colportorName || 'Nome não informado';
             report += `${name}\n`;
         });
         
-        report += `*Total: ${regionTotal}*\n\n`;
+        report += `*Total: ${groupTotal}*\n\n`;
     });
     
     // Total geral
@@ -1642,12 +1780,12 @@ function exportPacReport() {
             };
 
             const formattedItem = {
-                'Nome': item.Name || item.name || 'N/A',
-                'Sexo': item.Gender || item.gender || 'N/A',
-                'Data Início': formatDate(item.StartDate || item.startDate),
-                'Data Fim': formatDate(item.EndDate || item.endDate),
-                'Região': item.Region || item.region || 'N/A',
-                'Líder': item.Leader || item.leader || 'N/A'
+                'Nome': item.colportorName || 'N/A',
+                'Sexo': item.gender || 'N/A',
+                'Data Início': formatDate(item.startDate),
+                'Data Fim': formatDate(item.endDate),
+                'Região': item.region || 'N/A',
+                'Líder': item.leaderName || 'N/A'
             };
             
             console.log("Item formatado:", formattedItem);
@@ -1705,8 +1843,12 @@ async function loadPacDashboard() {
             return;
         }
         
-        const allRequests = await res.json();
+        const response = await res.json();
+        const allRequests = Array.isArray(response) ? response : [];
         console.log('PAC requests loaded:', allRequests.length);
+        if (allRequests.length > 0) {
+            console.log('First PAC request:', allRequests[0]);
+        }
         
         // Atualizar KPIs gerais
         updatePacKPIs(allRequests);
@@ -1724,9 +1866,9 @@ async function loadPacDashboard() {
 
 // Atualizar KPIs do dashboard
 function updatePacKPIs(requests) {
-    const pending = requests.filter(r => r.status === 'Pending').length;
-    const approved = requests.filter(r => r.status === 'Approved').length;
-    const rejected = requests.filter(r => r.status === 'Rejected').length;
+    const pending = requests.filter(r => (r.status || r.Status) === 'Pending').length;
+    const approved = requests.filter(r => (r.status || r.Status) === 'Approved').length;
+    const rejected = requests.filter(r => (r.status || r.Status) === 'Rejected').length;
     const total = requests.length;
     
     if (pacTotalPending) pacTotalPending.textContent = pending;
@@ -1742,18 +1884,33 @@ function updatePacPeriods(requests) {
     if (!requests.length) {
         pacPeriodsGrid.innerHTML = '';
         pacPeriodsEmpty.style.display = 'block';
+        allPeriods = [];
+        updatePeriodsPagination();
         return;
     }
     
     pacPeriodsEmpty.style.display = 'none';
     
     // Agrupar por período (semana)
-    const periods = groupRequestsByPeriod(requests);
+    allPeriods = groupRequestsByPeriod(requests);
+    currentPeriodsPage = 1; // Reset para primeira página
     
-    pacPeriodsGrid.innerHTML = periods.map(period => {
-        const pending = period.requests.filter(r => r.status === 'Pending').length;
-        const approved = period.requests.filter(r => r.status === 'Approved').length;
-        const rejected = period.requests.filter(r => r.status === 'Rejected').length;
+    renderPeriodsPage();
+    updatePeriodsPagination();
+}
+
+// Renderizar página atual de períodos
+function renderPeriodsPage() {
+    if (!pacPeriodsGrid || !allPeriods.length) return;
+    
+    const startIndex = (currentPeriodsPage - 1) * periodsPerPage;
+    const endIndex = startIndex + periodsPerPage;
+    const periodsToShow = allPeriods.slice(startIndex, endIndex);
+    
+    pacPeriodsGrid.innerHTML = periodsToShow.map(period => {
+        const pending = period.requests.filter(r => (r.status || r.Status) === 'Pending').length;
+        const approved = period.requests.filter(r => (r.status || r.Status) === 'Approved').length;
+        const rejected = period.requests.filter(r => (r.status || r.Status) === 'Rejected').length;
         
         return `
             <div class="period-card">
@@ -1785,6 +1942,40 @@ function updatePacPeriods(requests) {
     }).join('');
 }
 
+// Atualizar controles de paginação
+function updatePeriodsPagination() {
+    if (!allPeriods.length) {
+        if (prevPeriods) prevPeriods.disabled = true;
+        if (nextPeriods) nextPeriods.disabled = true;
+        if (periodsPageInfo) periodsPageInfo.textContent = '0 / 0';
+        return;
+    }
+    
+    const totalPages = Math.ceil(allPeriods.length / periodsPerPage);
+    
+    if (prevPeriods) prevPeriods.disabled = currentPeriodsPage <= 1;
+    if (nextPeriods) nextPeriods.disabled = currentPeriodsPage >= totalPages;
+    if (periodsPageInfo) periodsPageInfo.textContent = `${currentPeriodsPage} / ${totalPages}`;
+}
+
+// Event listeners para paginação
+prevPeriods?.addEventListener('click', () => {
+    if (currentPeriodsPage > 1) {
+        currentPeriodsPage--;
+        renderPeriodsPage();
+        updatePeriodsPagination();
+    }
+});
+
+nextPeriods?.addEventListener('click', () => {
+    const totalPages = Math.ceil(allPeriods.length / periodsPerPage);
+    if (currentPeriodsPage < totalPages) {
+        currentPeriodsPage++;
+        renderPeriodsPage();
+        updatePeriodsPagination();
+    }
+});
+
 // Atualizar lista recente
 function updatePacRecent(requests) {
     if (!pacRecentList) return;
@@ -1803,12 +1994,12 @@ function updatePacRecent(requests) {
         .slice(0, 5);
     
     pacRecentList.innerHTML = recentGroups.map(group => {
-        const startDate = new Date(group.startDate).toLocaleDateString('pt-BR');
-        const endDate = new Date(group.endDate).toLocaleDateString('pt-BR');
+        const startDate = formatDateForDisplay(group.startDate || group.StartDate);
+        const endDate = formatDateForDisplay(group.endDate || group.EndDate);
         const statusClass = `pill ${group.status}`;
         
         return `
-            <div class="recent-item leader-group" data-leader-id="${group.leaderId}" data-start-date="${group.startDate}" data-end-date="${group.endDate}" data-status="${group.status}">
+            <div class="recent-item leader-group" data-leader-id="${group.leaderId}" data-start-date="${group.startDate || group.StartDate}" data-end-date="${group.endDate || group.EndDate}" data-status="${group.status}">
                 <div class="recent-info">
                     <div class="recent-name">👤 ${escapeHtml(group.leaderName)}</div>
                     <div class="recent-details">
@@ -1831,8 +2022,8 @@ function groupRequestsByLeader(requests) {
     
     requests.forEach(request => {
         const leaderId = request.leaderId;
-        const startDate = request.startDate;
-        const endDate = request.endDate;
+        const startDate = request.startDate || request.StartDate;
+        const endDate = request.endDate || request.EndDate;
         
         // Criar chave única para líder + período
         const key = `${leaderId}_${startDate}_${endDate}`;
@@ -1840,21 +2031,25 @@ function groupRequestsByLeader(requests) {
         if (!groups.has(key)) {
             groups.set(key, {
                 key,
-                leaderId: request.leaderId,
-                leaderName: request.leader,
-                regionName: request.region || 'Região não informada',
+                leaderId: request.leaderId || request.LeaderId,
+                leaderName: request.leaderName || request.LeaderName,
+                regionName: (request.colportorRegionName || request.ColportorRegionName) || 'Região não informada',
                 startDate,
                 endDate,
-                status: request.status,
+                status: request.status || request.Status,
                 colportorCount: 0,
                 colportors: [],
-                latestDate: request.createdAt || request.startDate
+                latestDate: request.createdAt || request.CreatedAt || request.startDate || request.StartDate
             });
         }
         
         const group = groups.get(key);
         group.colportorCount++;
-        group.colportors.push(request.colportor);
+        group.colportors.push({
+            fullName: request.colportorName,
+            cpf: request.colportorCPF,
+            regionName: request.colportorRegionName
+        });
         
         // Atualizar data mais recente
         const requestDate = new Date(request.createdAt || request.startDate);
@@ -1872,12 +2067,28 @@ function groupRequestsByPeriod(requests) {
     const periods = new Map();
     
     requests.forEach(request => {
-        const startDate = new Date(request.startDate);
-        const endDate = new Date(request.endDate);
+        // Tentar ambos os casos (camelCase e PascalCase)
+        const startDateValue = request.startDate || request.StartDate;
+        const endDateValue = request.endDate || request.EndDate;
+        
+        const startDate = new Date(startDateValue);
+        const endDate = new Date(endDateValue);
+        
+        // Verificar se as datas são válidas
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            console.warn('Data inválida encontrada:', startDateValue, endDateValue, 'Request object:', request);
+            return;
+        }
         
         // Criar chave única para o período (semana)
         const weekStart = getWeekStart(startDate);
         const weekEnd = getWeekEnd(weekStart);
+        
+        // Verificar se weekStart é válido
+        if (isNaN(weekStart.getTime())) {
+            console.warn('WeekStart inválido para:', request.startDate);
+            return;
+        }
         
         const key = weekStart.toISOString().split('T')[0];
         
@@ -1887,7 +2098,7 @@ function groupRequestsByPeriod(requests) {
                 startDate: weekStart.toISOString().split('T')[0],
                 endDate: weekEnd.toISOString().split('T')[0],
                 title: `Semana ${getWeekNumber(weekStart)}`,
-                dateRange: `${weekStart.toLocaleDateString('pt-BR')} - ${weekEnd.toLocaleDateString('pt-BR')}`,
+                dateRange: `${formatDateForDisplay(weekStart.toISOString().split('T')[0])} - ${formatDateForDisplay(weekEnd.toISOString().split('T')[0])}`,
                 requests: []
             });
         }
@@ -1898,6 +2109,31 @@ function groupRequestsByPeriod(requests) {
     // Converter para array e ordenar por data
     return Array.from(periods.values())
         .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+}
+
+// Função para formatar datas corretamente (evita problemas de timezone)
+function formatDateForDisplay(dateString) {
+    if (!dateString) return 'N/A';
+    
+    // Se a data já está no formato YYYY-MM-DD, converter diretamente
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // month é 0-indexed
+        return date.toLocaleDateString('pt-BR');
+    }
+    
+    // Para datas UTC do backend, extrair apenas a parte da data
+    if (dateString.includes('T') && dateString.includes('Z')) {
+        const datePart = dateString.split('T')[0]; // Extrair "2025-11-17" de "2025-11-17T03:00:00Z"
+        const [year, month, day] = datePart.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // month é 0-indexed
+        return date.toLocaleDateString('pt-BR');
+    }
+    
+    // Para outros formatos, usar conversão padrão
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('pt-BR');
 }
 
 // Funções auxiliares para datas
@@ -2087,6 +2323,7 @@ function generateCalendarDays() {
     console.log('Generating calendar days for:', currentYear, currentMonth);
     console.log('Calendar data:', calendarData);
     
+    // Usar uma abordagem mais simples e direta
     const firstDay = new Date(currentYear, currentMonth - 1, 1);
     const startDate = new Date(firstDay);
     
@@ -2106,7 +2343,12 @@ function generateCalendarDays() {
         const currentDate = new Date(startDate);
         currentDate.setDate(startDate.getDate() + i);
         
-        const dateKey = currentDate.toISOString().split('T')[0];
+        // Criar dateKey manualmente para evitar problemas de timezone
+        const year = currentDate.getFullYear();
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+        
         const dayData = calendarData[dateKey];
         const isCurrentMonth = currentDate.getMonth() === currentMonth - 1;
         const isToday = currentDate.toDateString() === today.toDateString();
@@ -2120,21 +2362,25 @@ function generateCalendarDays() {
             <div class="day-number">${currentDate.getDate()}</div>
         `;
         
-        if (dayData) {
+        if (dayData && ((dayData.males || dayData.Males) > 0 || (dayData.females || dayData.Females) > 0 || (dayData.total || dayData.Total) > 0)) {
             console.log('Day data for', dateKey, ':', dayData);
-                    dayContent += `
+            const males = dayData.males || dayData.Males || 0;
+            const females = dayData.females || dayData.Females || 0;
+            const total = dayData.total || dayData.Total || 0;
+            
+            dayContent += `
                         <div class="day-stats">
                             <div class="day-stat males">
                                 <span class="day-stat-label">H</span>
-                                <span class="day-stat-value">${dayData.males || 0}</span>
+                                <span class="day-stat-value">${males}</span>
                             </div>
                             <div class="day-stat females">
                                 <span class="day-stat-label">M</span>
-                                <span class="day-stat-value">${dayData.females || 0}</span>
+                                <span class="day-stat-value">${females}</span>
                             </div>
                             <div class="day-stat total">
                                 <span class="day-stat-label">T</span>
-                                <span class="day-stat-value">${dayData.total || 0}</span>
+                                <span class="day-stat-value">${total}</span>
                             </div>
                         </div>
                     `;

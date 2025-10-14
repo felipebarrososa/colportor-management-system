@@ -18,30 +18,71 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.User, opt => opt.MapFrom(src => src));
 
         // Colportor mappings
-        CreateMap<Colportor, ColportorDto>()
+        CreateMap<Models.Colportor, ColportorDto>()
             .ForMember(dest => dest.RegionName, opt => opt.MapFrom(src => src.Region!.Name))
             .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader!.FullName ?? src.Leader.Email))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => CalculateStatus(src.LastVisitDate)))
             .ForMember(dest => dest.Visits, opt => opt.MapFrom(src => src.Visits))
             .ForMember(dest => dest.PacEnrollments, opt => opt.MapFrom(src => src.PacEnrollments));
 
-        CreateMap<CreateColportorDto, Colportor>();
-        CreateMap<UpdateColportorDto, Colportor>();
+        CreateMap<CreateColportorDto, Models.Colportor>();
+        CreateMap<UpdateColportorDto, Models.Colportor>();
 
         // Visit mappings
         CreateMap<Visit, VisitDto>();
 
         // PacEnrollment mappings
         CreateMap<PacEnrollment, PacEnrollmentDto>()
-            .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader.FullName ?? src.Leader.Email));
+            .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader.FullName ?? src.Leader.Email))
+            .ForMember(dest => dest.ColportorName, opt => opt.MapFrom(src => src.Colportor.FullName))
+            .ForMember(dest => dest.ColportorCPF, opt => opt.MapFrom(src => src.Colportor.CPF))
+            .ForMember(dest => dest.ColportorGender, opt => opt.MapFrom(src => src.Colportor.Gender))
+            .ForMember(dest => dest.ColportorRegionId, opt => opt.MapFrom(src => src.Colportor.RegionId))
+            .ForMember(dest => dest.ColportorRegionName, opt => opt.MapFrom(src => src.Colportor.Region.Name));
 
-        // Region mappings
-        CreateMap<Region, RegionDto>()
-            .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country!.Name));
+               // Region mappings
+               CreateMap<Region, RegionDto>()
+                   .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country!.Name));
 
-        CreateMap<RegionCreateDto, Region>();
+               CreateMap<RegionCreateDto, Region>();
+
+               // Country mappings
+               CreateMap<Country, CountryDto>()
+                   .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Iso2 ?? ""))
+                   .ForMember(dest => dest.RegionsCount, opt => opt.MapFrom(src => src.Regions.Count));
+               CreateMap<CountryCreateDto, Country>()
+                   .ForMember(dest => dest.Iso2, opt => opt.MapFrom(src => src.Code));
 
         // Calendar mappings
-        CreateMap<Colportor, ColportorSummaryDto>()
+        CreateMap<Models.Colportor, ColportorSummaryDto>()
             .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader!.FullName ?? src.Leader.Email));
+    }
+
+    /// <summary>
+    /// Calcula o status do colportor baseado na última visita
+    /// </summary>
+    private static string CalculateStatus(DateTime? lastVisitDate)
+    {
+        if (!lastVisitDate.HasValue)
+        {
+            return "PENDENTE";
+        }
+
+        var dueDate = lastVisitDate.Value.AddYears(1);
+        var today = DateTime.UtcNow.Date;
+        var daysUntilDue = (dueDate.Date - today).TotalDays;
+
+        if (daysUntilDue < 0)
+        {
+            return "VENCIDO";
+        }
+        else if (daysUntilDue <= 30)
+        {
+            return "AVISO";
+        }
+        else
+        {
+            return "EM DIA";
+        }
     }
 }

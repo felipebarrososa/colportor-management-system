@@ -16,8 +16,6 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await DbSet
-            .Include(u => u.Colportor)
-            .Include(u => u.Region)
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
@@ -25,6 +23,7 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     {
         return await DbSet
             .Include(u => u.Colportor)
+                .ThenInclude(c => c.Leader) // Incluir o líder do colportor
             .Include(u => u.Region)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
@@ -50,5 +49,19 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .Include(u => u.Region)
             .Where(u => u.RegionId == regionId)
             .ToListAsync();
+    }
+
+    public async Task<IEnumerable<User>> GetPendingUsersAsync()
+    {
+        return await DbSet
+            .Include(u => u.Region)
+            .Where(u => u.Role == "Pending")
+            .OrderBy(u => u.Email)
+            .ToListAsync();
+    }
+
+    public AppDbContext GetContext()
+    {
+        return Context;
     }
 }

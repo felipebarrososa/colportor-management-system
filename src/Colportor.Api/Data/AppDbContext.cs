@@ -8,6 +8,7 @@ using ColpVisit = Colportor.Api.Models.Visit;
 using ColpRegion = Colportor.Api.Models.Region;
 using ColpCountry = Colportor.Api.Models.Country;
 using ColpNotificationLog = Colportor.Api.Models.NotificationLog;
+using ColpPhoto = Colportor.Api.Models.Photo;
 
 namespace Colportor.Api.Data
 {
@@ -22,6 +23,7 @@ namespace Colportor.Api.Data
         public DbSet<ColpCountry> Countries => Set<ColpCountry>();
         public DbSet<ColpNotificationLog> NotificationLogs => Set<ColpNotificationLog>();
         public DbSet<Colportor.Api.Models.PacEnrollment> PacEnrollments => Set<Colportor.Api.Models.PacEnrollment>();
+        public DbSet<ColpPhoto> Photos => Set<ColpPhoto>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -47,6 +49,18 @@ namespace Colportor.Api.Data
                 e.Property(x => x.FullName).IsRequired();
                 e.Property(x => x.CPF).IsRequired();
                 e.HasIndex(x => x.CPF).IsUnique();
+                
+                // Relacionamento explícito com Region
+                e.HasOne(x => x.Region)
+                    .WithMany(r => r.Colportors)
+                    .HasForeignKey(x => x.RegionId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                
+                // Relacionamento explícito com Leader (User)
+                e.HasOne(x => x.Leader)
+                    .WithMany()
+                    .HasForeignKey(x => x.LeaderId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ===== Visits =====
@@ -66,7 +80,7 @@ namespace Colportor.Api.Data
                 e.Property(x => x.Name).IsRequired();
                 e.HasIndex(x => new { x.CountryId, x.Name }).IsUnique();
                 e.HasOne(x => x.Country)
-                    .WithMany()
+                    .WithMany(c => c.Regions)
                     .HasForeignKey(x => x.CountryId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -100,6 +114,20 @@ namespace Colportor.Api.Data
                     .HasForeignKey(x => x.ColportorId)
                     .OnDelete(DeleteBehavior.Cascade);
                 e.HasIndex(x => new { x.ColportorId, x.StartDate, x.EndDate });
+            });
+
+            // ===== Photos =====
+            mb.Entity<ColpPhoto>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.FileName).IsRequired();
+                e.Property(x => x.ContentType).IsRequired();
+                e.Property(x => x.Data).IsRequired();
+                e.Property(x => x.CreatedAt).IsRequired();
+                e.HasOne(x => x.Colportor)
+                    .WithMany()
+                    .HasForeignKey(x => x.ColportorId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

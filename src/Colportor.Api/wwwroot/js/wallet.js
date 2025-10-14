@@ -117,7 +117,7 @@ rRegionSel?.addEventListener("change", async () => {
             rLeaderSel.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
         } else {
             rLeaderSel.innerHTML = `<option value="">Opcional - selecione seu líder...</option>` + 
-                list.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.fullName || l.name || 'Nome não informado')}</option>`).join("");
         }
     } catch (err) {
         console.error("Erro ao carregar líderes:", err);
@@ -294,15 +294,19 @@ async function renderWallet() {
         const x = await me.json();
 
 
-        $("#photo").src = x.photoUrl || "/css/user.png";
+        // Acessar dados do colportor se existir
+        const colportor = x.colportor || {};
+        const region = x.region || {};
+        
+        $("#photo").src = colportor.photoUrl || "/css/user.png";
         $("#name").textContent = x.fullName ?? "—";
         $("#cpf").textContent = x.cpf ?? "—";
-        $("#gender").textContent = x.gender ?? "—";
+        $("#gender").textContent = colportor.gender ?? "—";
         
         // Calcular idade
         let age = "—";
-        if (x.birthDate) {
-            const birth = new Date(x.birthDate);
+        if (colportor.birthDate) {
+            const birth = new Date(colportor.birthDate);
             const today = new Date();
             const ageCalc = today.getFullYear() - birth.getFullYear();
             const monthDiff = today.getMonth() - birth.getMonth();
@@ -314,10 +318,10 @@ async function renderWallet() {
         }
         $("#age").textContent = age;
         
-        $("#place").textContent = [x.city, x.region, x.country].filter(Boolean).join(" / ") || "—";
-        $("#leader").textContent = x.leader ?? "—";
-        $("#lastVisit").textContent = x.lastVisitDate ? new Date(x.lastVisitDate).toLocaleDateString("pt-BR") : "—";
-        $("#due").textContent = x.dueDate ? new Date(x.dueDate).toLocaleDateString("pt-BR") : "—";
+        $("#place").textContent = [x.city, region.name].filter(Boolean).join(" / ") || "—";
+        $("#leader").textContent = colportor.leaderName ?? "—";
+        $("#lastVisit").textContent = colportor.lastVisitDate ? new Date(colportor.lastVisitDate).toLocaleDateString("pt-BR") : "—";
+        $("#due").textContent = colportor.dueDate ? new Date(colportor.dueDate).toLocaleDateString("pt-BR") : "—";
 
         const pill = $("#status");
         pill.textContent = x.status ?? "—";
@@ -408,7 +412,7 @@ async function loadLeadersForEdit(regionId) {
             eLeaderSel.innerHTML = `<option value="">Nenhum líder nesta região</option>`;
         } else {
             eLeaderSel.innerHTML = `<option value="">Opcional - selecione seu líder...</option>` + 
-                list.map(l => `<option value="${l.id}">${escapeHtml(l.name)}</option>`).join("");
+                list.map(l => `<option value="${l.id}">${escapeHtml(l.fullName || l.name || 'Nome não informado')}</option>`).join("");
         }
     } catch (err) {
         console.error("Erro ao carregar líderes:", err);

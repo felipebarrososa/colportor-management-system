@@ -74,4 +74,25 @@ public class RegionRepository : BaseRepository<Region>, IRegionRepository
             LastActivity = lastActivity ?? DateTime.UtcNow
         };
     }
+
+    public async Task<IEnumerable<Country>> GetCountriesAsync()
+    {
+        return await Context.Countries
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+    }
+
+    public async Task<Country> CreateCountryAsync(string name, string code)
+    {
+        var country = new Country
+        {
+            Name = name,
+            Iso2 = code
+        };
+
+        Context.Countries.Add(country);
+        await Context.SaveChangesAsync();
+
+        return country;
+    }
 }

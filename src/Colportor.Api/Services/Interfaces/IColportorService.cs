@@ -37,6 +37,36 @@ public interface IColportorService
     /// Obtém estatísticas de colportores
     /// </summary>
     Task<ColportorStatsDto> GetColportorStatsAsync();
+
+    /// <summary>
+    /// Lista colportores com paginação e filtros (para admin)
+    /// </summary>
+    Task<PagedResult<ColportorDto>> GetPagedAsync(int page = 1, int pageSize = 10, int? regionId = null, int? leaderId = null, string? gender = null, string? searchTerm = null);
+
+    /// <summary>
+    /// Obtém inscrições PAC com filtros
+    /// </summary>
+    Task<IEnumerable<PacEnrollmentDto>> GetPacEnrollmentsAsync(DateTime? from = null, DateTime? to = null, int? leaderId = null);
+
+    /// <summary>
+    /// Cria uma nova inscrição PAC
+    /// </summary>
+    Task<ApiResponse<bool>> CreatePacEnrollmentAsync(int leaderId, List<int> colportorIds, DateTime startDate, DateTime endDate);
+
+    /// <summary>
+    /// Aprova uma inscrição PAC
+    /// </summary>
+    Task<ApiResponse<bool>> ApprovePacEnrollmentAsync(int enrollmentId);
+
+    /// <summary>
+    /// Rejeita uma inscrição PAC
+    /// </summary>
+    Task<ApiResponse<bool>> RejectPacEnrollmentAsync(int enrollmentId);
+
+    /// <summary>
+    /// Cria nova visita (check-in)
+    /// </summary>
+    Task<ApiResponse<VisitDto>> CreateVisitAsync(int colportorId, DateTime date);
 }
 
 /// <summary>
@@ -56,6 +86,7 @@ public class ColportorDto
     public DateTime? LastVisitDate { get; set; }
     public int? LeaderId { get; set; }
     public string? LeaderName { get; set; }
+    public string? Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<VisitDto> Visits { get; set; } = new();
     public List<PacEnrollmentDto> PacEnrollments { get; set; } = new();
@@ -77,6 +108,12 @@ public class VisitDto
 public class PacEnrollmentDto
 {
     public int Id { get; set; }
+    public int ColportorId { get; set; }
+    public string ColportorName { get; set; } = string.Empty;
+    public string ColportorCPF { get; set; } = string.Empty;
+    public string? ColportorGender { get; set; }
+    public int? ColportorRegionId { get; set; }
+    public string? ColportorRegionName { get; set; }
     public int LeaderId { get; set; }
     public string LeaderName { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }

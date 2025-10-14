@@ -1,4 +1,5 @@
 using Colportor.Api.Models;
+using Colportor.Api.Data;
 
 namespace Colportor.Api.Repositories;
 
@@ -31,4 +32,14 @@ public interface IUserRepository : IRepository<User>
     /// Obtém usuários por região (para líderes)
     /// </summary>
     Task<IEnumerable<User>> GetByRegionAsync(int regionId);
+
+    /// <summary>
+    /// Obtém usuários pendentes de aprovação
+    /// </summary>
+    Task<IEnumerable<User>> GetPendingUsersAsync();
+
+    /// <summary>
+    /// Obtém o contexto do banco de dados
+    /// </summary>
+    AppDbContext GetContext();
 }

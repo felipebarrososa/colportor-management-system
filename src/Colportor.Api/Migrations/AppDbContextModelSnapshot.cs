@@ -56,9 +56,6 @@ namespace Colportor.Api.Migrations
                     b.Property<int?>("LeaderId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("LeaderId1")
-                        .HasColumnType("integer");
-
                     b.Property<string>("PhotoUrl")
                         .HasColumnType("text");
 
@@ -72,7 +69,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("CountryId");
 
-                    b.HasIndex("LeaderId1");
+                    b.HasIndex("LeaderId");
 
                     b.HasIndex("RegionId");
 
@@ -160,6 +157,39 @@ namespace Colportor.Api.Migrations
                     b.HasIndex("ColportorId", "StartDate", "EndDate");
 
                     b.ToTable("PacEnrollments");
+                });
+
+            modelBuilder.Entity("Colportor.Api.Models.Photo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ColportorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColportorId");
+
+                    b.ToTable("Photos");
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Region", b =>
@@ -266,11 +296,13 @@ namespace Colportor.Api.Migrations
 
                     b.HasOne("Colportor.Api.Models.User", "Leader")
                         .WithMany()
-                        .HasForeignKey("LeaderId1");
+                        .HasForeignKey("LeaderId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Colportor.Api.Models.Region", "Region")
                         .WithMany("Colportors")
-                        .HasForeignKey("RegionId");
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Leader");
 
@@ -294,6 +326,16 @@ namespace Colportor.Api.Migrations
                     b.Navigation("Colportor");
 
                     b.Navigation("Leader");
+                });
+
+            modelBuilder.Entity("Colportor.Api.Models.Photo", b =>
+                {
+                    b.HasOne("Colportor.Api.Models.Colportor", "Colportor")
+                        .WithMany()
+                        .HasForeignKey("ColportorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Colportor");
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Region", b =>

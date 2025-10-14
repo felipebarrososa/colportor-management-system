@@ -6,6 +6,12 @@ using Colportor.Api.Mapping;
 using AutoMapper;
 using FluentValidation;
 using System.Reflection;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Serilog;
+using StackExchange.Redis;
+using AspNetCoreRateLimit;
 
 namespace Colportor.Api.Extensions;
 
@@ -40,6 +46,9 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        // Configurar cache distribuído (usando Memory Cache por enquanto)
+        services.AddDistributedMemoryCache();
+        
         // Serviços de domínio
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IColportorService, ColportorService>();
@@ -270,7 +279,8 @@ public static class ServiceCollectionExtensions
             }
         }
 
-        return configuration.GetConnectionString("DefaultConnection") 
+        return configuration.GetConnectionString("Default") 
+               ?? configuration.GetConnectionString("DefaultConnection")
                ?? "Host=localhost;Database=colportor_db;Username=postgres;Password=postgres";
     }
 }

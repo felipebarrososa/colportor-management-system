@@ -1769,6 +1769,55 @@ body.nav-open {
     margin-bottom: 24px;
 }
 
+/* Section Header com Paginação */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.periods-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-btn {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,.2);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+}
+
 .period-card {
     background: rgba(255,255,255,.03);
     border: 1px solid rgba(255,255,255,.1);
@@ -2032,6 +2081,54 @@ body.nav-open {
 }
 
 #pacAdminList .item .actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+}
+
+/* ===== Leaders List Items ===== */
+#leadersList .item {
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+#leadersList .item:hover {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(20,184,106,.3);
+}
+
+#leadersList .item > div:first-child {
+    flex: 1;
+}
+
+#leadersList .item > div:last-child {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+#leadersList .item .muted {
+    font-size: 12px;
+    color: #8a9ba8;
+    margin-top: 4px;
+}
+
+#leadersList .item .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+#leadersList .item .actions .btn {
     padding: 6px 12px;
     font-size: 12px;
     border-radius: 6px;
@@ -2797,5 +2894,31 @@ body.modal-open {
     .colportor-details {
         flex-direction: column;
         gap: 4px;
+    }
+}
+
+/* Input group styles */
+.input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.input-group select {
+    flex: 1;
+}
+
+.input-group button {
+    flex-shrink: 0;
+    min-width: 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group button {
+        min-width: auto;
     }
 }
