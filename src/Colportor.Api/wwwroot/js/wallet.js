@@ -318,7 +318,7 @@ async function renderWallet() {
         }
         $("#age").textContent = age;
         
-        $("#place").textContent = [x.city, region.name].filter(Boolean).join(" / ") || "—";
+        $("#place").textContent = [colportor.city || x.city, region.name].filter(Boolean).join(" / ") || "—";
         $("#leader").textContent = colportor.leaderName ?? "—";
         $("#lastVisit").textContent = colportor.lastVisitDate ? new Date(colportor.lastVisitDate).toLocaleDateString("pt-BR") : "—";
         $("#due").textContent = colportor.dueDate ? new Date(colportor.dueDate).toLocaleDateString("pt-BR") : "—";
