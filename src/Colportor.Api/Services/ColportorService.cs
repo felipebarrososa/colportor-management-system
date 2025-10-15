@@ -114,6 +114,12 @@ public class ColportorService : IColportorService
                 return ApiResponse<ColportorDto>.ErrorResponse("CPF já está cadastrado");
             }
 
+            // Verificar se email já existe
+            if (await _userRepository.EmailExistsAsync(createDto.Email))
+            {
+                return ApiResponse<ColportorDto>.ErrorResponse("Email já está cadastrado");
+            }
+
             // Verificar permissões de região
             if (userRole == "Leader")
             {
@@ -124,6 +130,21 @@ public class ColportorService : IColportorService
                 }
             }
 
+            // Criar o usuário primeiro
+            var user = new Models.User
+            {
+                Email = createDto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(createDto.Password),
+                Role = "Colportor",
+                FullName = createDto.FullName,
+                CPF = createDto.CPF,
+                City = createDto.City,
+                RegionId = createDto.RegionId
+            };
+
+            var createdUser = await _userRepository.AddAsync(user);
+
+            // Criar o colportor
             var colportor = new Models.Colportor
             {
                 FullName = createDto.FullName,
@@ -142,9 +163,14 @@ public class ColportorService : IColportorService
             };
 
             var createdColportor = await _colportorRepository.AddAsync(colportor);
+
+            // Associar o usuário ao colportor
+            createdUser.ColportorId = createdColportor.Id;
+            await _userRepository.UpdateAsync(createdUser);
+
             var colportorDto = _mapper.Map<ColportorDto>(createdColportor);
 
-            _logger.LogInformation("Colportor {ColportorId} criado com sucesso", createdColportor.Id);
+            _logger.LogInformation("Colportor {ColportorId} e User {UserId} criados com sucesso", createdColportor.Id, createdUser.Id);
             return ApiResponse<ColportorDto>.SuccessResponse(colportorDto, "Colportor criado com sucesso");
         }
         catch (Exception ex)

@@ -52,7 +52,7 @@ public class LegacyController : BaseController
     {
         try
         {
-            var result = await _authService.RegisterAsync(registerDto);
+            var result = await _authService.RegisterColportorAsync(registerDto);
             
             if (result.Success)
             {
