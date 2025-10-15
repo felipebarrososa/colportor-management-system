@@ -14,9 +14,9 @@ public class JwtService : IJwtService
     public JwtService(IConfiguration cfg)
     {
         _key = cfg["JWT_KEY"] ?? cfg["Jwt:Key"] ?? "dev_key_change_me";
-        _issuer = cfg["Jwt:Issuer"] ?? "ColportorAPI";
-        _audience = cfg["Jwt:Audience"] ?? "ColportorClient";
-        Console.WriteLine($"JwtService initialized with key length: {_key.Length}");
+        _issuer = cfg["Jwt:Issuer"] ?? "ColportorApi";
+        _audience = cfg["Jwt:Audience"] ?? "ColportorApi";
+        Console.WriteLine($"JwtService initialized with key length: {_key.Length}, issuer: {_issuer}, audience: {_audience}");
     }
     public string GenerateToken(User user)
     {

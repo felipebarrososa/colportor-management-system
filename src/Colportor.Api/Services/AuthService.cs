@@ -51,6 +51,13 @@ public class AuthService : IAuthService
                 return ApiResponse<AuthResultDto>.ErrorResponse("Email ou senha inválidos");
             }
 
+            // Verificar se o usuário está aprovado (não é "Pending")
+            if (user.Role == "Pending")
+            {
+                _logger.LogWarning("Login falhou: usuário pendente de aprovação para email: {Email}", email);
+                return ApiResponse<AuthResultDto>.ErrorResponse("Sua conta está aguardando aprovação. Entre em contato com o administrador.");
+            }
+
             var token = _jwtService.GenerateToken(user);
             var refreshToken = GenerateRefreshToken();
 

@@ -63,6 +63,21 @@ body {
     margin-bottom: 18px
 }
 
+.brand-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.brand-logo svg {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    transition: transform 0.3s ease;
+}
+
+.brand-logo svg:hover {
+    transform: scale(1.05);
+}
+
     .brand img {
         width: 42px;
         height: 42px;
@@ -162,6 +177,10 @@ body {
     display: inline-block;
     margin-left: 8px;
     animation: spin .7s linear infinite
+}
+
+.spinner[hidden] {
+    display: none !important;
 }
 
 @keyframes spin {

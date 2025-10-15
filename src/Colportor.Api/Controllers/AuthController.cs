@@ -54,6 +54,7 @@ public class AuthController : BaseController
     [HttpGet("wallet/me")]
     [Route("wallet/me")]
     [Route("/wallet/me")]
+    [Authorize]
     public async Task<IActionResult> GetWalletUser()
     {
         try
