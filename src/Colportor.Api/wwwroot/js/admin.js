@@ -28,6 +28,21 @@ function getRole(token) {
 const ROLE = (getRole(token) || "").toLowerCase();
 console.log('Detected role:', ROLE);
 
+// Verificar se o usuário tem permissão para acessar o admin
+if (ROLE !== 'admin' && ROLE !== 'leader') {
+    console.log('Usuário sem permissão para acessar admin. Role:', ROLE);
+    
+    // Mostrar mensagem e redirecionar imediatamente
+    alert('Você não tem permissão para acessar o painel administrativo.');
+    
+    // Múltiplas tentativas de redirecionamento para garantir que funcione
+    window.location.href = "/colportor/";
+    window.location.replace("/colportor/");
+    
+    // Parar execução do script completamente
+    throw new Error("Access denied for role: " + ROLE);
+}
+
 // Ocultar menus que não devem aparecer para líderes
 if (ROLE === 'leader') {
     // Ocultar Calendário PAC e Relatórios para líderes
