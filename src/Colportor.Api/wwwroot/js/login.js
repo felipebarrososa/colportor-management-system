@@ -92,7 +92,7 @@ async function loadCountries(sel) {
 }
 async function loadRegions(countryId, sel) {
     if (!countryId) { sel.innerHTML = ""; return; }
-    const list = await apiJSON(`/api/region/regions?countryId=${countryId}`);
+    const list = await apiJSON(`/geo/regions?countryId=${countryId}`);
     sel.innerHTML = list.map(r => `<option value="${r.id}">${r.name}</option>`).join("");
 }
 
