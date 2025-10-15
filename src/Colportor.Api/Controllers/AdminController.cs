@@ -41,10 +41,28 @@ public class AdminController : BaseController
         [FromQuery] int? pageSize = 10,
         [FromQuery] string? cpf = null,
         [FromQuery] int? regionId = null,
-        [FromQuery] int? leaderId = null)
+        [FromQuery] int? leaderId = null,
+        [FromQuery] string? city = null,
+        [FromQuery] string? status = null)
     {
         try
         {
+            var userId = GetCurrentUserId();
+            var userRole = GetCurrentUserRole();
+            
+            Logger.LogInformation("Listando colportores para usuário {UserId} com role {Role}", userId, userRole);
+
+            // Se for um líder, filtrar apenas os colportores vinculados a ele
+            if (userRole == "Leader")
+            {
+                var user = await _authService.GetUserByIdAsync(userId);
+                if (user?.RegionId.HasValue == true)
+                {
+                    regionId = user.RegionId.Value;
+                    leaderId = userId; // Forçar filtrar apenas pelos colportores deste líder
+                }
+            }
+
             var result = await _colportorService.GetPagedAsync(
                 page ?? 1, 
                 pageSize ?? 10, 
@@ -52,6 +70,8 @@ public class AdminController : BaseController
                 leaderId, 
                 null, 
                 cpf);
+            
+            Logger.LogInformation("Retornando {Count} colportores para usuário {UserId}", result.Items.Count, userId);
             return Ok(result);
         }
         catch (Exception ex)

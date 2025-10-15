@@ -104,38 +104,12 @@ public class AuthService : IAuthService
 
             var createdUser = await _userRepository.AddAsync(user);
 
-            // Criar o registro de colportor se os dados estiverem presentes
-            if (!string.IsNullOrEmpty(registerDto.FullName) && !string.IsNullOrEmpty(registerDto.CPF))
-            {
-                var colportor = new Models.Colportor
-                {
-                    FullName = registerDto.FullName,
-                    CPF = registerDto.CPF,
-                    Gender = registerDto.Gender,
-                    BirthDate = registerDto.BirthDate?.Kind == DateTimeKind.Unspecified 
-                        ? DateTime.SpecifyKind(registerDto.BirthDate.Value, DateTimeKind.Utc) 
-                        : registerDto.BirthDate,
-                    City = registerDto.City,
-                    PhotoUrl = registerDto.PhotoUrl,
-                    RegionId = registerDto.RegionId,
-                    LeaderId = registerDto.LeaderId,
-                    LastVisitDate = registerDto.LastVisitDate?.Kind == DateTimeKind.Unspecified 
-                        ? DateTime.SpecifyKind(registerDto.LastVisitDate.Value, DateTimeKind.Utc) 
-                        : registerDto.LastVisitDate
-                };
-
-                // Usar o contexto diretamente para adicionar o colportor
-                var context = _userRepository.GetContext(); // Assumindo que temos acesso ao contexto
-                context.Colportors.Add(colportor);
-                await context.SaveChangesAsync();
-
-                // Associar o usuário ao colportor
-                createdUser.ColportorId = colportor.Id;
-                await _userRepository.UpdateAsync(createdUser);
-
-                _logger.LogInformation("Colportor criado e associado ao usuário: UserId={UserId}, ColportorId={ColportorId}", 
-                    createdUser.Id, colportor.Id);
-            }
+            // NOTA: Líderes não devem ser criados como colportores
+            // O registro de líder cria apenas o User com role "Pending"
+            // Colportores são criados separadamente através do endpoint de cadastro de colportor
+            
+            _logger.LogInformation("Líder registrado com sucesso: UserId={UserId}, Email={Email}", 
+                createdUser.Id, createdUser.Email);
 
             // Não gerar token para usuários pendentes - apenas retornar sucesso
             _logger.LogInformation("Registro realizado com sucesso para: {Email}. Aguardando aprovação.", registerDto.Email);
