@@ -1,6 +1,15 @@
 ﻿// /js/login.js
 import { apiJSON, saveToken, setBusy } from "/js/shared.js";
 
+// ===== UTILITIES =====
+function parseJwt(token) {
+    try {
+        const base = token.split(".")[1];
+        const json = atob(base.replace(/-/g, "+").replace(/_/g, "/"));
+        return JSON.parse(decodeURIComponent(escape(json)));
+    } catch { return {}; }
+}
+
 const form = document.getElementById("loginForm");
 const btn = document.getElementById("loginBtn");
 
@@ -37,27 +46,24 @@ form.addEventListener("submit", async (e) => {
         // (debug opcional)
         console.log("JWT salvo:", sessionStorage.getItem("token"));
 
-        // testa acesso admin
-        const test = await fetch("/admin/colportors", {
-            headers: { Authorization: "Bearer " + sessionStorage.getItem("token") }
-        });
+        // Verificar role do usuário antes de redirecionar
+        const claims = parseJwt(token);
+        const role = (claims.role || claims.Role || "").toString().toLowerCase();
+        
+        console.log("Detected role:", role);
 
-        if (test.ok) {
+        // Redirecionar baseado no role
+        if (role.includes("admin") || role.includes("leader")) {
             location.href = "/admin/dashboard.html";
             return;
-        }
-
-        // senão, tenta carteira
-        const w = await fetch("/wallet/me", {
-            headers: { Authorization: "Bearer " + sessionStorage.getItem("token") }
-        });
-        if (w.ok) {
-            location.href = "/colportor/"; // ajuste se tiver outra rota
+        } else if (role.includes("colportor")) {
+            alert("Esta conta é de Colportor. Acesse a carteira digital.");
+            location.href = "/colportor/";
+            return;
+        } else {
+            alert("Role não reconhecido. Entre em contato com o administrador.");
             return;
         }
-
-        // fallback por via das dúvidas
-        location.href = "/admin/dashboard.html";
     } catch (err) {
         console.error("❌ Login error:", err);
         alert("Falha no login. Verifique e-mail e senha.");
