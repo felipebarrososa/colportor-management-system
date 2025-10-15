@@ -123,15 +123,15 @@ public class ColportorService : IColportorService
             // Verificar permissões de região
             if (userRole == "Leader")
             {
-                var user = await _userRepository.GetByIdAsync(userId);
-                if (user?.RegionId != createDto.RegionId)
+                var currentUser = await _userRepository.GetByIdAsync(userId);
+                if (currentUser?.RegionId != createDto.RegionId)
                 {
                     return ApiResponse<ColportorDto>.ErrorResponse("Você só pode criar colportores em sua região");
                 }
             }
 
             // Criar o usuário primeiro
-            var user = new Models.User
+            var newUser = new Models.User
             {
                 Email = createDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(createDto.Password),
@@ -142,7 +142,7 @@ public class ColportorService : IColportorService
                 RegionId = createDto.RegionId
             };
 
-            var createdUser = await _userRepository.AddAsync(user);
+            var createdUser = await _userRepository.AddAsync(newUser);
 
             // Criar o colportor
             var colportor = new Models.Colportor

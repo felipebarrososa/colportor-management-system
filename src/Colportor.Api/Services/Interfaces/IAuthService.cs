@@ -14,9 +14,14 @@ public interface IAuthService
     Task<ApiResponse<AuthResultDto>> LoginAsync(string email, string password);
 
     /// <summary>
-    /// Registra um novo usuário
+    /// Registra um novo usuário (líder)
     /// </summary>
     Task<ApiResponse<AuthResultDto>> RegisterAsync(RegisterDto registerDto);
+
+    /// <summary>
+    /// Registra um novo colportor
+    /// </summary>
+    Task<ApiResponse<AuthResultDto>> RegisterColportorAsync(RegisterDto registerDto);
 
     /// <summary>
     /// Atualiza o token JWT
