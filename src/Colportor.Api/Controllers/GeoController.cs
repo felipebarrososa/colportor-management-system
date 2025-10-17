@@ -179,13 +179,13 @@ public class GeoController : BaseController
         try
         {
             // Verificar se a tabela Photos existe
-            var tableExists = await _context.Database.ExecuteSqlRawAsync(
+            var tableExists = await _context.Database.ExecuteSqlAsync(
                 "SELECT 1 FROM information_schema.tables WHERE table_name = 'Photos'") > 0;
 
             if (!tableExists)
             {
                 // Criar tabela Photos
-                await _context.Database.ExecuteSqlRawAsync(@"
+                await _context.Database.ExecuteSqlAsync(@"
                     CREATE TABLE ""Photos"" (
                         ""Id"" SERIAL PRIMARY KEY,
                         ""FileName"" TEXT NOT NULL,
