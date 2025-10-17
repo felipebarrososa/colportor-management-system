@@ -101,9 +101,12 @@ export function fillSelect(sel, items, valueKey = "id", labelKey = "name") {
 }
 
 // ===== Upload =====
-export async function uploadPhoto(file) {
+export async function uploadPhoto(file, colportorId = null) {
     const fd = new FormData();
     fd.append("photo", file);
+    if (colportorId) {
+        fd.append("colportorId", colportorId);
+    }
     const res = await fetch("/upload/photo", { method: "POST", body: fd });
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();

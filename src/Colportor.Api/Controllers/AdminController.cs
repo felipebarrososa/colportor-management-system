@@ -33,9 +33,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Lista colportores com paginação (Admin)
+    /// Lista colportores com paginação (Admin/Leader)
     /// </summary>
     [HttpGet("colportors")]
+    [Authorize(Roles = "Admin,Leader")]
     public async Task<IActionResult> GetColportors(
         [FromQuery] int? page = 1,
         [FromQuery] int? pageSize = 10,
@@ -82,9 +83,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Lista inscrições PAC (Admin)
+    /// Lista inscrições PAC (Admin/Leader)
     /// </summary>
     [HttpGet("pac/enrollments")]
+    [Authorize(Roles = "Admin,Leader")]
     public async Task<IActionResult> GetPacEnrollments(
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null,
@@ -103,9 +105,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Obtém calendário mensal (Admin)
+    /// Obtém calendário mensal (Admin/Leader)
     /// </summary>
     [HttpGet("calendar/monthly")]
+    [Authorize(Roles = "Admin,Leader")]
     public async Task<IActionResult> GetMonthlyCalendar(
         [FromQuery] int year,
         [FromQuery] int month)
@@ -123,9 +126,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Lista todas as regiões (Admin)
+    /// Lista todas as regiões (Admin/Leader)
     /// </summary>
     [HttpGet("regions")]
+    [Authorize(Roles = "Admin,Leader")]
     public async Task<IActionResult> GetRegions()
     {
         try
@@ -144,6 +148,7 @@ public class AdminController : BaseController
     /// Cria nova região (Admin)
     /// </summary>
     [HttpPost("regions")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateRegion([FromBody] RegionCreateDto createDto)
     {
         try
@@ -166,6 +171,7 @@ public class AdminController : BaseController
     /// Lista líderes pendentes de aprovação (Admin)
     /// </summary>
     [HttpGet("leaders/pending")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetPendingLeaders()
     {
         try
@@ -184,6 +190,7 @@ public class AdminController : BaseController
     /// Aprova um líder pendente (Admin)
     /// </summary>
     [HttpPost("leaders/{userId}/approve")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ApproveLeader(int userId)
     {
         try
@@ -210,6 +217,7 @@ public class AdminController : BaseController
     /// Lista todos os líderes (Admin)
     /// </summary>
     [HttpGet("leaders")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllLeaders()
     {
         try
@@ -225,9 +233,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Lista colportores para PAC (Admin)
+    /// Lista colportores para PAC (Admin/Leader)
     /// </summary>
     [HttpGet("pac/colportors")]
+    [Authorize(Roles = "Admin,Leader")]
     public async Task<IActionResult> GetColportorsForPac()
     {
         try
@@ -244,9 +253,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Aprova uma solicitação PAC
+    /// Aprova uma solicitação PAC (Admin)
     /// </summary>
     [HttpPost("pac/enrollments/{id}/approve")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ApprovePacEnrollment(int id)
     {
         try
@@ -270,9 +280,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Rejeita uma solicitação PAC
+    /// Rejeita uma solicitação PAC (Admin)
     /// </summary>
     [HttpPost("pac/enrollments/{id}/reject")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RejectPacEnrollment(int id)
     {
         try
@@ -296,9 +307,10 @@ public class AdminController : BaseController
     }
 
     /// <summary>
-    /// Gera relatório PAC para período específico
+    /// Gera relatório PAC para período específico (Admin)
     /// </summary>
     [HttpGet("reports/pac")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetPacReport(
         [FromQuery] DateTime startDate,
         [FromQuery] DateTime endDate,

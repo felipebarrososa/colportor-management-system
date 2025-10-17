@@ -69,9 +69,12 @@ async function loadRegions(countryId, selectEl) {
 }
 
 // ===== Upload foto =====
-async function uploadPhoto(file) {
+async function uploadPhoto(file, colportorId = null) {
     const fd = new FormData();
     fd.append("photo", file);
+    if (colportorId) {
+        fd.append("colportorId", colportorId);
+    }
     const res = await fetch("/upload/photo", { method: "POST", body: fd });
     if (!res.ok) throw new Error(await res.text().catch(() => "Falha no upload"));
     const j = await res.json().catch(() => ({}));
@@ -298,7 +301,42 @@ async function renderWallet() {
         const colportor = x.colportor || {};
         const region = x.region || {};
         
-        $("#photo").src = colportor.photoUrl || "/css/user.png";
+        // Definir foto ou emoji baseado no gênero
+        const photoElement = $("#photo");
+        if (colportor.photoUrl) {
+            photoElement.src = colportor.photoUrl;
+            photoElement.alt = "foto do colportor";
+        } else {
+            // Usar emoji baseado no gênero
+            const gender = colportor.gender || "";
+            if (gender.toLowerCase() === "masculino") {
+                photoElement.src = "data:image/svg+xml;base64," + btoa(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+                        <circle cx="50" cy="50" r="50" fill="#e3f2fd"/>
+                        <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👨</text>
+                    </svg>
+                `);
+                photoElement.alt = "emoji masculino";
+            } else if (gender.toLowerCase() === "feminino") {
+                photoElement.src = "data:image/svg+xml;base64," + btoa(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+                        <circle cx="50" cy="50" r="50" fill="#fce4ec"/>
+                        <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👩</text>
+                    </svg>
+                `);
+                photoElement.alt = "emoji feminino";
+            } else {
+                // Gênero não definido - usar emoji neutro
+                photoElement.src = "data:image/svg+xml;base64," + btoa(`
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+                        <circle cx="50" cy="50" r="50" fill="#f5f5f5"/>
+                        <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👤</text>
+                    </svg>
+                `);
+                photoElement.alt = "emoji neutro";
+            }
+        }
+        
         $("#name").textContent = colportor.fullName || x.fullName || "—";
         $("#cpf").textContent = colportor.cpf || x.cpf || "—";
         $("#gender").textContent = colportor.gender ?? "—";
@@ -547,7 +585,8 @@ ePhotoFile?.addEventListener("change", async (e) => {
     if (!file) return;
     
     try {
-        const url = await uploadPhoto(file);
+        const colportorId = currentColportorData?.colportor?.id || currentColportorData?.id;
+        const url = await uploadPhoto(file, colportorId);
         if (url) {
             ePhotoUrlH.value = url;
             toast("Foto carregada com sucesso!");
@@ -583,7 +622,8 @@ $("#editForm")?.addEventListener("submit", async (e) => {
         let photoUrl = currentColportorData.photoUrl;
         if (ePhotoFile?.files && ePhotoFile.files[0]) {
             try { 
-                photoUrl = await uploadPhoto(ePhotoFile.files[0]); 
+                const colportorId = currentColportorData.colportor?.id || currentColportorData.id;
+                photoUrl = await uploadPhoto(ePhotoFile.files[0], colportorId); 
             } catch { 
                 toast("Falha ao enviar foto."); 
             }

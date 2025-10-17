@@ -82,7 +82,7 @@ public class GeoController : BaseController
     /// Upload de foto (público) - salva no banco de dados
     /// </summary>
     [HttpPost("upload/photo")]
-    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo)
+    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo, [FromForm] int? colportorId = null)
     {
         try
         {
@@ -120,7 +120,8 @@ public class GeoController : BaseController
                 FileName = photo.FileName,
                 ContentType = photo.ContentType,
                 Data = fileData,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ColportorId = colportorId
             };
 
             // Salvar no banco de dados
@@ -128,7 +129,8 @@ public class GeoController : BaseController
             await _context.SaveChangesAsync();
 
             // Retornar ID da foto para o frontend
-            Logger.LogInformation("Foto salva no banco com sucesso: ID {PhotoId}, Nome: {FileName}", photoRecord.Id, photoRecord.FileName);
+            Logger.LogInformation("Foto salva no banco com sucesso: ID {PhotoId}, Nome: {FileName}, ColportorId: {ColportorId}", 
+                photoRecord.Id, photoRecord.FileName, colportorId);
             return Ok(new { url = $"/photo/{photoRecord.Id}" });
         }
         catch (Exception ex)

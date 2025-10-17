@@ -67,6 +67,11 @@ public interface IAuthService
     /// Lista todos os líderes (Admin)
     /// </summary>
     Task<IEnumerable<UserDto>> GetAllLeadersAsync();
+
+    /// <summary>
+    /// Atualiza dados do usuário
+    /// </summary>
+    Task UpdateUserAsync(User user);
 }
 
 /// <summary>

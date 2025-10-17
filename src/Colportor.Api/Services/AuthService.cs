@@ -354,4 +354,18 @@ public class AuthService : IAuthService
             throw;
         }
     }
+
+    public async Task UpdateUserAsync(User user)
+    {
+        try
+        {
+            await _userRepository.UpdateAsync(user);
+            _logger.LogInformation("Usuário {UserId} atualizado com sucesso", user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao atualizar usuário {UserId}", user.Id);
+            throw;
+        }
+    }
 }
