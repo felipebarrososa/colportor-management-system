@@ -8,7 +8,6 @@ using ColpVisit = Colportor.Api.Models.Visit;
 using ColpRegion = Colportor.Api.Models.Region;
 using ColpCountry = Colportor.Api.Models.Country;
 using ColpNotificationLog = Colportor.Api.Models.NotificationLog;
-using ColpPhoto = Colportor.Api.Models.Photo;
 
 namespace Colportor.Api.Data
 {
