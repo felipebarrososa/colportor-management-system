@@ -169,4 +169,54 @@ public class GeoController : BaseController
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
     }
+
+    /// <summary>
+    /// Endpoint temporário para aplicar migração da tabela Photos
+    /// </summary>
+    [HttpPost("migrate-photos")]
+    public async Task<IActionResult> MigratePhotos()
+    {
+        try
+        {
+            // Verificar se a tabela Photos existe
+            var tableExists = await _context.Database.ExecuteSqlRawAsync(
+                "SELECT 1 FROM information_schema.tables WHERE table_name = 'Photos'") > 0;
+
+            if (!tableExists)
+            {
+                // Criar tabela Photos
+                await _context.Database.ExecuteSqlRawAsync(@"
+                    CREATE TABLE ""Photos"" (
+                        ""Id"" SERIAL PRIMARY KEY,
+                        ""FileName"" TEXT NOT NULL,
+                        ""ContentType"" TEXT NOT NULL,
+                        ""Data"" BYTEA NOT NULL,
+                        ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL,
+                        ""ColportorId"" INTEGER NULL
+                    );
+                    
+                    CREATE INDEX ""IX_Photos_ColportorId"" ON ""Photos"" (""ColportorId"");
+                    
+                    ALTER TABLE ""Photos"" 
+                    ADD CONSTRAINT ""FK_Photos_Colportors_ColportorId"" 
+                    FOREIGN KEY (""ColportorId"") 
+                    REFERENCES ""Colportors"" (""Id"") 
+                    ON DELETE SET NULL;
+                ");
+
+                Logger.LogInformation("Tabela Photos criada com sucesso");
+                return Ok(new { message = "Tabela Photos criada com sucesso" });
+            }
+            else
+            {
+                Logger.LogInformation("Tabela Photos já existe");
+                return Ok(new { message = "Tabela Photos já existe" });
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Erro ao criar tabela Photos");
+            return StatusCode(500, new { message = "Erro ao criar tabela Photos: " + ex.Message });
+        }
+    }
 }
