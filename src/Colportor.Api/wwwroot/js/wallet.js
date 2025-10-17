@@ -308,14 +308,12 @@ async function renderWallet() {
             const gender = colportor.gender || "";
             if (gender.toLowerCase() === "masculino") {
                 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-                    <circle cx="50" cy="50" r="50" fill="#e3f2fd"/>
                     <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👨</text>
                 </svg>`;
                 photoElement.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
                 photoElement.alt = "emoji masculino";
             } else if (gender.toLowerCase() === "feminino") {
                 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-                    <circle cx="50" cy="50" r="50" fill="#fce4ec"/>
                     <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👩</text>
                 </svg>`;
                 photoElement.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
@@ -323,7 +321,6 @@ async function renderWallet() {
             } else {
                 // Gênero não definido - usar emoji neutro
                 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-                    <circle cx="50" cy="50" r="50" fill="#f5f5f5"/>
                     <text x="50" y="65" font-size="60" text-anchor="middle" font-family="Arial, sans-serif">👤</text>
                 </svg>`;
                 photoElement.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
