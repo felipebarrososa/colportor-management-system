@@ -52,6 +52,7 @@ public class AuthController : BaseController
     /// Obtém dados do usuário logado (para wallet)
     /// </summary>
     [HttpGet("wallet/me")]
+    [Route("~/wallet/me")]
     [Authorize]
     public async Task<IActionResult> GetWalletUser()
     {
@@ -117,6 +118,7 @@ public class AuthController : BaseController
     /// Atualiza dados do usuário logado (para wallet)
     /// </summary>
     [HttpPut("wallet/me")]
+    [Route("~/wallet/me")]
     [Authorize]
     public async Task<IActionResult> UpdateWalletUser([FromBody] UpdateWalletUserDto updateDto)
     {
