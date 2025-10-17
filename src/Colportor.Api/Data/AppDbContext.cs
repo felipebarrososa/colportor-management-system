@@ -23,7 +23,6 @@ namespace Colportor.Api.Data
         public DbSet<ColpCountry> Countries => Set<ColpCountry>();
         public DbSet<ColpNotificationLog> NotificationLogs => Set<ColpNotificationLog>();
         public DbSet<Colportor.Api.Models.PacEnrollment> PacEnrollments => Set<Colportor.Api.Models.PacEnrollment>();
-        public DbSet<Colportor.Api.Models.Photo> Photos => Set<Colportor.Api.Models.Photo>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -116,19 +115,6 @@ namespace Colportor.Api.Data
                 e.HasIndex(x => new { x.ColportorId, x.StartDate, x.EndDate });
             });
 
-            // ===== Photos =====
-            mb.Entity<Colportor.Api.Models.Photo>(e =>
-            {
-                e.HasKey(x => x.Id);
-                e.Property(x => x.FileName).IsRequired();
-                e.Property(x => x.ContentType).IsRequired();
-                e.Property(x => x.Data).IsRequired();
-                e.Property(x => x.CreatedAt).IsRequired();
-                e.HasOne(x => x.Colportor)
-                    .WithMany()
-                    .HasForeignKey(x => x.ColportorId)
-                    .OnDelete(DeleteBehavior.SetNull);
-            });
         }
     }
 }

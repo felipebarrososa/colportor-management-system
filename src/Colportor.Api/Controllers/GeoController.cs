@@ -79,10 +79,10 @@ public class GeoController : BaseController
     }
 
     /// <summary>
-    /// Upload de foto (público) - salva no banco de dados
+    /// Upload de foto (público) - converte para base64 e retorna data URL
     /// </summary>
     [HttpPost("upload/photo")]
-    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo, [FromForm] string? colportorId = null)
+    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo)
     {
         try
         {
@@ -114,31 +114,14 @@ public class GeoController : BaseController
                 fileData = memoryStream.ToArray();
             }
 
-            // Converter colportorId de string para int se fornecido
-            int? colportorIdInt = null;
-            if (!string.IsNullOrEmpty(colportorId) && int.TryParse(colportorId, out var parsedId))
-            {
-                colportorIdInt = parsedId;
-            }
+            // Converter para base64 data URL
+            var base64String = Convert.ToBase64String(fileData);
+            var dataUrl = $"data:{photo.ContentType};base64,{base64String}";
 
-            // Criar registro da foto no banco
-            var photoRecord = new Colportor.Api.Models.Photo
-            {
-                FileName = photo.FileName,
-                ContentType = photo.ContentType,
-                Data = fileData,
-                CreatedAt = DateTime.UtcNow,
-                ColportorId = colportorIdInt
-            };
-
-            // Salvar no banco de dados
-            _context.Photos.Add(photoRecord);
-            await _context.SaveChangesAsync();
-
-            // Retornar ID da foto para o frontend
-            Logger.LogInformation("Foto salva no banco com sucesso: ID {PhotoId}, Nome: {FileName}, ColportorId: {ColportorId}", 
-                photoRecord.Id, photoRecord.FileName, colportorIdInt);
-            return Ok(new { url = $"/photo/{photoRecord.Id}" });
+            Logger.LogInformation("Foto convertida para base64 com sucesso: Nome: {FileName}, Tamanho: {Size} bytes", 
+                photo.FileName, fileData.Length);
+            
+            return Ok(new { url = dataUrl });
         }
         catch (Exception ex)
         {
@@ -147,27 +130,5 @@ public class GeoController : BaseController
         }
     }
 
-    /// <summary>
-    /// Serve foto do banco de dados (público)
-    /// </summary>
-    [HttpGet("photo/{id}")]
-    public async Task<IActionResult> GetPhoto(int id)
-    {
-        try
-        {
-            var photo = await _context.Photos.FindAsync(id);
-            if (photo == null)
-            {
-                return NotFound(new { message = "Foto não encontrada" });
-            }
-
-            return File(photo.Data, photo.ContentType, photo.FileName);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Erro ao servir foto {PhotoId}", id);
-            return StatusCode(500, new { message = "Erro interno do servidor" });
-        }
-    }
 
 }

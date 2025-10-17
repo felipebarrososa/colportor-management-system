@@ -69,16 +69,13 @@ async function loadRegions(countryId, selectEl) {
 }
 
 // ===== Upload foto =====
-async function uploadPhoto(file, colportorId = null) {
+async function uploadPhoto(file) {
     const fd = new FormData();
     fd.append("photo", file);
-    if (colportorId) {
-        fd.append("colportorId", colportorId);
-    }
     const res = await fetch("/upload/photo", { method: "POST", body: fd });
     if (!res.ok) throw new Error(await res.text().catch(() => "Falha no upload"));
     const j = await res.json().catch(() => ({}));
-    return j.url || null; // backend devolve { url: "/uploads/..." }
+    return j.url || null; // backend devolve { url: "data:image/..." }
 }
 
 // ===== modal register =====
@@ -586,7 +583,7 @@ ePhotoFile?.addEventListener("change", async (e) => {
     
     try {
         const colportorId = currentColportorData?.colportor?.id || currentColportorData?.id;
-        const url = await uploadPhoto(file, colportorId);
+        const url = await uploadPhoto(file);
         if (url) {
             ePhotoUrlH.value = url;
             toast("Foto carregada com sucesso!");
@@ -623,7 +620,7 @@ $("#editForm")?.addEventListener("submit", async (e) => {
         if (ePhotoFile?.files && ePhotoFile.files[0]) {
             try { 
                 const colportorId = currentColportorData.colportor?.id || currentColportorData.id;
-                photoUrl = await uploadPhoto(ePhotoFile.files[0], colportorId); 
+                photoUrl = await uploadPhoto(ePhotoFile.files[0]); 
             } catch { 
                 toast("Falha ao enviar foto."); 
             }

@@ -101,16 +101,13 @@ export function fillSelect(sel, items, valueKey = "id", labelKey = "name") {
 }
 
 // ===== Upload =====
-export async function uploadPhoto(file, colportorId = null) {
+export async function uploadPhoto(file) {
     const fd = new FormData();
     fd.append("photo", file);
-    if (colportorId) {
-        fd.append("colportorId", colportorId);
-    }
     const res = await fetch("/upload/photo", { method: "POST", body: fd });
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
-    return data.url; // /uploads/xxxx.ext
+    return data.url; // data:image/...
 }
 
 // ===== UI helpers =====
