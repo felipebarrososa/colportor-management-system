@@ -82,7 +82,7 @@ public class GeoController : BaseController
     /// Upload de foto (público) - salva no banco de dados
     /// </summary>
     [HttpPost("upload/photo")]
-    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo, [FromForm] int? colportorId = null)
+    public async Task<IActionResult> UploadPhoto([FromForm] IFormFile photo, [FromForm] string? colportorId = null)
     {
         try
         {
@@ -114,6 +114,13 @@ public class GeoController : BaseController
                 fileData = memoryStream.ToArray();
             }
 
+            // Converter colportorId de string para int se fornecido
+            int? colportorIdInt = null;
+            if (!string.IsNullOrEmpty(colportorId) && int.TryParse(colportorId, out var parsedId))
+            {
+                colportorIdInt = parsedId;
+            }
+
             // Criar registro da foto no banco
             var photoRecord = new Colportor.Api.Models.Photo
             {
@@ -121,7 +128,7 @@ public class GeoController : BaseController
                 ContentType = photo.ContentType,
                 Data = fileData,
                 CreatedAt = DateTime.UtcNow,
-                ColportorId = colportorId
+                ColportorId = colportorIdInt
             };
 
             // Salvar no banco de dados
@@ -130,7 +137,7 @@ public class GeoController : BaseController
 
             // Retornar ID da foto para o frontend
             Logger.LogInformation("Foto salva no banco com sucesso: ID {PhotoId}, Nome: {FileName}, ColportorId: {ColportorId}", 
-                photoRecord.Id, photoRecord.FileName, colportorId);
+                photoRecord.Id, photoRecord.FileName, colportorIdInt);
             return Ok(new { url = $"/photo/{photoRecord.Id}" });
         }
         catch (Exception ex)
