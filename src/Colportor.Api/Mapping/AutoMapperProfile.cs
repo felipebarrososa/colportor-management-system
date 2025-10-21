@@ -2,6 +2,7 @@ using AutoMapper;
 using Colportor.Api.DTOs;
 using Colportor.Api.Models;
 using Colportor.Api.Services;
+using Colportor.Api.DTOs;
 
 namespace Colportor.Api.Mapping;
 
@@ -56,6 +57,18 @@ public class AutoMapperProfile : Profile
         // Calendar mappings
         CreateMap<Models.Colportor, ColportorSummaryDto>()
             .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader!.FullName ?? src.Leader.Email));
+
+        // MissionContact mappings
+        CreateMap<Models.MissionContact, MissionContactDto>()
+            .ForMember(dest => dest.RegionName, opt => opt.MapFrom(src => src.Region != null ? src.Region.Name : null))
+            .ForMember(dest => dest.LeaderName, opt => opt.MapFrom(src => src.Leader != null ? (src.Leader.FullName ?? src.Leader.Email) : null))
+            .ForMember(dest => dest.Age, opt => opt.MapFrom(src => CalculateAge(src.BirthDate)));
+
+        // WhatsApp mappings
+        CreateMap<WhatsAppMessage, WhatsAppMessageResponseDto>();
+        CreateMap<WhatsAppTemplate, WhatsAppTemplateDto>();
+        CreateMap<WhatsAppTemplateCreateDto, WhatsAppTemplate>();
+        CreateMap<WhatsAppConnection, WhatsAppConnectionStatusDto>();
     }
 
     /// <summary>
@@ -84,5 +97,14 @@ public class AutoMapperProfile : Profile
         {
             return "EM DIA";
         }
+    }
+
+    private static int? CalculateAge(DateTime? birthDate)
+    {
+        if (!birthDate.HasValue) return null;
+        var today = DateTime.UtcNow.Date;
+        var age = today.Year - birthDate.Value.Date.Year;
+        if (birthDate.Value.Date > today.AddYears(-age)) age--;
+        return age;
     }
 }

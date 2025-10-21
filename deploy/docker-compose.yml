@@ -30,6 +30,9 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Default: Host=db;Port=5432;Database=colportor;Username=colp;Password=colp123
       Jwt__Key: 0123456789abcdef0123456789abcdef
+      JWT__Key: 0123456789abcdef0123456789abcdef
+      WHATSAPP_ENABLED: "true"
+      WHATSAPP_SERVICE_URL: http://whatsapp:3001
       Smtp__Host: mailhog
       Smtp__Port: 1025
       Smtp__From: no-reply@colportor.local
@@ -37,6 +40,8 @@ services:
       db:
         condition: service_healthy
       mailhog:
+        condition: service_started
+      whatsapp:
         condition: service_started
     ports: ["8080:8080"]
     restart: unless-stopped
@@ -58,5 +63,19 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  whatsapp:
+    build:
+      context: ../whatsapp-service
+      dockerfile: Dockerfile
+    container_name: colp_whatsapp
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    ports: ["3001:3001"]
+    volumes:
+      - whatsapp_data:/app/.wwebjs_auth
+    restart: unless-stopped
+
 volumes:
   db_data:
+  whatsapp_data:

@@ -1,0 +1,326 @@
+using AutoMapper;
+using Colportor.Api.DTOs;
+using Colportor.Api.Models;
+using Colportor.Api.Repositories.Interfaces;
+using Colportor.Api.Repositories;
+using Colportor.Api.Services.Interfaces;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text.Json;
+
+namespace Colportor.Api.Services
+{
+    public class WhatsAppService : IWhatsAppService
+    {
+        private class WhatsAppServiceMessagesEnvelope
+        {
+            public bool Success { get; set; }
+            public List<WhatsAppServiceMessageDto>? Messages { get; set; }
+        }
+        private readonly IMapper _mapper;
+        private readonly IWhatsAppMessageRepository _messageRepo;
+        private readonly IWhatsAppTemplateRepository _templateRepo;
+        private readonly IWhatsAppConnectionRepository _connectionRepo;
+        private readonly IMissionContactRepository _contactRepo;
+        private readonly ILogger<WhatsAppService> _logger;
+        private readonly HttpClient _httpClient;
+        private readonly string _whatsappServiceUrl;
+
+        public WhatsAppService(
+            IMapper mapper, 
+            IWhatsAppMessageRepository messageRepo,
+            IWhatsAppTemplateRepository templateRepo,
+            IWhatsAppConnectionRepository connectionRepo,
+            IMissionContactRepository contactRepo,
+            ILogger<WhatsAppService> logger,
+            HttpClient httpClient)
+        {
+            _mapper = mapper;
+            _messageRepo = messageRepo;
+            _templateRepo = templateRepo;
+            _connectionRepo = connectionRepo;
+            _contactRepo = contactRepo;
+            _logger = logger;
+            _httpClient = httpClient;
+            _whatsappServiceUrl = Environment.GetEnvironmentVariable("WHATSAPP_SERVICE_URL") ?? "http://whatsapp:3001";
+        }
+
+        public async Task<WhatsAppConnectionStatusDto> GetConnectionStatusAsync()
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{_whatsappServiceUrl}/status");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var status = JsonSerializer.Deserialize<WhatsAppConnectionStatusDto>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    return status ?? new WhatsAppConnectionStatusDto { Connected = false, Status = "Error" };
+                }
+                else
+                {
+                    _logger.LogWarning("Erro ao obter status do WhatsApp Service: {StatusCode}", response.StatusCode);
+                    return new WhatsAppConnectionStatusDto { Connected = false, Status = "ServiceUnavailable" };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter status da conexão WhatsApp");
+                return new WhatsAppConnectionStatusDto
+                {
+                    Connected = false,
+                    Status = "Error"
+                };
+            }
+        }
+
+        public async Task<ApiResponse<WhatsAppConnectionStatusDto>> ConnectAsync()
+        {
+            try
+            {
+                var response = await _httpClient.PostAsync($"{_whatsappServiceUrl}/connect", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var status = JsonSerializer.Deserialize<WhatsAppConnectionStatusDto>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    if (status != null)
+                    {
+                        return ApiResponse<WhatsAppConnectionStatusDto>.SuccessResponse(status);
+                    }
+                }
+                
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse("Erro ao conectar com WhatsApp Service");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao conectar WhatsApp");
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse("Erro interno ao conectar WhatsApp");
+            }
+        }
+
+        public async Task<ApiResponse> DisconnectAsync()
+        {
+            try
+            {
+                var response = await _httpClient.PostAsync($"{_whatsappServiceUrl}/disconnect", null);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("WhatsApp desconectado");
+                    return ApiResponse.SuccessResponse("WhatsApp desconectado com sucesso");
+                }
+                
+                return ApiResponse.ErrorResponse("Erro ao desconectar WhatsApp Service");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao desconectar WhatsApp");
+                return ApiResponse.ErrorResponse("Erro interno ao desconectar WhatsApp");
+            }
+        }
+
+        public async Task<WhatsAppStatsDto> GetStatsAsync()
+        {
+            try
+            {
+                var messages = await _messageRepo.GetAllAsync();
+                
+                return new WhatsAppStatsDto
+                {
+                    MessagesSent = messages.Count(m => m.Sender == "user"),
+                    MessagesDelivered = messages.Count(m => m.Status == "delivered"),
+                    MessagesRead = messages.Count(m => m.Status == "read"),
+                    MessagesFailed = messages.Count(m => m.Status == "failed"),
+                    LastUpdated = DateTime.UtcNow
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter estatísticas do WhatsApp");
+                return new WhatsAppStatsDto();
+            }
+        }
+
+        public async Task<ApiResponse<WhatsAppMessageResponseDto>> SendMessageAsync(WhatsAppMessageDto dto, int currentUserId, string currentUserRole)
+        {
+            try
+            {
+                _logger.LogInformation("Enviando mensagem WhatsApp - ContactId: {ContactId}, Content: {Content}", 
+                    dto.ContactId, dto.Content);
+                
+                // Verificar se o contato existe
+                var contact = await _contactRepo.GetByIdAsync(dto.ContactId);
+                if (contact == null)
+                {
+                    _logger.LogWarning("Contato não encontrado: {ContactId}", dto.ContactId);
+                    return ApiResponse<WhatsAppMessageResponseDto>.ErrorResponse("Contato não encontrado");
+                }
+                
+                _logger.LogInformation("Contato encontrado - Phone: {Phone}", contact.Phone);
+
+                HttpResponseMessage response;
+                
+                // Se tem arquivo de mídia, enviar via multipart/form-data
+                if (dto.MediaFile != null)
+                {
+                    _logger.LogInformation("Enviando arquivo de mídia: {FileName}, Tipo: {ContentType}", 
+                        dto.MediaFile.FileName, dto.MediaFile.ContentType);
+                    
+                    using var formData = new MultipartFormDataContent();
+                    formData.Add(new StringContent(dto.PhoneNumber), "phoneNumber");
+                    formData.Add(new StringContent(dto.Content), "message");
+                    formData.Add(new StringContent(dto.MediaType ?? ""), "mediaType");
+                    formData.Add(new StreamContent(dto.MediaFile.OpenReadStream()), "media", dto.MediaFile.FileName);
+                    
+                    response = await _httpClient.PostAsync($"{_whatsappServiceUrl}/send-media", formData);
+                }
+                else
+                {
+                    // Enviar mensagem de texto via JSON
+                    var payload = new
+                    {
+                        phoneNumber = dto.PhoneNumber,
+                        message = dto.Content,
+                        mediaUrl = dto.MediaUrl,
+                        mediaType = dto.MediaType
+                    };
+
+                    var json = JsonSerializer.Serialize(payload);
+                    _logger.LogInformation("Payload enviado para WhatsApp Service: {Payload}", json);
+                    
+                    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                    response = await _httpClient.PostAsync($"{_whatsappServiceUrl}/send-message", content);
+                }
+                
+                _logger.LogInformation("Resposta do WhatsApp Service: {StatusCode}", response.StatusCode);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseJson = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<JsonElement>(responseJson);
+                    
+                    // Criar mensagem no banco
+                    var message = new WhatsAppMessage
+                    {
+                        MissionContactId = dto.ContactId,
+                        Content = dto.Content,
+                        Sender = "user",
+                        Timestamp = DateTime.UtcNow,
+                        Status = "sent",
+                        MediaUrl = dto.MediaUrl,
+                        MediaType = dto.MediaType,
+                        SentByUserId = currentUserId,
+                        WhatsAppMessageId = result.TryGetProperty("messageId", out var msgId) ? msgId.GetString() : null
+                    };
+
+                    await _messageRepo.AddAsync(message);
+
+                    var responseDto = _mapper.Map<WhatsAppMessageResponseDto>(message);
+                    responseDto.ContactId = dto.ContactId;
+
+                    _logger.LogInformation("Mensagem WhatsApp enviada para contato {ContactId}: {Content}", dto.ContactId, dto.Content);
+                    
+                    return ApiResponse<WhatsAppMessageResponseDto>.SuccessResponse(responseDto);
+                }
+                else
+                {
+                    return ApiResponse<WhatsAppMessageResponseDto>.ErrorResponse("Erro ao enviar mensagem via WhatsApp Service");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao enviar mensagem WhatsApp para contato {ContactId}", dto.ContactId);
+                return ApiResponse<WhatsAppMessageResponseDto>.ErrorResponse("Erro interno ao enviar mensagem");
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>> GetMessagesAsync(string phoneNumber, int currentUserId, string currentUserRole)
+        {
+            try
+            {
+                // Buscar mensagens do WhatsApp Service diretamente pelo número
+                _logger.LogInformation("Buscando mensagens para número: {PhoneNumber}", phoneNumber);
+                var response = await _httpClient.GetAsync($"{_whatsappServiceUrl}/messages/{phoneNumber}");
+                
+                _logger.LogInformation("Resposta do WhatsApp Service: {StatusCode}", response.StatusCode);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("JSON recebido: {Json}", json);
+
+                    var options = new JsonSerializerOptions {
+                        PropertyNameCaseInsensitive = true
+                    };
+
+                    // O WhatsApp Service pode retornar diretamente uma lista ou um envelope { success, messages }
+                    List<WhatsAppServiceMessageDto>? serviceMessages = null;
+
+                    try
+                    {
+                        // Tenta desserializar como envelope
+                        var envelope = JsonSerializer.Deserialize<WhatsAppServiceMessagesEnvelope>(json, options);
+                        if (envelope?.Messages != null)
+                        {
+                            serviceMessages = envelope.Messages;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignora e tenta como lista pura abaixo
+                    }
+
+                    if (serviceMessages == null)
+                    {
+                        try
+                        {
+                            serviceMessages = JsonSerializer.Deserialize<List<WhatsAppServiceMessageDto>>(json, options);
+                        }
+                        catch
+                        {
+                            serviceMessages = new List<WhatsAppServiceMessageDto>();
+                        }
+                    }
+
+                    _logger.LogInformation("Mensagens deserializadas: {Count}", serviceMessages?.Count ?? 0);
+
+                    // Converter para o DTO de resposta
+                    var messages = serviceMessages?.Select(m => new WhatsAppMessageResponseDto
+                    {
+                        Id = 0, // Não temos ID numérico do WhatsApp Service
+                        ContactId = 0, // Será preenchido pelo frontend
+                        Content = m.Content,
+                        Sender = m.Sender,
+                        Timestamp = m.Timestamp,
+                        Status = m.Status?.ToString() ?? "unknown",
+                        MediaUrl = m.MediaUrl,
+                        MediaType = m.MediaType
+                    }).ToList() ?? new List<WhatsAppMessageResponseDto>();
+
+                    return ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>.SuccessResponse(messages);
+                }
+                else
+                {
+                    // Logar corpo de erro para diagnóstico
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Falha ao buscar mensagens no WhatsApp Service: {Status} {Body}", response.StatusCode, errorBody);
+                    return ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>.SuccessResponse(new List<WhatsAppMessageResponseDto>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao obter mensagens do WhatsApp para número {PhoneNumber}", phoneNumber);
+                return ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>.ErrorResponse("Erro interno ao obter mensagens");
+            }
+        }
+    }
+}

@@ -1444,6 +1444,22 @@ openReports_fromDrawer?.addEventListener("click", () => {
     setDefaultDates();
 });
 
+// ===========================
+// Contatos Missionários
+// ===========================
+const openMissionContacts_fromDrawer = document.getElementById("openMissionContacts_fromDrawer");
+
+openMissionContacts_fromDrawer?.addEventListener("click", () => {
+    window.location.href = '/admin/mission-contacts.html';
+});
+
+// WhatsApp Config
+const openWhatsAppConfig_fromDrawer = document.getElementById("openWhatsAppConfig_fromDrawer");
+
+openWhatsAppConfig_fromDrawer?.addEventListener("click", () => {
+    window.location.href = '/admin/whatsapp-config.html';
+});
+
 // Fechar modal de relatórios
 closeReports?.addEventListener("click", () => {
     reportsModal.setAttribute("aria-hidden", "true");

@@ -3,6 +3,7 @@ using System;
 using Colportor.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Colportor.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251020134639_AddMissionContacts")]
+    partial class AddMissionContacts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,89 +77,6 @@ namespace Colportor.Api.Migrations
                     b.HasIndex("RegionId");
 
                     b.ToTable("Colportors");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.ContactObservation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Author")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("MissionContactId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("MissionContactId");
-
-                    b.ToTable("ContactObservations");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.ContactStatusHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ChangedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ChangedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("FromStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("MissionContactId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("ToStatus")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChangedAt");
-
-                    b.HasIndex("MissionContactId");
-
-                    b.ToTable("ContactStatusHistories");
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Country", b =>
@@ -445,179 +365,6 @@ namespace Colportor.Api.Migrations
                     b.ToTable("Visits");
                 });
 
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppConnection", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CreatedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime?>("LastConnection")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastDisconnection")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("QrCode")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime?>("QrCodeExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("QrCodeGeneratedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("SessionData")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("PhoneNumber");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("WhatsAppConnections");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppMessage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("MediaType")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("MediaUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("MissionContactId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Sender")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int?>("SentByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("WhatsAppMessageId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MissionContactId");
-
-                    b.HasIndex("SentByUserId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("Timestamp");
-
-                    b.ToTable("WhatsAppMessages");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppTemplate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AvailableVariables")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("CreatedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Category");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("IsActive");
-
-                    b.ToTable("WhatsAppTemplates");
-                });
-
             modelBuilder.Entity("Colportor.Api.Models.Colportor", b =>
                 {
                     b.HasOne("Colportor.Api.Models.Country", null)
@@ -637,28 +384,6 @@ namespace Colportor.Api.Migrations
                     b.Navigation("Leader");
 
                     b.Navigation("Region");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.ContactObservation", b =>
-                {
-                    b.HasOne("Colportor.Api.Models.MissionContact", "MissionContact")
-                        .WithMany()
-                        .HasForeignKey("MissionContactId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MissionContact");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.ContactStatusHistory", b =>
-                {
-                    b.HasOne("Colportor.Api.Models.MissionContact", "MissionContact")
-                        .WithMany()
-                        .HasForeignKey("MissionContactId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MissionContact");
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.MissionContact", b =>
@@ -749,46 +474,6 @@ namespace Colportor.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Colportor");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppConnection", b =>
-                {
-                    b.HasOne("Colportor.Api.Models.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppMessage", b =>
-                {
-                    b.HasOne("Colportor.Api.Models.MissionContact", "MissionContact")
-                        .WithMany()
-                        .HasForeignKey("MissionContactId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Colportor.Api.Models.User", "SentByUser")
-                        .WithMany()
-                        .HasForeignKey("SentByUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("MissionContact");
-
-                    b.Navigation("SentByUser");
-                });
-
-            modelBuilder.Entity("Colportor.Api.Models.WhatsAppTemplate", b =>
-                {
-                    b.HasOne("Colportor.Api.Models.User", "CreatedByUser")
-                        .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Colportor", b =>

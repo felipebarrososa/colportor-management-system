@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Colportor.Api.Data;
 using Colportor.Api.Repositories;
+using Colportor.Api.Repositories.Interfaces;
 using Colportor.Api.Services;
+using Colportor.Api.Services.Interfaces;
 using Colportor.Api.Mapping;
 using AutoMapper;
 using FluentValidation;
@@ -36,7 +38,12 @@ public static class ServiceCollectionExtensions
         // Configurar repositórios
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IColportorRepository, ColportorRepository>();
-        services.AddScoped<IRegionRepository, RegionRepository>();
+                    services.AddScoped<IRegionRepository, RegionRepository>();
+                    services.AddScoped<IMissionContactRepository, MissionContactRepository>();
+                    services.AddScoped<IContactObservationRepository, ContactObservationRepository>();
+                    services.AddScoped<IWhatsAppMessageRepository, WhatsAppMessageRepository>();
+                    services.AddScoped<IWhatsAppTemplateRepository, WhatsAppTemplateRepository>();
+                    services.AddScoped<IWhatsAppConnectionRepository, WhatsAppConnectionRepository>();
 
         return services;
     }
@@ -54,11 +61,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IColportorService, ColportorService>();
         services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<IRegionService, RegionService>();
+        services.AddScoped<IMissionContactService, MissionContactService>();
+        services.AddScoped<IContactObservationService, ContactObservationService>();
 
         // Serviços de infraestrutura
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<ICacheService, CacheService>();
         services.AddScoped<IPaginationService, PaginationService>();
+        services.AddHttpClient();
+        services.AddScoped<IWhatsAppService, WhatsAppService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(AutoMapperProfile));

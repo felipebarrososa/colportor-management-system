@@ -1,0 +1,1974 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Contatos Missionários • Admin</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="stylesheet" href="/css/loading.css" />
+    <style>
+        /* ===========================
+           KANBAN BOARD STYLES
+           =========================== */
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 20px;
+            min-height: calc(100vh - 120px);
+            background: var(--bg);
+        }
+        
+        .kanban-column {
+            min-width: 300px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+        
+        .kanban-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        
+        .kanban-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--txt);
+        }
+        
+        .kanban-count {
+            background: var(--primary);
+            color: #04110a;
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .kanban-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 200px;
+        }
+        
+        .contact-card {
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--stroke);
+            border-radius: 8px;
+            padding: 16px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .contact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(20,184,106,0.1) 0%, rgba(16,147,88,0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+        
+        .contact-card:hover {
+            background: rgba(255,255,255,.08);
+            border-color: rgba(20,184,106,.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,.3);
+        }
+        
+        .contact-card:hover::before {
+            opacity: 1;
+        }
+        
+        .contact-card.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+        
+        .contact-name {
+            font-weight: 600;
+            color: var(--txt);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-info {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .contact-phone {
+            color: var(--ok);
+            font-weight: 500;
+        }
+        
+        .contact-email {
+            color: var(--primary);
+        }
+        
+        .contact-actions {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,.1);
+            border: 1px solid var(--stroke);
+            color: var(--txt);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-sm:hover {
+            background: rgba(255,255,255,.2);
+            border-color: var(--primary);
+        }
+        
+        /* Status colors */
+        .status-novo { border-left-color: var(--muted); }
+        .status-contato-iniciado { border-left-color: #17a2b8; }
+        .status-interessado { border-left-color: var(--warn); }
+        .status-agendado { border-left-color: #fd7e14; }
+        .status-inscrito { border-left-color: var(--ok); }
+        .status-nao-interessado { border-left-color: var(--danger); }
+        .status-arquivado { border-left-color: var(--muted); }
+        
+        /* Toolbar */
+        .toolbar {
+            background: rgba(255,255,255,.02);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .search-input, .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--stroke);
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--txt);
+            transition: all 0.2s ease;
+        }
+        
+        .search-input {
+            width: 300px;
+        }
+        
+        .search-input:focus, .filter-select:focus {
+            border-color: var(--primary);
+            background: var(--panel-2);
+            box-shadow: 0 0 0 3px rgba(20, 184, 106, .1);
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+        
+        .filter-select option {
+            background: var(--panel);
+            color: var(--txt);
+        }
+        
+        /* Contact Details Modal */
+        .contact-details-modal {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .contact-details-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .contact-info-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--stroke);
+        }
+        
+        .contact-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            color: var(--txt);
+            font-size: 14px;
+        }
+        
+        .timeline-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--stroke);
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        
+        .timeline-header h3 {
+            margin: 0;
+            color: var(--txt);
+            font-size: 16px;
+        }
+        
+        .timeline-container {
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--primary), var(--primary-2));
+            border-radius: 1px;
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            padding-left: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .timeline-card {
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius);
+            padding: 16px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .timeline-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .timeline-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .timeline-type.status-change {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .timeline-type.observation {
+            background: var(--primary-2);
+            color: white;
+        }
+        
+        .timeline-type.system {
+            background: var(--muted);
+            color: var(--txt);
+        }
+        
+        .timeline-date {
+            color: var(--muted);
+            font-size: 12px;
+        }
+        
+        .timeline-content {
+            color: var(--txt);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .timeline-author {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        .empty-timeline {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
+        /* Modal para Nova Observação */
+        .observation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .observation-modal-content {
+            background: linear-gradient(135deg, var(--card) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid var(--stroke);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .observation-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        
+        .observation-modal-header h3 {
+            margin: 0;
+            color: var(--txt);
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .observation-modal-header .close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .observation-modal-header .close:hover {
+            background: var(--panel);
+            color: var(--txt);
+        }
+        
+        .observation-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .observation-form .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .observation-form .field label {
+            color: var(--txt);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .observation-form select,
+        .observation-form textarea {
+            background: var(--panel);
+            border: 2px solid var(--stroke);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--txt);
+            font-size: 14px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .observation-form select:focus,
+        .observation-form textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            background: var(--card);
+        }
+        
+        .observation-form select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 12px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+        
+        .observation-form textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        .observation-form textarea::placeholder {
+            color: var(--muted);
+            font-style: italic;
+        }
+        
+        .observation-form-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        
+        .observation-form-actions .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .observation-form-actions .btn.subtle {
+            background: var(--panel);
+            color: var(--muted);
+            border: 1px solid var(--stroke);
+        }
+        
+        .observation-form-actions .btn.subtle:hover {
+            background: var(--card);
+            color: var(--txt);
+            border-color: var(--primary);
+        }
+        
+        .observation-form-actions .btn.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+        
+        .observation-form-actions .btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .observation-form-actions .btn.primary:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .kanban-board {
+                flex-direction: column;
+                gap: 16px;
+                padding: 16px;
+            }
+            
+            .kanban-column {
+                min-width: auto;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .contact-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            
+            .observation-modal-content {
+                margin: 20px;
+                padding: 24px;
+                width: calc(100% - 40px);
+                max-width: none;
+            }
+            
+            .observation-form-actions {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .observation-form-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Estilos para edição inline */
+        .modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon.edit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+        }
+
+        .icon.edit:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .info-value.editable {
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: text;
+            transition: all 0.2s ease;
+        }
+
+        .info-value.editable:hover {
+            border-color: var(--primary);
+            background: var(--card);
+        }
+
+        .info-value.editable:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .info-value input, .info-value select, .info-value textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--txt);
+            font-size: inherit;
+            font-family: inherit;
+        }
+
+        .info-value input:focus, .info-value select:focus, .info-value textarea:focus {
+            outline: none;
+        }
+
+        /* ===========================
+           MODAL TABS STYLES
+           =========================== */
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--stroke);
+            margin-bottom: 20px;
+            background: var(--card);
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: var(--panel);
+            color: var(--txt);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: var(--panel);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ===========================
+           WHATSAPP CHAT STYLES
+           =========================== */
+        .whatsapp-chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            background: var(--bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--stroke);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Chat Header */
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--stroke);
+        }
+
+        .chat-contact-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .contact-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: var(--txt);
+            font-size: 16px;
+        }
+
+        .contact-phone {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .contact-status {
+            color: var(--success);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Chat Messages Area */
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, var(--bg) 0%, rgba(255, 255, 255, 0.02) 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message-date {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            margin: 8px 0;
+            padding: 4px 12px;
+            background: var(--panel);
+            border-radius: 12px;
+            align-self: center;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+            gap: 4px;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            color: var(--txt);
+            font-size: 14px;
+        }
+
+        .message-time {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.sent .message-bubble {
+            background: var(--primary);
+            color: #04110a;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received .message-bubble {
+            background: var(--card);
+            color: var(--txt);
+            border: 1px solid var(--stroke);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-status {
+            display: flex;
+            justify-content: flex-end;
+            gap: 2px;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .status-icon {
+            color: var(--muted);
+        }
+        
+        .status-icon.read {
+            color: #4CAF50;
+        }
+        
+        .status-icon.delivered {
+            color: #2196F3;
+        }
+        
+        .status-icon.failed {
+            color: #f44336;
+        }
+        
+        .status-icon.sending {
+            color: #ff9800;
+        }
+        
+        .media-placeholder {
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .image-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .image-placeholder:hover {
+            transform: scale(1.02);
+        }
+        
+        .image-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .image-text {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .image-subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* Seletor de Emojis */
+        .emoji-picker {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .chat-input-container {
+            position: relative;
+        }
+        
+        .emoji-picker.show {
+            display: block;
+        }
+        
+        /* Estilização do emoji-picker customizado */
+        emoji-picker {
+            --emoji-picker-bg: var(--card);
+            --emoji-picker-border: var(--stroke);
+            --emoji-picker-border-radius: 12px;
+            --emoji-picker-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --emoji-picker-category-bg: var(--panel);
+            --emoji-picker-category-bg-hover: var(--primary);
+            --emoji-picker-emoji-bg-hover: var(--primary);
+            --emoji-picker-text: var(--txt);
+            --emoji-picker-text-secondary: var(--muted);
+        }
+        
+        /* Mídias nas mensagens */
+        .message-media {
+            margin-bottom: 8px;
+        }
+        
+        .message-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        
+        .message-video {
+            max-width: 250px;
+            max-height: 200px;
+            border-radius: 12px;
+        }
+        
+        .message-audio {
+            width: 250px;
+            height: 40px;
+        }
+
+        .status-icon.delivered {
+            color: var(--success);
+        }
+
+        .status-icon.read {
+            color: var(--primary);
+        }
+
+        /* Indicadores de status melhorados */
+        .message-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .status-dot.sent {
+            background: #2196F3;
+        }
+
+        .status-dot.delivered {
+            background: #4CAF50;
+        }
+
+        .status-dot.read {
+            background: var(--primary);
+        }
+
+        .status-dot.failed {
+            background: #f44336;
+        }
+
+        /* Preview de mídia melhorado */
+        .media-preview {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 4px 0;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .media-preview:hover {
+            transform: scale(1.02);
+        }
+
+        .media-preview img {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .media-preview video {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .media-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .media-preview:hover .media-overlay {
+            opacity: 1;
+        }
+
+        .media-play-icon {
+            color: white;
+            font-size: 24px;
+        }
+
+        /* Indicador de digitação */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--panel);
+            border-radius: 18px;
+            margin: 4px 0;
+            max-width: 100px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--muted);
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Botões de ação rápida */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--panel);
+            border-top: 1px solid var(--stroke);
+        }
+
+        .quick-action-btn {
+            background: var(--card);
+            border: 1px solid var(--stroke);
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: var(--txt);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Notificações de mensagem */
+        .message-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .message-notification .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message-notification .contact-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .message-notification .notification-text {
+            flex: 1;
+        }
+
+        .message-notification .notification-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-notification .notification-message {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--warning-dark);
+        }
+
+        .status-info i {
+            font-size: 16px;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: var(--success-light);
+            color: var(--success-dark);
+        }
+
+        .status-connecting {
+            background: var(--warning-light);
+            color: var(--warning-dark);
+        }
+
+        .status-disconnected {
+            background: var(--danger-light);
+            color: var(--danger-dark);
+        }
+
+        .status-qr {
+            background: var(--info-light);
+            color: var(--info-dark);
+        }
+
+        /* ===========================
+           TEMPLATES STYLES
+           =========================== */
+        .templates-container {
+            display: flex;
+            height: 500px;
+            gap: 20px;
+        }
+
+        .templates-sidebar {
+            width: 200px;
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .template-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .category-btn {
+            background: transparent;
+            border: 1px solid var(--stroke);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--txt);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .category-btn:hover {
+            background: var(--card);
+            border-color: var(--primary);
+        }
+
+        .category-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .templates-content {
+            flex: 1;
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .templates-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .template-item {
+            background: var(--card);
+            border: 1px solid var(--stroke);
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .template-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .template-name {
+            font-weight: 600;
+            color: var(--txt);
+            font-size: 16px;
+        }
+
+        .template-category {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .template-content {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .template-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .template-action-btn {
+            background: transparent;
+            border: 1px solid var(--stroke);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: var(--txt);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+
+        .template-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .template-action-btn.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .field-help {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .empty-templates {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .empty-templates-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Chat Input */
+        .chat-input-container {
+            display: flex;
+            align-items: flex-end;
+            padding: 16px 20px;
+            background: var(--card);
+            border-top: 1px solid var(--stroke);
+            gap: 12px;
+        }
+
+        .chat-input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-input-field textarea {
+            width: 100%;
+            min-height: 40px;
+            max-height: 120px;
+            padding: 12px 16px;
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            border-radius: 20px;
+            color: var(--txt);
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .chat-input-field textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+        }
+
+        .chat-input-field textarea::placeholder {
+            color: var(--muted);
+        }
+
+        #sendMessageBtn {
+            background: var(--primary);
+            color: #04110a;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #sendMessageBtn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        #sendMessageBtn:disabled {
+            background: var(--muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Empty State */
+        .chat-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--muted);
+            text-align: center;
+            gap: 16px;
+        }
+
+        .chat-empty-icon {
+            font-size: 48px;
+            opacity: 0.5;
+        }
+
+        .chat-empty-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .chat-empty-subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .whatsapp-chat-container {
+                height: 400px;
+            }
+            
+            .message {
+                max-width: 85%;
+            }
+            
+            .chat-input-container {
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+<body class="bg">
+    <!-- Topbar -->
+    <header class="topbar">
+        <button id="backBtn" class="icon" aria-label="Voltar">←</button>
+        <h1 class="title">Contatos Missionários</h1>
+        <div class="spacer"></div>
+        <div class="topbar-actions">
+            <button id="newContactBtn" class="btn primary">+ Novo Contato</button>
+            <button id="logoutBtn" class="btn subtle">Sair</button>
+        </div>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="search-box">
+            <input id="searchInput" class="search-input" placeholder="Buscar por nome, telefone, email..." />
+            <select id="regionFilter" class="filter-select">
+                <option value="">Todas as regiões</option>
+            </select>
+            <select id="leaderFilter" class="filter-select">
+                <option value="">Todos os líderes</option>
+            </select>
+            <button id="searchBtn" class="btn">🔍 Buscar</button>
+        </div>
+        <div>
+            <button id="refreshBtn" class="btn subtle">🔄 Atualizar</button>
+        </div>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board" id="kanbanBoard">
+        <div class="kanban-column" data-status="Novo">
+            <div class="kanban-header">
+                <span class="kanban-title">🆕 Novo</span>
+                <span class="kanban-count" id="count-novo">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-novo"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Contato iniciado">
+            <div class="kanban-header">
+                <span class="kanban-title">📞 Contato iniciado</span>
+                <span class="kanban-count" id="count-contato-iniciado">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-contato-iniciado"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Interessado">
+            <div class="kanban-header">
+                <span class="kanban-title">⭐ Interessado</span>
+                <span class="kanban-count" id="count-interessado">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-interessado"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Agendado">
+            <div class="kanban-header">
+                <span class="kanban-title">📅 Agendado</span>
+                <span class="kanban-count" id="count-agendado">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-agendado"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Inscrito">
+            <div class="kanban-header">
+                <span class="kanban-title">✅ Inscrito</span>
+                <span class="kanban-count" id="count-inscrito">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-inscrito"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Não interessado">
+            <div class="kanban-header">
+                <span class="kanban-title">❌ Não interessado</span>
+                <span class="kanban-count" id="count-nao-interessado">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-nao-interessado"></div>
+        </div>
+        
+        <div class="kanban-column" data-status="Arquivado">
+            <div class="kanban-header">
+                <span class="kanban-title">📁 Arquivado</span>
+                <span class="kanban-count" id="count-arquivado">0</span>
+            </div>
+            <div class="kanban-cards" id="cards-arquivado"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes/Edição -->
+        <div class="modal" id="contactModal" aria-hidden="true">
+            <div class="modal-dialog contact-details-modal" style="max-width: 1000px;">
+                <header class="modal-header">
+                    <h3 class="title">Detalhes do Contato</h3>
+                    <div class="modal-actions">
+                        <div class="edit-actions" id="editActions" style="display: none;">
+                            <button class="btn btn-sm primary" id="saveContactBtn">💾 Salvar</button>
+                            <button class="btn btn-sm subtle" id="cancelEditBtn">❌ Cancelar</button>
+                        </div>
+                        <button class="icon edit" id="editContactBtn" title="Editar contato">✏️</button>
+                        <button class="icon close" id="closeContactModal">✕</button>
+                    </div>
+                </header>
+            <section class="modal-body">
+                <!-- Abas de Navegação -->
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="info">📋 Informações</button>
+                    <button class="tab-btn" data-tab="timeline">📅 Histórico</button>
+                    <button class="tab-btn" data-tab="whatsapp">💬 WhatsApp</button>
+                </div>
+
+                <div class="contact-details-container">
+                    <!-- Aba Informações -->
+                    <div class="tab-content active" id="tab-info">
+                        <div class="contact-info-section">
+                            <div class="contact-info-grid" id="contactInfoGrid">
+                                <!-- Informações serão carregadas aqui -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aba Timeline -->
+                    <div class="tab-content" id="tab-timeline">
+                        <div class="timeline-section">
+                            <div class="timeline-header">
+                                <h3>Histórico de Contato</h3>
+                                <button class="btn btn-sm" id="addObservationBtn">+ Nova Observação</button>
+                            </div>
+                            <div class="timeline-container" id="timelineContainer">
+                                <!-- Timeline será carregada aqui -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Aba WhatsApp Chat -->
+                    <div class="tab-content" id="tab-whatsapp">
+                        <div class="whatsapp-chat-container">
+                            <!-- Header do Chat -->
+                            <div class="chat-header">
+                                <div class="chat-contact-info">
+                                    <div class="contact-avatar">📱</div>
+                                    <div class="contact-details">
+                                        <div class="contact-name" id="chatContactName">FELIPE SANTOS BARROSO</div>
+                                        <div class="contact-phone" id="chatContactPhone">+55 85 99999-9999</div>
+                                        <div class="contact-status" id="chatContactStatus">🟢 Online agora</div>
+                                    </div>
+                                </div>
+                                <div class="chat-actions">
+                                    <button class="btn btn-sm" id="refreshChatBtn">🔄</button>
+                                    <button class="btn btn-sm" id="chatSettingsBtn">⚙️</button>
+                                </div>
+                            </div>
+                            
+                            
+                            <!-- Área de Mensagens -->
+                            <div class="chat-messages" id="chatMessages">
+                                <!-- Mensagens serão carregadas aqui -->
+                            </div>
+                            
+                            <!-- Botões de Ação Rápida -->
+                            <div class="quick-actions" id="quickActions" style="display: none;">
+                                <button class="quick-action-btn" onclick="sendQuickMessage('Olá! Como posso ajudá-lo?')">
+                                    👋 Saudação
+                                </button>
+                                <button class="quick-action-btn" onclick="sendQuickMessage('Obrigado pelo seu interesse!')">
+                                    🙏 Agradecimento
+                                </button>
+                                <button class="quick-action-btn" onclick="sendQuickMessage('Vou verificar e retorno em breve.')">
+                                    ⏰ Retorno
+                                </button>
+                                <button class="quick-action-btn" onclick="sendQuickMessage('Posso agendar uma conversa?')">
+                                    📅 Agendamento
+                                </button>
+                                <button class="quick-action-btn" onclick="showTemplatesModal()">
+                                    📝 Templates
+                                </button>
+                            </div>
+                            
+                            <!-- Input de arquivo oculto -->
+                            <input type="file" id="fileInput" accept="image/*,video/*,audio/*,.pdf,.doc,.docx" style="display: none;" multiple>
+                            
+                            <!-- Campo de Digitação -->
+                            <div class="chat-input-container">
+                                <div class="chat-input-actions">
+                                    <button class="btn btn-sm" id="attachBtn" title="Anexar">📎</button>
+                                    <button class="btn btn-sm" id="emojiBtn" title="Emoji">😊</button>
+                                    <button class="btn btn-sm" id="voiceBtn" title="Voz">🎤</button>
+                                    <button class="btn btn-sm" id="quickActionsBtn" title="Ações Rápidas">⚡</button>
+                                </div>
+                                <div class="chat-input-field">
+                                    <textarea id="chatMessageInput" placeholder="Digite sua mensagem..." rows="1"></textarea>
+                                </div>
+                                <button class="btn btn-sm primary" id="sendMessageBtn">📤</button>
+                            </div>
+                            
+                            <!-- Seletor de Emojis -->
+                            <div class="emoji-picker" id="emojiPicker">
+                                <emoji-picker id="emojiPickerElement" style="width: 100%; height: 300px;"></emoji-picker>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-backdrop"></div>
+    </div>
+
+    <!-- Modal de Novo Contato -->
+    <div class="modal" id="newContactModal" aria-hidden="true">
+        <div class="modal-dialog" style="max-width: 600px;">
+            <header class="modal-header">
+                <h3 class="title">Novo Contato Missionário</h3>
+                <button class="icon close" id="closeNewContactModal">✕</button>
+            </header>
+            <section class="modal-body">
+                <form id="newContactForm" class="form">
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncFullName">Nome completo</label>
+                            <input id="ncFullName" placeholder="Nome completo" required />
+                        </div>
+                        <div class="field">
+                            <label for="ncGender">Sexo</label>
+                            <select id="ncGender">
+                                <option value="">Selecione...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncBirth">Data de nascimento</label>
+                            <input id="ncBirth" type="date"/>
+                        </div>
+                        <div class="field">
+                            <label for="ncMarital">Estado civil</label>
+                            <input id="ncMarital" placeholder="Estado civil" />
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncNation">Nacionalidade</label>
+                            <input id="ncNation" placeholder="Nacionalidade" />
+                        </div>
+                        <div class="field">
+                            <label for="ncCity">Cidade</label>
+                            <input id="ncCity" placeholder="Cidade" />
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncState">Estado</label>
+                            <input id="ncState" placeholder="Estado" />
+                        </div>
+                        <div class="field">
+                            <label for="ncPhone">Celular</label>
+                            <input id="ncPhone" placeholder="Celular" />
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncEmail">E-mail</label>
+                            <input id="ncEmail" type="email" placeholder="E-mail" />
+                        </div>
+                        <div class="field">
+                            <label for="ncProfession">Profissão</label>
+                            <input id="ncProfession" placeholder="Profissão" />
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncLanguages">Outros idiomas</label>
+                            <input id="ncLanguages" placeholder="Outros idiomas" />
+                        </div>
+                        <div class="field">
+                            <label for="ncFluency">Fluência</label>
+                            <select id="ncFluency">
+                                <option value="">Selecione...</option>
+                                <option value="Básico">Básico</option>
+                                <option value="Intermediário">Intermediário</option>
+                                <option value="Avançado">Avançado</option>
+                                <option value="Fluente">Fluente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncChurch">Igreja</label>
+                            <input id="ncChurch" placeholder="Igreja" />
+                        </div>
+                        <div class="field">
+                            <label for="ncConversion">Tempo de conversão</label>
+                            <input id="ncConversion" placeholder="Ex: 2 anos" />
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncPlan">Tempo que planeja dedicar às missões</label>
+                            <input id="ncPlan" placeholder="Ex: 1 ano" />
+                        </div>
+                        <div class="field">
+                            <label for="ncPassport">Possui passaporte?</label>
+                            <select id="ncPassport">
+                                <option value="false">Não</option>
+                                <option value="true">Sim</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="field">
+                            <label for="ncAvailable">Data disponível</label>
+                            <input id="ncAvailable" type="date"/>
+                        </div>
+                        <div class="field">
+                            <label for="ncRegion">Região</label>
+                            <select id="ncRegion" required>
+                                <option value="">Selecione uma região...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="field">
+                        <label for="ncLeader">Líder (opcional)</label>
+                        <select id="ncLeader">
+                            <option value="">Selecione um líder...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="actions">
+                        <button id="ncSubmit" class="btn primary w-100" type="submit">
+                            Salvar Contato
+                            <span class="spinner" hidden></span>
+                        </button>
+                    </div>
+                    
+                    <div id="ncError" class="muted" hidden style="text-align: center; margin-top: 12px; color: var(--danger);">
+                        Erro ao salvar contato
+                    </div>
+                </form>
+            </section>
+        </div>
+        <div class="modal-backdrop"></div>
+    </div>
+
+    <!-- Modal para Nova Observação -->
+    <div class="observation-modal" id="observationModal" style="display: none;">
+        <div class="observation-modal-content">
+            <div class="observation-modal-header">
+                <h3>Nova Observação</h3>
+                <button class="close" id="closeObservationModal">✕</button>
+            </div>
+            <form class="observation-form" id="observationForm">
+                <div class="field">
+                    <label for="observationType">Tipo</label>
+                    <select id="observationType" required>
+                        <option value="observation">📝 Observação</option>
+                        <option value="call">📞 Ligação</option>
+                        <option value="whatsapp">📱 WhatsApp</option>
+                        <option value="meeting">🤝 Reunião</option>
+                        <option value="other">📋 Outro</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="observationText">Descrição</label>
+                    <textarea id="observationText" placeholder="Descreva a observação ou contato realizado..." required></textarea>
+                </div>
+                <div class="observation-form-actions">
+                    <button type="button" class="btn subtle" id="cancelObservation">Cancelar</button>
+                    <button type="submit" class="btn primary">Salvar Observação</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Templates de Mensagens -->
+    <div class="observation-modal" id="templatesModal" style="display: none;">
+        <div class="observation-modal-content" style="max-width: 800px;">
+            <div class="observation-modal-header">
+                <h3>📝 Templates de Mensagens</h3>
+                <button class="close" id="closeTemplatesModal">✕</button>
+            </div>
+            <div class="templates-container">
+                <div class="templates-sidebar">
+                    <div class="template-categories">
+                        <button class="category-btn active" data-category="all">Todas</button>
+                        <button class="category-btn" data-category="greeting">Saudações</button>
+                        <button class="category-btn" data-category="followup">Follow-up</button>
+                        <button class="category-btn" data-category="meeting">Reuniões</button>
+                        <button class="category-btn" data-category="closing">Encerramento</button>
+                    </div>
+                    <button class="btn primary" onclick="showNewTemplateModal()">+ Novo Template</button>
+                </div>
+                <div class="templates-content">
+                    <div class="templates-list" id="templatesList">
+                        <!-- Templates serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criar/Editar Template -->
+    <div class="observation-modal" id="newTemplateModal" style="display: none;">
+        <div class="observation-modal-content">
+            <div class="observation-modal-header">
+                <h3 id="templateModalTitle">Novo Template</h3>
+                <button class="close" id="closeNewTemplateModal">✕</button>
+            </div>
+            <form class="observation-form" id="templateForm">
+                <div class="field">
+                    <label for="templateName">Nome do Template</label>
+                    <input type="text" id="templateName" placeholder="Ex: Saudação inicial" required>
+                </div>
+                <div class="field">
+                    <label for="templateCategory">Categoria</label>
+                    <select id="templateCategory" required>
+                        <option value="greeting">Saudações</option>
+                        <option value="followup">Follow-up</option>
+                        <option value="meeting">Reuniões</option>
+                        <option value="closing">Encerramento</option>
+                        <option value="other">Outros</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="templateContent">Conteúdo da Mensagem</label>
+                    <textarea id="templateContent" placeholder="Digite o conteúdo do template..." rows="6" required></textarea>
+                    <small class="field-help">Use {nome} para personalizar com o nome do contato</small>
+                </div>
+                <div class="observation-form-actions">
+                    <button type="button" class="btn subtle" id="cancelTemplate">Cancelar</button>
+                    <button type="submit" class="btn primary" id="saveTemplate">Salvar Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Biblioteca de Emojis -->
+    <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.12.0/index.js" type="module"></script>
+    <script src="/js/mission-contacts-kanban.js?v=202510211100"></script>
+</body>
+</html>
