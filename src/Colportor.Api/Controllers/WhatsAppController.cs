@@ -255,8 +255,8 @@ namespace Colportor.Api.Controllers
                         await Response.Body.FlushAsync();
                     }
 
-                    // Aguardar 1 segundo antes da próxima verificação
-                    await Task.Delay(1000, HttpContext.RequestAborted);
+                    // Aguardar 500ms antes da próxima verificação (mais responsivo)
+                    await Task.Delay(500, HttpContext.RequestAborted);
                 }
             }
             catch (OperationCanceledException)

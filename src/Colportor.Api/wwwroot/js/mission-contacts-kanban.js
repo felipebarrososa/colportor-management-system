@@ -25,10 +25,12 @@
   let messageStatusInterval = null;
   // Variáveis globais para Server-Sent Events
   let messageEventSource = null;
+  let sseHeartbeatInterval = null;
+  let lastSSEMessageTime = null;
 
   function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
   
-  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212019 CARREGADO!');
+  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212022 CARREGADO!');
   console.log('🔥 VERSÃO NOVA CARREGADA - SERVER-SENT EVENTS ATIVO!');
 
   // Função para obter token de autenticação
@@ -1225,10 +1227,13 @@
       console.log('✅ Conexão SSE estabelecida');
     };
     
-    messageEventSource.onmessage = function(event) {
-      try {
-        const data = JSON.parse(event.data);
-        console.log('📨 Dados recebidos via SSE:', data);
+        messageEventSource.onmessage = function(event) {
+          const startTime = performance.now();
+          lastSSEMessageTime = Date.now(); // Atualizar timestamp da última mensagem
+          try {
+            const data = JSON.parse(event.data);
+            console.log('📨 Dados recebidos via SSE:', data);
+            console.log('⏱️ Tempo de recebimento SSE:', new Date().toLocaleTimeString());
         
         if (data.type === 'messages_update' && currentChatContactId === contactId) {
           console.log(`🆕 Atualização de mensagens recebida: ${data.messageCount} mensagens`);
@@ -1272,10 +1277,38 @@
             console.log(`🔍 TemNovas=${hasNewMessages}`);
             
             if (hasNewMessages) {
+              const renderStartTime = performance.now();
               console.log(`🆕 Mensagens novas detectadas! Atualizando chat...`);
               console.log(`📊 Mensagens atuais: ${currentMessages.length} → Novas: ${newMessages.length}`);
-              chatMessages[contactId] = newMessages;
-              renderChatMessages(chatMessages[contactId]);
+              console.log('⏱️ Iniciando renderização:', new Date().toLocaleTimeString());
+              
+              // Adicionar apenas as mensagens realmente novas (não substituir todas)
+              const newMessageIds = newMessages.map(m => m.id);
+              const currentMessageIds = currentMessages.map(m => m.id);
+              const trulyNewMessages = newMessages.filter(m => !currentMessageIds.includes(m.id));
+              
+              if (trulyNewMessages.length > 0) {
+                console.log(`🆕 Adicionando ${trulyNewMessages.length} mensagens realmente novas`);
+                chatMessages[contactId] = [...currentMessages, ...trulyNewMessages];
+                
+                // Renderizar apenas as novas mensagens (mais eficiente)
+                trulyNewMessages.forEach(message => {
+                  const messageElement = createMessageElement(message);
+                  const container = document.getElementById('chatMessages');
+                  if (container) {
+                    container.appendChild(messageElement);
+                  }
+                });
+                
+                console.log(`✅ ${trulyNewMessages.length} mensagens adicionadas instantaneamente!`);
+              } else {
+                // Fallback: renderizar todas as mensagens
+                chatMessages[contactId] = newMessages;
+                renderChatMessages(chatMessages[contactId]);
+              }
+              
+              const renderEndTime = performance.now();
+              console.log(`⏱️ Renderização concluída em ${(renderEndTime - renderStartTime).toFixed(2)}ms`);
               
               // Scroll para a última mensagem
               setTimeout(() => {
@@ -1283,7 +1316,7 @@
                 if (container) {
                   container.scrollTop = container.scrollHeight;
                 }
-              }, 100);
+              }, 50);
             } else {
               console.log(`✅ Nenhuma mensagem nova detectada`);
               console.log(`📊 Mensagens atuais: ${currentMessages.length}, Mensagens recebidas: ${newMessages.length}`);
@@ -1297,18 +1330,58 @@
       }
     };
     
-    messageEventSource.onerror = function(event) {
-      console.error('❌ Erro na conexão SSE:', event);
-      // Tentar reconectar após 3 segundos
-      setTimeout(() => {
-        if (currentChatContactId === contactId) {
-          console.log('🔄 Tentando reconectar SSE...');
-          startMessageStream(contactId, phoneNumber);
-        }
-      }, 3000);
-    };
+        messageEventSource.onerror = function(event) {
+          console.error('❌ Erro na conexão SSE:', event);
+          console.log('🔄 Estado da conexão:', messageEventSource.readyState);
+          
+          // Tentar reconectar imediatamente se a conexão foi fechada
+          if (messageEventSource.readyState === EventSource.CLOSED) {
+            console.log('🔄 Conexão fechada - reconectando imediatamente...');
+            setTimeout(() => {
+              if (currentChatContactId === contactId) {
+                startMessageStream(contactId, phoneNumber);
+              }
+            }, 1000);
+          } else {
+            // Tentar reconectar após 3 segundos para outros erros
+            setTimeout(() => {
+              if (currentChatContactId === contactId) {
+                console.log('🔄 Tentando reconectar SSE...');
+                startMessageStream(contactId, phoneNumber);
+              }
+            }, 3000);
+          }
+        };
     
     console.log(`🚀 Stream SSE configurado para contato ${contactId}`);
+    
+    // Iniciar heartbeat para monitorar a conexão
+    startSSEHeartbeat(contactId, phoneNumber);
+  }
+  
+  // Função para monitorar a conexão SSE com heartbeat
+  function startSSEHeartbeat(contactId, phoneNumber) {
+    // Parar heartbeat anterior se existir
+    if (sseHeartbeatInterval) {
+      clearInterval(sseHeartbeatInterval);
+    }
+    
+    lastSSEMessageTime = Date.now();
+    
+    sseHeartbeatInterval = setInterval(() => {
+      const now = Date.now();
+      const timeSinceLastMessage = now - lastSSEMessageTime;
+      
+      // Se não recebeu mensagem há mais de 10 segundos, reconectar
+      if (timeSinceLastMessage > 10000) {
+        console.log('💔 Heartbeat: Não recebeu mensagens há 10+ segundos, reconectando...');
+        if (currentChatContactId === contactId) {
+          startMessageStream(contactId, phoneNumber);
+        }
+      } else {
+        console.log(`💓 Heartbeat: Conexão ativa (última mensagem há ${Math.round(timeSinceLastMessage/1000)}s)`);
+      }
+    }, 5000); // Verificar a cada 5 segundos
   }
 
   // Função para parar stream de mensagens
@@ -1317,6 +1390,13 @@
       messageEventSource.close();
       messageEventSource = null;
       console.log('⏹️ Stream de mensagens parado');
+    }
+    
+    // Parar heartbeat
+    if (sseHeartbeatInterval) {
+      clearInterval(sseHeartbeatInterval);
+      sseHeartbeatInterval = null;
+      console.log('⏹️ Heartbeat parado');
     }
   }
 
