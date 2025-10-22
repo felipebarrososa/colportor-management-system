@@ -84,7 +84,19 @@ app.UseCors("AllowSpecificOrigins");
 
 // Arquivos estáticos
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Evitar cache para arquivos JavaScript e CSS
+        if (ctx.File.Name.EndsWith(".js") || ctx.File.Name.EndsWith(".css"))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+            ctx.Context.Response.Headers.Append("Expires", "0");
+        }
+    }
+});
 
 // Authentication & Authorization
 app.UseAuthentication();

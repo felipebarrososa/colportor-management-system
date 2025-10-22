@@ -321,9 +321,9 @@ namespace Colportor.Api.Services
                     _logger.LogInformation("Mensagens deserializadas: {Count}", serviceMessages?.Count ?? 0);
 
                     // Converter para o DTO de resposta
-                    var messages = serviceMessages?.Select(m => new WhatsAppMessageResponseDto
+                    var messages = serviceMessages?.Select((m, index) => new WhatsAppMessageResponseDto
                     {
-                        Id = 0, // Não temos ID numérico do WhatsApp Service
+                        Id = !string.IsNullOrEmpty(m.Id) && int.TryParse(m.Id, out var id) ? id : index + 1, // Usar ID real ou gerar sequencial
                         ContactId = 0, // Será preenchido pelo frontend
                         Content = m.Content,
                         Sender = m.Sender,

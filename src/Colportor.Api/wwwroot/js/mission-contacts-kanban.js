@@ -23,11 +23,13 @@
   let isTyping = false;
   let typingTimeout = null;
   let messageStatusInterval = null;
-  let messagePollingInterval = null;
+  // Variáveis globais para Server-Sent Events
+  let messageEventSource = null;
 
   function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
   
-  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212000 CARREGADO!');
+  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212019 CARREGADO!');
+  console.log('🔥 VERSÃO NOVA CARREGADA - SERVER-SENT EVENTS ATIVO!');
 
   // Função para obter token de autenticação
   function getToken() {
@@ -1150,7 +1152,7 @@
               console.log(`🔍 Carregando mensagens reais para: ${phoneNumber}`);
               // Mostrar indicador "Carregando mensagens..."
               showLoadingMessages();
-              const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}?limit=500&includeMedia=true`);
+              const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}?limit=20&includeMedia=true`);
               console.log(`📡 Resposta da API:`, res.status, res.ok);
               
               if (res.ok) {
@@ -1167,7 +1169,7 @@
                   console.log(`📊 Primeira mensagem:`, messages[0]);
                   
                   chatMessages[contactId] = messages.map(msg => ({
-                    id: msg.id || msg.Id || '',
+                    id: msg.id !== undefined ? String(msg.id) : (msg.Id !== undefined ? String(msg.Id) : ''),
                     sender: msg.sender || msg.Sender || 'contact',
                     content: msg.content || msg.Content || '',
                     timestamp: new Date(msg.timestamp || msg.Timestamp),
@@ -1176,6 +1178,10 @@
                     mediaType: msg.mediaType || msg.MediaType || null,
                     hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
                   }));
+                  
+                  console.log(`🔍 Estrutura da primeira mensagem carregada:`, messages[0]);
+                  console.log(`🔍 ID mapeado da primeira mensagem:`, chatMessages[contactId][0]?.id);
+                  console.log(`🔍 Propriedades disponíveis na mensagem:`, Object.keys(messages[0] || {}));
                   console.log(`💾 Mensagens processadas:`, chatMessages[contactId]);
                   renderChatMessages(chatMessages[contactId]);
                 } catch (jsonError) {
@@ -1199,80 +1205,145 @@
           renderChatMessages(chatMessages[contactId]);
           
           // Iniciar polling para mensagens em tempo real
-          startMessagePolling(contactId, phoneNumber);
+          startMessageStream(contactId, phoneNumber);
         }
 
-  // Função para iniciar polling de mensagens em tempo real
-  function startMessagePolling(contactId, phoneNumber) {
-    // Parar polling anterior se existir
-    if (messagePollingInterval) {
-      clearInterval(messagePollingInterval);
+  // Função para iniciar Server-Sent Events para mensagens em tempo real
+  function startMessageStream(contactId, phoneNumber) {
+    // Parar stream anterior se existir
+    if (messageEventSource) {
+      messageEventSource.close();
+      console.log('🔄 Parando stream anterior');
     }
     
-    console.log(`🔄 Iniciando polling de mensagens para contato ${contactId}`);
+    console.log(`🚀 Iniciando Server-Sent Events para contato ${contactId} com telefone ${phoneNumber}`);
     
-    // Polling a cada 3 segundos
-    messagePollingInterval = setInterval(async () => {
-      if (currentChatContactId === contactId) {
-        await checkForNewMessages(contactId, phoneNumber);
-      }
-    }, 3000);
-  }
-
-  // Função para parar polling de mensagens
-  function stopMessagePolling() {
-    if (messagePollingInterval) {
-      clearInterval(messagePollingInterval);
-      messagePollingInterval = null;
-      console.log('⏹️ Polling de mensagens parado');
-    }
-  }
-
-  // Função para verificar novas mensagens
-  async function checkForNewMessages(contactId, phoneNumber) {
-    try {
-      const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}?limit=500&includeMedia=true`);
-      
-      if (res.ok) {
-        const data = await res.json();
-        const messages = Array.isArray(data) ? data : (data.messages || []);
+    // Criar conexão Server-Sent Events
+    messageEventSource = new EventSource(`/api/whatsapp/messages/stream/${phoneNumber}`);
+    
+    messageEventSource.onopen = function(event) {
+      console.log('✅ Conexão SSE estabelecida');
+    };
+    
+    messageEventSource.onmessage = function(event) {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('📨 Dados recebidos via SSE:', data);
         
-        const newMessages = messages.map(msg => ({
-          id: msg.id || msg.Id || '',
-          sender: msg.sender || msg.Sender || 'contact',
-          content: msg.content || msg.Content || '',
-          timestamp: new Date(msg.timestamp || msg.Timestamp),
-          status: typeof msg.status === 'number' ? ['sending', 'sent', 'delivered', 'read', 'failed'][msg.status] || 'sent' : (msg.status || msg.Status || 'sent'),
-          mediaUrl: msg.mediaUrl || msg.MediaUrl || null,
-          mediaType: msg.mediaType || msg.MediaType || null,
-          hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
-        }));
-
-        // Verificar se há mensagens novas
-        const currentMessages = chatMessages[contactId] || [];
-        const newMessageIds = new Set(newMessages.map(m => m.id));
-        const currentMessageIds = new Set(currentMessages.map(m => m.id));
-        
-        const hasNewMessages = newMessages.some(msg => !currentMessageIds.has(msg.id));
-        
-        if (hasNewMessages) {
-          console.log(`🆕 Novas mensagens detectadas para contato ${contactId}`);
-          chatMessages[contactId] = newMessages;
-          renderChatMessages(chatMessages[contactId]);
+        if (data.type === 'messages_update' && currentChatContactId === contactId) {
+          console.log(`🆕 Atualização de mensagens recebida: ${data.messageCount} mensagens`);
           
-          // Scroll para a última mensagem
-          setTimeout(() => {
-            const container = document.getElementById('chatMessages');
-            if (container) {
-              container.scrollTop = container.scrollHeight;
+          // Verificar se há mensagens novas (não duplicar)
+          if (data.messages && data.messages.length > 0) {
+            const currentMessages = chatMessages[contactId] || [];
+            const newMessages = data.messages.map(msg => ({
+              id: msg.id !== undefined ? String(msg.id) : '',
+              sender: msg.sender || 'contact',
+              content: msg.content || '',
+              timestamp: new Date(msg.timestamp),
+              status: 'sent',
+              mediaUrl: msg.mediaUrl || null,
+              mediaType: msg.mediaType || null,
+              hasMedia: !!(msg.hasMedia || msg.mediaUrl)
+            }));
+            
+            // Verificar se há mensagens realmente novas
+            const currentIds = currentMessages.map(m => m.id);
+            const newIds = newMessages.map(m => m.id);
+            
+            console.log(`🔍 IDs atuais (${currentIds.length}):`, currentIds.slice(-5)); // Últimos 5 IDs
+            console.log(`🔍 IDs novos (${newIds.length}):`, newIds.slice(-5)); // Últimos 5 IDs
+            console.log(`🔍 Estrutura da primeira mensagem atual:`, currentMessages[0]);
+            console.log(`🔍 Estrutura da primeira mensagem nova:`, newMessages[0]);
+            console.log(`🔍 Dados brutos do SSE:`, data.messages[0]);
+            
+            // Verificar se há mensagens realmente novas baseado no conteúdo mais recente
+            const currentLatestContent = currentMessages.length > 0 ? 
+                currentMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.content : '';
+            const newLatestContent = newMessages.length > 0 ? 
+                newMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0]?.content : '';
+            
+            const hasNewMessages = newLatestContent !== currentLatestContent || 
+                                 newIds.some(id => !currentIds.includes(id));
+            
+            console.log(`🔍 Comparação: Atuais=${currentMessages.length}, Novas=${newMessages.length}`);
+            console.log(`🔍 Conteúdo atual mais recente: "${currentLatestContent}"`);
+            console.log(`🔍 Conteúdo novo mais recente: "${newLatestContent}"`);
+            console.log(`🔍 TemNovas=${hasNewMessages}`);
+            
+            if (hasNewMessages) {
+              console.log(`🆕 Mensagens novas detectadas! Atualizando chat...`);
+              console.log(`📊 Mensagens atuais: ${currentMessages.length} → Novas: ${newMessages.length}`);
+              chatMessages[contactId] = newMessages;
+              renderChatMessages(chatMessages[contactId]);
+              
+              // Scroll para a última mensagem
+              setTimeout(() => {
+                const container = document.getElementById('chatMessages');
+                if (container) {
+                  container.scrollTop = container.scrollHeight;
+                }
+              }, 100);
+            } else {
+              console.log(`✅ Nenhuma mensagem nova detectada`);
+              console.log(`📊 Mensagens atuais: ${currentMessages.length}, Mensagens recebidas: ${newMessages.length}`);
             }
-          }, 100);
+          }
+        } else if (data.type === 'error') {
+          console.error('❌ Erro no stream:', data.message);
         }
+      } catch (err) {
+        console.error('💥 Erro ao processar dados SSE:', err);
       }
-    } catch (err) {
-      console.error('💥 Erro ao verificar novas mensagens:', err);
+    };
+    
+    messageEventSource.onerror = function(event) {
+      console.error('❌ Erro na conexão SSE:', event);
+      // Tentar reconectar após 3 segundos
+      setTimeout(() => {
+        if (currentChatContactId === contactId) {
+          console.log('🔄 Tentando reconectar SSE...');
+          startMessageStream(contactId, phoneNumber);
+        }
+      }, 3000);
+    };
+    
+    console.log(`🚀 Stream SSE configurado para contato ${contactId}`);
+  }
+
+  // Função para parar stream de mensagens
+  function stopMessageStream() {
+    if (messageEventSource) {
+      messageEventSource.close();
+      messageEventSource = null;
+      console.log('⏹️ Stream de mensagens parado');
     }
   }
+
+  // Parar stream quando a página for descarregada
+  window.addEventListener('beforeunload', () => {
+    stopMessageStream();
+  });
+
+  // Parar stream quando o usuário sair da aba
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      console.log('👁️ Página oculta - parando stream');
+      stopMessageStream();
+    } else {
+      console.log('👁️ Página visível - reiniciando stream se necessário');
+      if (currentChatContactId) {
+        const contact = contacts.find(c => c.id == currentChatContactId);
+        if (contact) {
+          const phoneNumber = contact.phone || contact.cellPhone;
+          if (phoneNumber) {
+            startMessageStream(currentChatContactId, phoneNumber);
+          }
+        }
+      }
+    }
+  });
+
 
   // Função para renderizar mensagens do chat
   function renderChatMessages(messages) {
@@ -1319,7 +1390,11 @@
   function groupMessagesByDate(messages) {
     const groups = {};
     
-    messages.forEach(msg => {
+    // Primeiro ordenar todas as mensagens por timestamp (mais antigas primeiro)
+    const sortedMessages = [...messages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    console.log('🎨 Mensagens ordenadas por timestamp:', sortedMessages.map(m => ({ content: m.content, timestamp: m.timestamp })));
+    
+    sortedMessages.forEach(msg => {
       const date = msg.timestamp.toLocaleDateString('pt-BR', {
         weekday: 'long',
         year: 'numeric',
@@ -2215,43 +2290,6 @@
     isTyping = false;
   }
   
-  // Função para renderizar mensagens com status melhorado
-  function renderChatMessages(messages) {
-    const chatMessages = document.getElementById('chatMessages');
-    if (!chatMessages) return;
-    
-    chatMessages.innerHTML = '';
-    
-    if (!messages || messages.length === 0) {
-      chatMessages.innerHTML = `
-        <div class="chat-empty">
-          <div class="chat-empty-icon">💬</div>
-          <div class="chat-empty-text">Nenhuma mensagem ainda</div>
-          <div class="chat-empty-subtext">Inicie uma conversa enviando uma mensagem</div>
-        </div>
-      `;
-      return;
-    }
-    
-    // Agrupar mensagens por data
-    const groupedMessages = groupMessagesByDate(messages);
-    
-    Object.keys(groupedMessages).forEach(date => {
-      // Adicionar separador de data
-      const dateSeparator = document.createElement('div');
-      dateSeparator.className = 'message-date';
-      dateSeparator.textContent = formatDate(date);
-      chatMessages.appendChild(dateSeparator);
-      
-      // Adicionar mensagens do dia
-      groupedMessages[date].forEach(message => {
-        const messageElement = createMessageElement(message);
-        chatMessages.appendChild(messageElement);
-      });
-    });
-    
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
   
   
   // Função para criar elemento de mensagem melhorado
