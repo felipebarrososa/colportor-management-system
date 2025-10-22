@@ -243,13 +243,13 @@ namespace Colportor.Api.Services
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>> GetMessagesAsync(string phoneNumber, int currentUserId, string currentUserRole)
+        public async Task<ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>> GetMessagesAsync(string phoneNumber, int currentUserId, string currentUserRole, int limit = 500, bool includeMedia = true)
         {
             try
             {
                 // Buscar mensagens do WhatsApp Service diretamente pelo número
-                _logger.LogInformation("Buscando mensagens para número: {PhoneNumber}", phoneNumber);
-                var response = await _httpClient.GetAsync($"{_whatsappServiceUrl}/messages/{phoneNumber}");
+                _logger.LogInformation("Buscando mensagens para número: {PhoneNumber}, limit: {Limit}, includeMedia: {IncludeMedia}", phoneNumber, limit, includeMedia);
+                var response = await _httpClient.GetAsync($"{_whatsappServiceUrl}/messages/{phoneNumber}?limit={limit}&includeMedia={includeMedia.ToString().ToLower()}");
                 
                 _logger.LogInformation("Resposta do WhatsApp Service: {StatusCode}", response.StatusCode);
                 
@@ -258,37 +258,64 @@ namespace Colportor.Api.Services
                     var json = await response.Content.ReadAsStringAsync();
                     _logger.LogInformation("JSON recebido: {Json}", json);
 
-                    var options = new JsonSerializerOptions {
-                        PropertyNameCaseInsensitive = true
-                    };
-
                     // O WhatsApp Service pode retornar diretamente uma lista ou um envelope { success, messages }
-                    List<WhatsAppServiceMessageDto>? serviceMessages = null;
-
+                    List<WhatsAppServiceMessageDto> serviceMessages = new();
                     try
                     {
-                        // Tenta desserializar como envelope
-                        var envelope = JsonSerializer.Deserialize<WhatsAppServiceMessagesEnvelope>(json, options);
-                        if (envelope?.Messages != null)
-                        {
-                            serviceMessages = envelope.Messages;
-                        }
-                    }
-                    catch
-                    {
-                        // Ignora e tenta como lista pura abaixo
-                    }
+                        using var doc = JsonDocument.Parse(json);
+                        var root = doc.RootElement;
 
-                    if (serviceMessages == null)
+                        JsonElement messagesElement;
+                        if (root.ValueKind == JsonValueKind.Array)
+                        {
+                            messagesElement = root;
+                        }
+                        else if (root.TryGetProperty("messages", out var arr))
+                        {
+                            messagesElement = arr;
+                        }
+                        else
+                        {
+                            messagesElement = default;
+                        }
+
+                        if (messagesElement.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var item in messagesElement.EnumerateArray())
+                            {
+                                var dto = new WhatsAppServiceMessageDto
+                                {
+                                    Id = item.TryGetProperty("id", out var idEl) ? idEl.GetString() ?? string.Empty : string.Empty,
+                                    Content = item.TryGetProperty("content", out var contentEl) ? contentEl.GetString() ?? string.Empty : string.Empty,
+                                    Sender = item.TryGetProperty("sender", out var senderEl) ? senderEl.GetString() ?? string.Empty : string.Empty,
+                                    MediaUrl = item.TryGetProperty("mediaUrl", out var mediaUrlEl) && mediaUrlEl.ValueKind != JsonValueKind.Null ? mediaUrlEl.GetString() : null,
+                                    MediaType = item.TryGetProperty("mediaType", out var mediaTypeEl) && mediaTypeEl.ValueKind != JsonValueKind.Null ? mediaTypeEl.GetString() : null
+                                };
+
+                                // Timestamp pode vir como string ISO ou número
+                                if (item.TryGetProperty("timestamp", out var tsEl))
+                                {
+                                    if (tsEl.ValueKind == JsonValueKind.String && DateTime.TryParse(tsEl.GetString(), out var tsDt))
+                                        dto.Timestamp = tsDt;
+                                    else if (tsEl.ValueKind == JsonValueKind.Number && tsEl.TryGetInt64(out var tsNum))
+                                        dto.Timestamp = DateTimeOffset.FromUnixTimeMilliseconds(tsNum).UtcDateTime;
+                                }
+
+                                // Status pode ser número ou string
+                                if (item.TryGetProperty("status", out var stEl))
+                                {
+                                    dto.Status = stEl.ValueKind == JsonValueKind.Number
+                                        ? stEl.GetInt32()
+                                        : stEl.GetString() ?? "unknown";
+                                }
+
+                                serviceMessages.Add(dto);
+                            }
+                        }
+                    }
+                    catch (Exception parseEx)
                     {
-                        try
-                        {
-                            serviceMessages = JsonSerializer.Deserialize<List<WhatsAppServiceMessageDto>>(json, options);
-                        }
-                        catch
-                        {
-                            serviceMessages = new List<WhatsAppServiceMessageDto>();
-                        }
+                        _logger.LogWarning(parseEx, "Falha ao interpretar JSON de mensagens do WhatsApp Service");
                     }
 
                     _logger.LogInformation("Mensagens deserializadas: {Count}", serviceMessages?.Count ?? 0);

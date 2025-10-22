@@ -108,11 +108,11 @@ namespace Colportor.Api.Controllers
         }
 
         [HttpGet("messages/{phoneNumber}")]
-        public async Task<IActionResult> GetMessages(string phoneNumber)
+        public async Task<IActionResult> GetMessages(string phoneNumber, [FromQuery] int limit = 500, [FromQuery] bool includeMedia = true)
         {
             try
             {
-                var result = await _whatsAppService.GetMessagesAsync(phoneNumber, GetCurrentUserId(), GetCurrentUserRole());
+                var result = await _whatsAppService.GetMessagesAsync(phoneNumber, GetCurrentUserId(), GetCurrentUserRole(), limit, includeMedia);
                 if (result.Success)
                     return Ok(result.Data);
                 return BadRequest(new { message = result.Message });
@@ -120,6 +120,23 @@ namespace Colportor.Api.Controllers
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Erro ao obter mensagens do WhatsApp");
+                return StatusCode(500, new { message = "Erro interno do servidor" });
+            }
+        }
+
+        [HttpGet("message-media/{messageId}")]
+        public async Task<IActionResult> GetMessageMedia(string messageId)
+        {
+            try
+            {
+                var http = new HttpClient { BaseAddress = new Uri(Environment.GetEnvironmentVariable("WHATSAPP_SERVICE_URL") ?? "http://whatsapp:3001") };
+                var resp = await http.GetAsync($"/message-media/{messageId}");
+                var body = await resp.Content.ReadAsStringAsync();
+                return StatusCode((int)resp.StatusCode, body);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Erro ao obter mídia da mensagem WhatsApp");
                 return StatusCode(500, new { message = "Erro interno do servidor" });
             }
         }

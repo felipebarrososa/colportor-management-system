@@ -138,6 +138,17 @@ if (app.Environment.IsDevelopment())
             delay *= 2; // Exponential backoff
         }
     }
+
+    // Executar seed data
+    try
+    {
+        var seedService = scope.ServiceProvider.GetRequiredService<SeedDataService>();
+        await seedService.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao executar seed data: {ex.Message}");
+    }
 }
 
 Log.Information("Colportor API iniciada com sucesso");

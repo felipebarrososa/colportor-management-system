@@ -1009,6 +1009,49 @@
             width: 250px;
             height: 40px;
         }
+        
+        .message-sticker {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 8px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .message-sticker:hover {
+            transform: scale(1.05);
+        }
+        
+        .sticker-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            background: var(--card);
+            border: 2px dashed var(--stroke);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .sticker-placeholder:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #04110a;
+        }
+        
+        .sticker-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .sticker-text {
+            font-size: 12px;
+            font-weight: 600;
+        }
 
         .status-icon.delivered {
             color: var(--success);
@@ -1969,6 +2012,6 @@
 
     <!-- Biblioteca de Emojis -->
     <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.12.0/index.js" type="module"></script>
-    <script src="/js/mission-contacts-kanban.js?v=202510211100"></script>
+    <script src="/js/mission-contacts-kanban.js?v=202510212001"></script>
 </body>
 </html>

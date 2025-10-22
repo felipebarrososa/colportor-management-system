@@ -70,6 +70,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPaginationService, PaginationService>();
         services.AddHttpClient();
         services.AddScoped<IWhatsAppService, WhatsAppService>();
+        services.AddScoped<SeedDataService>();
 
         // AutoMapper
         services.AddAutoMapper(typeof(AutoMapperProfile));

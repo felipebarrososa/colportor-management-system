@@ -23,8 +23,11 @@
   let isTyping = false;
   let typingTimeout = null;
   let messageStatusInterval = null;
+  let messagePollingInterval = null;
 
   function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
+  
+  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212000 CARREGADO!');
 
   // Função para obter token de autenticação
   function getToken() {
@@ -824,6 +827,11 @@
     document.getElementById('observationModal').style.display = 'none';
   });
 
+  // Parar polling quando o modal de contato for fechado
+  document.getElementById('closeContactModal')?.addEventListener('click', () => {
+    stopMessagePolling();
+  });
+
   document.getElementById('cancelObservation')?.addEventListener('click', () => {
     document.getElementById('observationModal').style.display = 'none';
   });
@@ -1140,22 +1148,41 @@
             const phoneNumber = contact.phone || contact.cellPhone;
             if (phoneNumber) {
               console.log(`🔍 Carregando mensagens reais para: ${phoneNumber}`);
-              const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}`);
+              // Mostrar indicador "Carregando mensagens..."
+              showLoadingMessages();
+              const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}?limit=500&includeMedia=true`);
               console.log(`📡 Resposta da API:`, res.status, res.ok);
               
               if (res.ok) {
-                const data = await res.json();
-                console.log(`✅ Mensagens reais carregadas:`, data);
-                chatMessages[contactId] = data.map(msg => ({
-                  id: msg.id,
-                  sender: msg.sender,
-                  content: msg.content,
-                  timestamp: new Date(msg.timestamp),
-                  status: typeof msg.status === 'number' ? ['sending', 'sent', 'delivered', 'read', 'failed'][msg.status] || 'sent' : msg.status,
-                  mediaUrl: msg.mediaUrl,
-                  mediaType: msg.mediaType
-                }));
-                console.log(`💾 Mensagens processadas:`, chatMessages[contactId]);
+                try {
+                  const data = await res.json();
+                  console.log(`✅ Mensagens reais carregadas:`, data);
+                  console.log(`🔍 Tipo de data:`, typeof data);
+                  console.log(`🔍 É array?:`, Array.isArray(data));
+                  console.log(`🔍 Propriedades:`, Object.keys(data || {}));
+                  
+                  // A API retorna um array direto de mensagens
+                  const messages = Array.isArray(data) ? data : [];
+                  console.log(`📊 Total de mensagens recebidas:`, messages.length);
+                  console.log(`📊 Primeira mensagem:`, messages[0]);
+                  
+                  chatMessages[contactId] = messages.map(msg => ({
+                    id: msg.id || msg.Id || '',
+                    sender: msg.sender || msg.Sender || 'contact',
+                    content: msg.content || msg.Content || '',
+                    timestamp: new Date(msg.timestamp || msg.Timestamp),
+                    status: typeof msg.status === 'number' ? ['sending', 'sent', 'delivered', 'read', 'failed'][msg.status] || 'sent' : (msg.status || msg.Status || 'sent'),
+                    mediaUrl: msg.mediaUrl || msg.MediaUrl || null,
+                    mediaType: msg.mediaType || msg.MediaType || null,
+                    hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
+                  }));
+                  console.log(`💾 Mensagens processadas:`, chatMessages[contactId]);
+                  renderChatMessages(chatMessages[contactId]);
+                } catch (jsonError) {
+                  console.error('💥 Erro ao processar JSON da resposta:', jsonError);
+                  console.log('📄 Conteúdo da resposta:', await res.text());
+                  chatMessages[contactId] = [];
+                }
               } else {
                 console.log('❌ Nenhuma mensagem encontrada para este contato');
                 chatMessages[contactId] = [];
@@ -1168,9 +1195,84 @@
             console.error('💥 Erro ao carregar mensagens:', err);
             chatMessages[contactId] = [];
           }
-
+          hideLoadingMessages();
           renderChatMessages(chatMessages[contactId]);
+          
+          // Iniciar polling para mensagens em tempo real
+          startMessagePolling(contactId, phoneNumber);
         }
+
+  // Função para iniciar polling de mensagens em tempo real
+  function startMessagePolling(contactId, phoneNumber) {
+    // Parar polling anterior se existir
+    if (messagePollingInterval) {
+      clearInterval(messagePollingInterval);
+    }
+    
+    console.log(`🔄 Iniciando polling de mensagens para contato ${contactId}`);
+    
+    // Polling a cada 3 segundos
+    messagePollingInterval = setInterval(async () => {
+      if (currentChatContactId === contactId) {
+        await checkForNewMessages(contactId, phoneNumber);
+      }
+    }, 3000);
+  }
+
+  // Função para parar polling de mensagens
+  function stopMessagePolling() {
+    if (messagePollingInterval) {
+      clearInterval(messagePollingInterval);
+      messagePollingInterval = null;
+      console.log('⏹️ Polling de mensagens parado');
+    }
+  }
+
+  // Função para verificar novas mensagens
+  async function checkForNewMessages(contactId, phoneNumber) {
+    try {
+      const res = await authFetch(`/api/whatsapp/messages/${phoneNumber}?limit=500&includeMedia=true`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        const messages = Array.isArray(data) ? data : (data.messages || []);
+        
+        const newMessages = messages.map(msg => ({
+          id: msg.id || msg.Id || '',
+          sender: msg.sender || msg.Sender || 'contact',
+          content: msg.content || msg.Content || '',
+          timestamp: new Date(msg.timestamp || msg.Timestamp),
+          status: typeof msg.status === 'number' ? ['sending', 'sent', 'delivered', 'read', 'failed'][msg.status] || 'sent' : (msg.status || msg.Status || 'sent'),
+          mediaUrl: msg.mediaUrl || msg.MediaUrl || null,
+          mediaType: msg.mediaType || msg.MediaType || null,
+          hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
+        }));
+
+        // Verificar se há mensagens novas
+        const currentMessages = chatMessages[contactId] || [];
+        const newMessageIds = new Set(newMessages.map(m => m.id));
+        const currentMessageIds = new Set(currentMessages.map(m => m.id));
+        
+        const hasNewMessages = newMessages.some(msg => !currentMessageIds.has(msg.id));
+        
+        if (hasNewMessages) {
+          console.log(`🆕 Novas mensagens detectadas para contato ${contactId}`);
+          chatMessages[contactId] = newMessages;
+          renderChatMessages(chatMessages[contactId]);
+          
+          // Scroll para a última mensagem
+          setTimeout(() => {
+            const container = document.getElementById('chatMessages');
+            if (container) {
+              container.scrollTop = container.scrollHeight;
+            }
+          }, 100);
+        }
+      }
+    } catch (err) {
+      console.error('💥 Erro ao verificar novas mensagens:', err);
+    }
+  }
 
   // Função para renderizar mensagens do chat
   function renderChatMessages(messages) {
@@ -1290,7 +1392,22 @@
         }
         console.log('🎵 HTML do áudio:', mediaContent);
       } else if (message.mediaType === 'sticker') {
-        mediaContent = `<div class="message-media"><div class="media-placeholder">😊 Sticker</div></div>`;
+        if (message.mediaUrl && message.mediaUrl !== 'null' && message.mediaUrl !== null) {
+          // Mostrar sticker real se tiver URL
+          mediaContent = `<div class="message-media">
+            <img src="${message.mediaUrl}" alt="Sticker" class="message-sticker" style="max-width: 120px; max-height: 120px; border-radius: 8px; cursor: pointer; object-fit: contain;" onclick="openImageModal('${message.mediaUrl}')" />
+          </div>`;
+          console.log('😊 Sticker real carregado:', message.mediaUrl.substring(0, 50) + '...');
+        } else {
+          // Placeholder para stickers do WhatsApp
+          mediaContent = `<div class="message-media">
+            <div class="sticker-placeholder" onclick="openImageModal('')">
+              <div class="sticker-icon">😊</div>
+              <div class="sticker-text">Sticker</div>
+            </div>
+          </div>`;
+          console.log('😊 Placeholder de sticker (sem URL)');
+        }
         console.log('😊 HTML do sticker:', mediaContent);
       }
     }
@@ -1573,7 +1690,10 @@
             const formData = new FormData();
             formData.append('file', file);
             formData.append('contactId', currentChatContactId);
-            formData.append('phoneNumber', currentChatContactId);
+            // enviar número real do contato
+            const sendContact = contacts.find(c => c.id == currentChatContactId);
+            const sendPhone = sendContact?.phone || sendContact?.cellPhone || '';
+            formData.append('phoneNumber', sendPhone);
             
             console.log('📤 Enviando arquivo para API...');
             const response = await fetch('/api/whatsapp/send-media', {
@@ -1679,7 +1799,10 @@
           const formData = new FormData();
           formData.append('file', audioBlob, newMessage.fileName);
           formData.append('contactId', currentChatContactId);
-          formData.append('phoneNumber', currentChatContactId);
+          // enviar número real do contato
+          const sendAudioContact = contacts.find(c => c.id == currentChatContactId);
+          const sendAudioPhone = sendAudioContact?.phone || sendAudioContact?.cellPhone || '';
+          formData.append('phoneNumber', sendAudioPhone);
           
           console.log('📤 Enviando áudio para API...');
           const response = await fetch('/api/whatsapp/send-media', {
@@ -2063,6 +2186,25 @@
     chatMessages.appendChild(typingIndicator);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
+
+  // Indicador de carregamento de mensagens
+  function showLoadingMessages() {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+    const existing = document.getElementById('loading-messages');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'loading-messages';
+    el.className = 'message system';
+    el.style.opacity = '0.8';
+    el.innerHTML = `<div class="bubble">Carregando mensagens...</div>`;
+    container.appendChild(el);
+  }
+
+  function hideLoadingMessages() {
+    const el = document.getElementById('loading-messages');
+    if (el) el.remove();
+  }
   
   // Função para esconder indicador de digitação
   function hideTypingIndicator() {
@@ -2111,20 +2253,6 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   
-  // Função para agrupar mensagens por data
-  function groupMessagesByDate(messages) {
-    const grouped = {};
-    
-    messages.forEach(message => {
-      const date = new Date(message.timestamp).toDateString();
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(message);
-    });
-    
-    return grouped;
-  }
   
   // Função para criar elemento de mensagem melhorado
   function createMessageElement(message) {
@@ -2164,6 +2292,15 @@
             <audio controls>
               <source src="${message.mediaUrl}" type="audio/ogg">
             </audio>
+          </div>
+        `;
+      } else if (message.mediaType === 'sticker') {
+        mediaContent = `
+          <div class="media-preview">
+            <img src="${message.mediaUrl}" alt="Sticker" class="message-sticker" style="max-width: 120px; max-height: 120px; border-radius: 8px; cursor: pointer; object-fit: contain;" onclick="openImageModal('${message.mediaUrl}')" />
+            <div class="media-overlay">
+              <span class="media-play-icon">😊</span>
+            </div>
           </div>
         `;
       }

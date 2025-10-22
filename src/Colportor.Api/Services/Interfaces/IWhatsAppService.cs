@@ -10,6 +10,6 @@ namespace Colportor.Api.Services.Interfaces
         Task<ApiResponse> DisconnectAsync();
         Task<WhatsAppStatsDto> GetStatsAsync();
         Task<ApiResponse<WhatsAppMessageResponseDto>> SendMessageAsync(WhatsAppMessageDto dto, int currentUserId, string currentUserRole);
-        Task<ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>> GetMessagesAsync(string phoneNumber, int currentUserId, string currentUserRole);
+        Task<ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>> GetMessagesAsync(string phoneNumber, int currentUserId, string currentUserRole, int limit = 500, bool includeMedia = true);
     }
 }
