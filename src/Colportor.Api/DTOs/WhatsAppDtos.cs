@@ -48,6 +48,7 @@ namespace Colportor.Api.DTOs
         public string Status { get; set; } = string.Empty;
         public string? MediaUrl { get; set; }
         public string? MediaType { get; set; }
+        public bool HasMedia { get; set; }
     }
 
     public class WhatsAppServiceMessageDto
@@ -59,6 +60,7 @@ namespace Colportor.Api.DTOs
         public object Status { get; set; } = string.Empty; // Pode ser string ou int
         public string? MediaUrl { get; set; }
         public string? MediaType { get; set; }
+        public bool HasMedia { get; set; }
     }
 
     public class WhatsAppTemplateDto

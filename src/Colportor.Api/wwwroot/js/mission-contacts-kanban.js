@@ -14,10 +14,6 @@
   let isEditing = false;
   let originalContactData = null;
   
-  // Gravação de áudio (variáveis globais)
-  let mediaRecorder;
-  let audioChunks = [];
-  let isRecording = false;
   
   // Variáveis do WhatsApp melhorado
   let isTyping = false;
@@ -30,7 +26,115 @@
 
   function esc(s){return String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');}
   
-  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212022 CARREGADO!');
+  // Função simples para reproduzir áudio placeholder
+  function playAudioPlaceholder(element) {
+    const playButton = element.querySelector('div:last-child');
+    if (playButton) {
+      if (playButton.textContent === '▶️') {
+        playButton.textContent = '⏸️';
+        playButton.style.color = '#ef4444';
+        setTimeout(() => {
+          playButton.textContent = '▶️';
+          playButton.style.color = '#10b981';
+        }, 2000);
+      } else {
+        playButton.textContent = '▶️';
+        playButton.style.color = '#10b981';
+      }
+    }
+  }
+
+  // Função para controlar o player de áudio moderno - GLOBAL
+  window.toggleAudio = function(audioId) {
+    const audio = document.getElementById(audioId);
+    const playIcon = document.getElementById('playIcon_' + audioId);
+    const waveform = document.querySelector(`#${audioId}`)?.closest('.whatsapp-audio-player')?.querySelector('.audio-waveform');
+    
+    if (!audio) {
+      console.error('Áudio não encontrado:', audioId);
+      return;
+    }
+    
+    if (audio.paused) {
+      // Pausar outros áudios
+      document.querySelectorAll('audio').forEach(a => {
+        if (a.id !== audioId && !a.paused) {
+          a.pause();
+          const otherId = a.id;
+          const otherIcon = document.getElementById('playIcon_' + otherId);
+          const otherWaveform = document.querySelector(`#${otherId}`)?.closest('.whatsapp-audio-player')?.querySelector('.audio-waveform');
+          if (otherIcon) otherIcon.textContent = '▶️';
+          if (otherWaveform) otherWaveform.style.animationPlayState = 'paused';
+        }
+      });
+      
+      // Reproduzir áudio atual
+      audio.play().then(() => {
+        if (playIcon) playIcon.textContent = '⏸️';
+        if (waveform) waveform.style.animationPlayState = 'running';
+        updateAudioProgress(audioId);
+      }).catch(e => {
+        console.error('Erro ao reproduzir áudio:', e);
+        if (playIcon) playIcon.textContent = '▶️';
+      });
+    } else {
+      // Pausar áudio atual
+      audio.pause();
+      if (playIcon) playIcon.textContent = '▶️';
+      if (waveform) waveform.style.animationPlayState = 'paused';
+    }
+  };
+
+  // Função para atualizar progresso do áudio - GLOBAL
+  window.updateAudioProgress = function(audioId) {
+    const audio = document.getElementById(audioId);
+    const progress = document.getElementById('progress_' + audioId);
+    const currentTime = document.getElementById('currentTime_' + audioId);
+    const duration = document.getElementById('duration_' + audioId);
+    
+    if (!audio || !progress) return;
+    
+    // Atualizar duração quando carregada
+    if (audio.duration && duration && duration.textContent === '0:00') {
+      duration.textContent = formatTime(audio.duration);
+    }
+    
+    // Atualizar progresso
+    const percent = (audio.currentTime / audio.duration) * 100;
+    progress.style.width = percent + '%';
+    
+    // Atualizar tempo atual
+    if (currentTime) {
+      currentTime.textContent = formatTime(audio.currentTime);
+    }
+    
+    // Continuar atualizando se estiver tocando
+    if (!audio.paused) {
+      requestAnimationFrame(() => updateAudioProgress(audioId));
+    }
+  };
+
+  // Função para buscar posição no áudio - GLOBAL
+  window.seekAudio = function(audioId, event) {
+    const audio = document.getElementById(audioId);
+    const progressBar = event.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    
+    if (audio && audio.duration) {
+      audio.currentTime = percent * audio.duration;
+      updateAudioProgress(audioId);
+    }
+  };
+
+  // Função para formatar tempo - GLOBAL
+  window.formatTime = function(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return mins + ':' + (secs < 10 ? '0' : '') + secs;
+  };
+  
+  console.log('🚀 MISSION-CONTACTS-KANBAN v202510212026 CARREGADO!');
   console.log('🔥 VERSÃO NOVA CARREGADA - SERVER-SENT EVENTS ATIVO!');
 
   // Função para obter token de autenticação
@@ -1170,6 +1274,18 @@
                   console.log(`📊 Total de mensagens recebidas:`, messages.length);
                   console.log(`📊 Primeira mensagem:`, messages[0]);
                   
+                  // Log detalhado de cada mensagem antes do mapeamento
+                  messages.forEach((msg, index) => {
+                    console.log(`📋 MENSAGEM ${index}:`, {
+                      id: msg.id,
+                      content: msg.content,
+                      mediaType: msg.mediaType,
+                      mediaUrl: msg.mediaUrl ? 'presente' : 'ausente',
+                      hasMedia: msg.hasMedia,
+                      sender: msg.sender
+                    });
+                  });
+                  
                   chatMessages[contactId] = messages.map(msg => ({
                     id: msg.id !== undefined ? String(msg.id) : (msg.Id !== undefined ? String(msg.Id) : ''),
                     sender: msg.sender || msg.Sender || 'contact',
@@ -1180,6 +1296,9 @@
                     mediaType: msg.mediaType || msg.MediaType || null,
                     hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
                   }));
+                  
+                  // Log detalhado após o mapeamento
+                  console.log(`📋 MENSAGENS MAPEADAS:`, chatMessages[contactId]);
                   
                   console.log(`🔍 Estrutura da primeira mensagem carregada:`, messages[0]);
                   console.log(`🔍 ID mapeado da primeira mensagem:`, chatMessages[contactId][0]?.id);
@@ -1207,7 +1326,11 @@
           renderChatMessages(chatMessages[contactId]);
           
           // Iniciar polling para mensagens em tempo real
-          startMessageStream(contactId, phoneNumber);
+          if (phoneNumber) {
+            startMessageStream(contactId, phoneNumber);
+          } else {
+            console.log('⚠️ phoneNumber não definido, pulando startMessageStream');
+          }
         }
 
   // Função para iniciar Server-Sent Events para mensagens em tempo real
@@ -1491,6 +1614,15 @@
 
   // Função para criar HTML da mensagem
   function createMessageHTML(message) {
+    console.log('🔍 PROCESSANDO MENSAGEM:', {
+      id: message.id,
+      content: message.content,
+      mediaType: message.mediaType,
+      mediaUrl: message.mediaUrl ? 'presente' : 'ausente',
+      hasMedia: message.hasMedia,
+      sender: message.sender
+    });
+
     const isSent = message.sender === 'user';
     const timeStr = message.timestamp.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
@@ -1509,62 +1641,170 @@
                        message.status === 'delivered' ? 'delivered' : 
                        message.status === 'failed' ? 'failed' : '';
 
-    // Renderizar mídia se existir
+    // Renderizar mídia se existir - VERSÃO SIMPLIFICADA
     let mediaContent = '';
-    if (message.mediaType && message.mediaType !== 'null' && message.mediaType !== null) {
-      console.log('🎨 Renderizando mídia:', message.mediaType, message.mediaUrl);
-      if (message.mediaType === 'image') {
-        if (message.mediaUrl && message.mediaUrl !== 'null' && message.mediaUrl !== null) {
-          // Mostrar imagem real se tiver URL
-          mediaContent = `<div class="message-media">
-            <img src="${message.mediaUrl}" alt="Imagem" class="message-image" style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer; object-fit: cover;" onclick="openImageModal('${message.mediaUrl}')" />
-          </div>`;
-          console.log('🖼️ Imagem real carregada:', message.mediaUrl.substring(0, 50) + '...');
-        } else {
-          // Placeholder para imagens do WhatsApp
-          mediaContent = `<div class="message-media">
-            <div class="image-placeholder" onclick="openImageModal('')">
-              <div class="image-icon">📷</div>
-              <div class="image-text">Imagem</div>
-              <div class="image-subtitle">Clique para visualizar</div>
+    
+    // DETECÇÃO SIMPLES E DIRETA DE MÍDIA
+    let isAudio = false;
+    let isImage = false;
+    let isVideo = false;
+    let isDocument = false;
+    
+    // Detectar áudio de forma ULTRA ROBUSTA
+    if (message.mediaType === 'audio' || 
+        (message.mediaUrl && message.mediaUrl.includes('audio/')) ||
+        (message.content && message.content.includes('🎵')) ||
+        (message.content && message.content.includes('audio-')) ||
+        (message.hasMedia && !message.mediaType && !message.mediaUrl && !message.content) || // Fallback para áudios sem dados
+        (message.hasMedia && message.mediaType === null && message.mediaUrl === null)) { // Fallback para áudios com hasMedia=true mas sem tipo
+      isAudio = true;
+      console.log('🎵 ÁUDIO DETECTADO!', { 
+        mediaType: message.mediaType, 
+        hasMediaUrl: !!message.mediaUrl, 
+        hasMedia: message.hasMedia,
+        content: message.content 
+      });
+    }
+    // Detectar imagem
+    else if (message.mediaType === 'image' || 
+             (message.mediaUrl && message.mediaUrl.includes('image/'))) {
+      isImage = true;
+    }
+    // Detectar vídeo
+    else if (message.mediaType === 'video' || 
+             (message.mediaUrl && message.mediaUrl.includes('video/'))) {
+      isVideo = true;
+    }
+    // Detectar documento
+    else if (message.mediaType === 'document' || 
+             (message.hasMedia && !isAudio && !isImage && !isVideo)) {
+      isDocument = true;
+    }
+    
+    // RENDERIZAÇÃO SIMPLES E BONITA DE ÁUDIO
+    if (isAudio) {
+      console.log('🎵 RENDERIZANDO ÁUDIO:', { hasMediaUrl: !!message.mediaUrl, mediaUrlType: message.mediaUrl ? message.mediaUrl.substring(0, 20) : 'null' });
+      
+      if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
+        // Player simples e funcional quando tem URL
+        console.log('🎵 Criando player simples com mediaUrl');
+        const uniqueId = 'audio_' + message.id + '_' + Date.now();
+        mediaContent = `
+          <div class="message-media" style="margin: 8px 0;">
+            <div style="
+              background: #1f2937;
+              border: 1px solid #374151;
+              border-radius: 8px;
+              padding: 12px;
+              max-width: 250px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            ">
+              <button onclick="toggleAudio('${uniqueId}')" style="
+                background: #10b981;
+                border: none;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s ease;
+              " onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                <span id="playIcon_${uniqueId}" style="color: white; font-size: 14px;">▶️</span>
+              </button>
+              
+              <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                <span style="color: #9ca3af; font-size: 11px;" id="currentTime_${uniqueId}">0:00</span>
+                <div style="flex: 1; height: 3px; background: #4b5563; border-radius: 2px; position: relative; cursor: pointer;" onclick="seekAudio('${uniqueId}', event)">
+                  <div id="progress_${uniqueId}" style="
+                    height: 100%;
+                    background: #10b981;
+                    border-radius: 2px;
+                    width: 0%;
+                    transition: width 0.1s ease;
+                  "></div>
+                </div>
+                <span style="color: #9ca3af; font-size: 11px;" id="duration_${uniqueId}">0:00</span>
+              </div>
+              
+              <audio id="${uniqueId}" preload="metadata" style="display: none;">
+                <source src="${message.mediaUrl}" type="audio/ogg">
+                <source src="${message.mediaUrl}" type="audio/mpeg">
+                <source src="${message.mediaUrl}" type="audio/wav">
+              </audio>
             </div>
-          </div>`;
-          console.log('🖼️ Placeholder de imagem (sem URL)');
-        }
-        console.log('🖼️ HTML da imagem:', mediaContent);
-      } else if (message.mediaType === 'video') {
-        if (message.mediaUrl) {
-          mediaContent = `<div class="message-media"><video src="${message.mediaUrl}" controls class="message-video"></video></div>`;
-        } else {
-          mediaContent = `<div class="message-media"><div class="media-placeholder">🎥 Vídeo</div></div>`;
-        }
-        console.log('🎥 HTML do vídeo:', mediaContent);
-      } else if (message.mediaType === 'audio') {
-        if (message.mediaUrl) {
-          mediaContent = `<div class="message-media"><audio src="${message.mediaUrl}" controls class="message-audio"></audio></div>`;
-        } else {
-          mediaContent = `<div class="message-media"><div class="media-placeholder">🎵 Áudio</div></div>`;
-        }
-        console.log('🎵 HTML do áudio:', mediaContent);
-      } else if (message.mediaType === 'sticker') {
-        if (message.mediaUrl && message.mediaUrl !== 'null' && message.mediaUrl !== null) {
-          // Mostrar sticker real se tiver URL
-          mediaContent = `<div class="message-media">
-            <img src="${message.mediaUrl}" alt="Sticker" class="message-sticker" style="max-width: 120px; max-height: 120px; border-radius: 8px; cursor: pointer; object-fit: contain;" onclick="openImageModal('${message.mediaUrl}')" />
-          </div>`;
-          console.log('😊 Sticker real carregado:', message.mediaUrl.substring(0, 50) + '...');
-        } else {
-          // Placeholder para stickers do WhatsApp
-          mediaContent = `<div class="message-media">
-            <div class="sticker-placeholder" onclick="openImageModal('')">
-              <div class="sticker-icon">😊</div>
-              <div class="sticker-text">Sticker</div>
+          </div>
+        `;
+        console.log('🎵 ✅ Player simples criado');
+      } else {
+        // Placeholder simples quando não tem URL
+        console.log('🎵 Criando placeholder simples (sem mediaUrl)');
+        const fileName = message.content ? message.content.replace('🎵', '').trim() : 'Áudio';
+        mediaContent = `
+          <div class="message-media" style="margin: 8px 0;">
+            <div style="
+              background: #1f2937;
+              border: 1px solid #374151;
+              border-radius: 8px;
+              padding: 12px;
+              max-width: 250px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              cursor: pointer;
+            " onclick="playAudioPlaceholder(this)">
+              <div style="
+                background: #10b981;
+                border-radius: 50%;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+              ">🎵</div>
+              <div style="flex: 1;">
+                <div style="color: #f9fafb; font-weight: 500; font-size: 13px;">${fileName}</div>
+                <div style="color: #9ca3af; font-size: 11px;">Arquivo de áudio</div>
+              </div>
+              <div style="
+                background: #10b981;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                color: white;
+              ">▶️</div>
             </div>
-          </div>`;
-          console.log('😊 Placeholder de sticker (sem URL)');
-        }
-        console.log('😊 HTML do sticker:', mediaContent);
+          </div>
+        `;
+        console.log('🎵 ✅ Placeholder simples criado');
       }
+    } else if (isImage) {
+      console.log('🖼️ RENDERIZANDO IMAGEM');
+      
+      if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
+        mediaContent = `<div class="message-media"><img src="${message.mediaUrl}" alt="Imagem" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;" /></div>`;
+      } else {
+        mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">📷</div><div style="color: #f9fafb;">Imagem</div></div></div>`;
+      }
+    } else if (isVideo) {
+      console.log('🎥 RENDERIZANDO VÍDEO');
+      
+      if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
+        mediaContent = `<div class="message-media"><video src="${message.mediaUrl}" controls style="max-width: 200px; max-height: 200px; border-radius: 8px;"></video></div>`;
+      } else {
+        mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">🎥</div><div style="color: #f9fafb;">Vídeo</div></div></div>`;
+      }
+    } else if (isDocument) {
+      console.log('📎 RENDERIZANDO DOCUMENTO');
+      mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">📎</div><div style="color: #f9fafb;">Documento</div></div></div>`;
     }
 
     return `
@@ -1778,20 +2018,6 @@
       console.error('❌ Elementos do seletor de emojis não encontrados');
     }
 
-    // Gravação de áudio
-    const voiceBtn = document.getElementById('voiceBtn');
-    if (voiceBtn) {
-      voiceBtn.addEventListener('click', async () => {
-        console.log('🎤 Botão de voz clicado, gravando:', isRecording);
-        if (!isRecording) {
-          await startRecording();
-        } else {
-          stopRecording();
-        }
-      });
-    } else {
-      console.error('❌ Botão de voz não encontrado');
-    }
 
     // Função para processar upload de arquivos - Versão Real
     async function handleFileUpload(files) {
@@ -1810,7 +2036,7 @@
           // Verificar tipo de arquivo
           const fileType = file.type.split('/')[0];
           
-          if (!['image', 'video', 'audio'].includes(fileType)) {
+          if (!['image', 'video'].includes(fileType)) {
             showNotification('Tipo de arquivo não suportado', 'error');
             continue;
           }
@@ -1899,138 +2125,6 @@
       }
     }
 
-    // Funções de gravação de áudio - Versão Real
-    async function startRecording() {
-    try {
-      console.log('🎤 Iniciando gravação de áudio...');
-      console.log('📱 CurrentChatContactId:', currentChatContactId);
-      
-      if (!currentChatContactId) {
-        showNotification('Nenhum contato selecionado', 'error');
-        return;
-      }
-      
-      // Solicitar acesso ao microfone
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Configurar MediaRecorder
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      isRecording = true;
-      
-      // Event listeners
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunks.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        // Criar blob do áudio
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        // Criar mensagem de áudio
-        const newMessage = {
-          id: Date.now() + Math.random(),
-          sender: 'user',
-          content: '',
-          timestamp: new Date(),
-          status: 'sending',
-          mediaType: 'audio',
-          fileName: `audio-${Date.now()}.wav`,
-          mediaUrl: audioUrl
-        };
-        
-        if (!chatMessages[currentChatContactId]) {
-          chatMessages[currentChatContactId] = [];
-        }
-        
-        chatMessages[currentChatContactId].push(newMessage);
-        renderChatMessages(chatMessages[currentChatContactId]);
-        
-        // Enviar áudio via WhatsApp
-        try {
-          const formData = new FormData();
-          formData.append('file', audioBlob, newMessage.fileName);
-          formData.append('contactId', currentChatContactId);
-          // enviar número real do contato
-          const sendAudioContact = contacts.find(c => c.id == currentChatContactId);
-          const sendAudioPhone = sendAudioContact?.phone || sendAudioContact?.cellPhone || '';
-          formData.append('phoneNumber', sendAudioPhone);
-          
-          console.log('📤 Enviando áudio para API...');
-          const response = await fetch('/api/whatsapp/send-media', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${getToken()}`
-            },
-            body: formData
-          });
-          
-          console.log('📥 Resposta da API (áudio):', response.status, response.statusText);
-          
-          if (response.ok) {
-            const localMessage = chatMessages[currentChatContactId].find(m => m.id === newMessage.id);
-            if (localMessage) {
-              localMessage.status = 'sent';
-            }
-            renderChatMessages(chatMessages[currentChatContactId]);
-            showNotification('Áudio enviado com sucesso!', 'success');
-          } else {
-            const errorText = await response.text();
-            console.error('❌ Erro da API (áudio):', errorText);
-            throw new Error(`Erro ao enviar áudio: ${response.status} - ${errorText}`);
-          }
-        } catch (error) {
-          console.error('Erro ao enviar áudio:', error);
-          // Simular envio se a API falhar
-          setTimeout(() => {
-            const localMessage = chatMessages[currentChatContactId].find(m => m.id === newMessage.id);
-            if (localMessage) {
-              localMessage.status = 'sent';
-            }
-            renderChatMessages(chatMessages[currentChatContactId]);
-            showNotification('Áudio enviado (simulado)', 'success');
-          }, 1000);
-        }
-        
-        // Parar stream
-        stream.getTracks().forEach(track => track.stop());
-      };
-      
-      // Iniciar gravação
-      mediaRecorder.start();
-      
-      // Atualizar botão
-      const voiceBtn = document.getElementById('voiceBtn');
-      if (voiceBtn) {
-        voiceBtn.textContent = '⏹️';
-        voiceBtn.style.background = '#f44336';
-      }
-      
-      showNotification('Gravando... Clique novamente para parar', 'info');
-      
-    } catch (err) {
-      console.error('Erro ao iniciar gravação:', err);
-      showNotification('Erro ao acessar microfone', 'error');
-    }
-  }
-
-    function stopRecording() {
-      console.log('⏹️ Parando gravação...');
-      if (mediaRecorder && isRecording) {
-        mediaRecorder.stop();
-        isRecording = false;
-        
-        // Resetar botão
-        const voiceBtn = document.getElementById('voiceBtn');
-        if (voiceBtn) {
-          voiceBtn.textContent = '🎤';
-          voiceBtn.style.background = '';
-        }
-      }
-    }
   }
 
   // Verificar elementos na inicialização
@@ -2404,14 +2498,6 @@
             </div>
           </div>
         `;
-      } else if (message.mediaType === 'audio') {
-        mediaContent = `
-          <div class="message-audio">
-            <audio controls>
-              <source src="${message.mediaUrl}" type="audio/ogg">
-            </audio>
-          </div>
-        `;
       } else if (message.mediaType === 'sticker') {
         mediaContent = `
           <div class="media-preview">
@@ -2703,7 +2789,6 @@
   console.log('🔍 Verificando elementos:');
   console.log('📎 Botão anexo:', document.getElementById('attachBtn'));
   console.log('😊 Botão emoji:', document.getElementById('emojiBtn'));
-  console.log('🎤 Botão voz:', document.getElementById('voiceBtn'));
   console.log('📁 Input arquivo:', document.getElementById('fileInput'));
   console.log('🎨 Seletor emoji:', document.getElementById('emojiPicker'));
 

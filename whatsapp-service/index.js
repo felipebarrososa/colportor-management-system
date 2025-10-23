@@ -9,11 +9,71 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Função para detectar mimetype baseado no conteúdo do arquivo
+function detectMimetype(buffer, originalname) {
+    // Verificar assinaturas de arquivo (magic numbers)
+    if (buffer.length >= 4) {
+        // WAV: RIFF header
+        if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+            return 'audio/wav';
+        }
+        // OGG: OggS header
+        if (buffer[0] === 0x4F && buffer[1] === 0x67 && buffer[2] === 0x67 && buffer[3] === 0x53) {
+            return 'audio/ogg';
+        }
+        // MP3: ID3 tag ou frame sync
+        if ((buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) || 
+            (buffer[0] === 0xFF && (buffer[1] & 0xE0) === 0xE0)) {
+            return 'audio/mpeg';
+        }
+        // JPEG: FF D8 FF
+        if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+            return 'image/jpeg';
+        }
+        // PNG: 89 50 4E 47
+        if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+            return 'image/png';
+        }
+        // GIF: 47 49 46 38
+        if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
+            return 'image/gif';
+        }
+        // MP4: ftyp box
+        if (buffer.length >= 8 && buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70) {
+            return 'video/mp4';
+        }
+    }
+    
+    // Fallback baseado na extensão
+    const ext = path.extname(originalname).toLowerCase();
+    switch (ext) {
+        case '.wav': return 'audio/wav';
+        case '.ogg': return 'audio/ogg';
+        case '.mp3': return 'audio/mpeg';
+        case '.m4a': return 'audio/mp4';
+        case '.aac': return 'audio/aac';
+        case '.jpg':
+        case '.jpeg': return 'image/jpeg';
+        case '.png': return 'image/png';
+        case '.gif': return 'image/gif';
+        case '.webp': return 'image/webp';
+        case '.mp4': return 'video/mp4';
+        case '.avi': return 'video/x-msvideo';
+        case '.mov': return 'video/quicktime';
+        case '.webm': return 'video/webm';
+        default: return 'application/octet-stream';
+    }
+}
+
 // Configurar multer para upload de arquivos
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
         fileSize: 50 * 1024 * 1024 // 50MB
+    },
+    fileFilter: (req, file, cb) => {
+        // Permitir todos os tipos de arquivo por enquanto
+        cb(null, true);
     }
 });
 
@@ -365,44 +425,70 @@ app.post('/send-media', upload.single('media'), async (req, res) => {
             ? phoneNumber 
             : `${phoneNumber}@c.us`;
         
-        console.log(`Enviando mídia para: ${formattedPhone}`);
-        console.log(`Tipo de mídia: ${mediaType}`);
-        console.log(`Arquivo: ${mediaFile.originalname}`);
+        console.log(`📎 ENVIANDO MÍDIA - Tipo: ${mediaType}`);
+        console.log(`📱 Para: ${formattedPhone}`);
+        console.log(`📁 Arquivo: ${mediaFile.originalname}`);
+        console.log(`📊 Buffer size: ${mediaFile.buffer ? mediaFile.buffer.length : 'UNDEFINED'}`);
+        console.log(`🔍 Original mimetype: ${mediaFile.mimetype}`);
+        console.log(`📝 Fieldname: ${mediaFile.fieldname}`);
+        console.log(`📏 Size: ${mediaFile.size}`);
+        
+        // Verificar se o buffer existe
+        if (!mediaFile.buffer || mediaFile.buffer.length === 0) {
+            console.error('ERRO: Buffer do arquivo está vazio!');
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Arquivo de mídia está vazio ou corrompido' 
+            });
+        }
         
         // Converter buffer para base64
         const mediaData = mediaFile.buffer.toString('base64');
+        console.log(`Base64 length: ${mediaData.length}`);
         
-        // Determinar mimetype e filename
-        let finalMimetype = mediaFile.mimetype;
+        // Determinar mimetype e filename baseado no tipo de mídia
+        let finalMimetype;
         let filename = mediaFile.originalname;
         
-        // Ajustar mimetype baseado no tipo de mídia
-        if (mediaType === 'audio') {
-            // Para áudios, usar ogg
-            finalMimetype = 'audio/ogg; codecs=opus';
-            if (!filename.endsWith('.ogg')) {
-                filename = filename.replace(/\.[^/.]+$/, '.ogg');
+        if (mediaType === 'image') {
+            // Para imagens, usar mimetype baseado na extensão
+            if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
+                finalMimetype = 'image/jpeg';
+            } else if (filename.endsWith('.png')) {
+                finalMimetype = 'image/png';
+            } else if (filename.endsWith('.gif')) {
+                finalMimetype = 'image/gif';
+            } else if (filename.endsWith('.webp')) {
+                finalMimetype = 'image/webp';
+            } else {
+                finalMimetype = 'image/jpeg'; // fallback para imagem
             }
-        } else if (mediaType === 'image') {
-            // Para imagens, manter o mimetype original
-            finalMimetype = mediaFile.mimetype;
         } else if (mediaType === 'video') {
             // Para vídeos, usar mp4
             finalMimetype = 'video/mp4';
             if (!filename.endsWith('.mp4')) {
                 filename = filename.replace(/\.[^/.]+$/, '.mp4');
             }
+        } else {
+            // Fallback genérico
+            finalMimetype = 'application/octet-stream';
         }
 
-        console.log(`Mimetype final: ${finalMimetype}`);
-        console.log(`Filename final: ${filename}`);
+        console.log(`🎯 MIMETYPE FINAL: ${finalMimetype}`);
+        console.log(`📄 FILENAME FINAL: ${filename}`);
+        console.log(`📊 DATA LENGTH: ${mediaData.length}`);
         
+        // Criar MessageMedia
         const messageMedia = new MessageMedia(finalMimetype, mediaData, filename);
+        
+        console.log(`✅ MessageMedia criado com sucesso!`);
+        console.log(`🔍 Detalhes: mimetype=${finalMimetype}, filename=${filename}, dataLength=${mediaData.length}`);
 
+        // Enviar mídia (imagem, vídeo ou documento)
         try {
-            const result = await client.sendMessage(formattedPhone, message || '', { media: messageMedia });
+            const result = await client.sendMessage(formattedPhone, messageMedia);
 
-            console.log(`Mídia REAL enviada para ${formattedPhone}`);
+            console.log(`✅ Mídia enviada com sucesso para ${formattedPhone}`);
             console.log(`ID da mensagem: ${result.id._serialized}`);
 
             res.json({
@@ -411,37 +497,27 @@ app.post('/send-media', upload.single('media'), async (req, res) => {
                 message: 'Mídia enviada com sucesso'
             });
         } catch (sendError) {
-            console.error('Erro ao enviar mídia via WhatsApp:', sendError);
+            console.error('❌ Erro ao enviar mídia via WhatsApp:', sendError);
             
-            // Fallback: enviar como mensagem de texto com emoji
+            // Fallback para texto
             try {
-                let fallbackMessage = message || '';
                 let emoji = '';
-                
                 switch (mediaType) {
-                    case 'audio':
-                        emoji = '🎵';
-                        break;
-                    case 'image':
-                        emoji = '🖼️';
-                        break;
-                    case 'video':
-                        emoji = '🎥';
-                        break;
-                    default:
-                        emoji = '📎';
+                    case 'image': emoji = '🖼️'; break;
+                    case 'video': emoji = '🎥'; break;
+                    default: emoji = '📎';
                 }
                 
-                const textResult = await client.sendMessage(formattedPhone, `${emoji} ${filename}${fallbackMessage ? '\n' + fallbackMessage : ''}`);
-                console.log(`Mensagem de texto enviada como fallback: ${textResult.id._serialized}`);
+                const textResult = await client.sendMessage(formattedPhone, `${emoji} ${filename}`);
+                console.log(`⚠️ Enviado como texto: ${textResult.id._serialized}`);
                 
                 res.json({
                     success: true,
                     messageId: textResult.id._serialized,
-                    message: 'Mídia enviada como mensagem de texto (fallback)'
+                    message: 'Mídia enviada como texto (fallback)'
                 });
-            } catch (fallbackError) {
-                console.error('Erro no fallback:', fallbackError);
+            } catch (finalError) {
+                console.error('❌ Erro final:', finalError);
                 res.status(500).json({ 
                     success: false, 
                     message: 'Erro ao enviar mídia: ' + sendError.message 
@@ -505,24 +581,137 @@ app.get('/messages/:phoneNumber', async (req, res) => {
         const formattedMessages = await Promise.all(messages.map(async (msg) => {
             let mediaUrl = null;
             let mediaType = null;
-            if (msg.hasMedia) {
+            let hasMedia = false;
+            
+            console.log(`🔍 PROCESSANDO MENSAGEM:`, {
+                id: msg.id._serialized,
+                type: msg.type,
+                hasMedia: msg.hasMedia,
+                body: msg.body,
+                fromMe: msg.fromMe
+            });
+            
+            // Verificar se a mensagem tem mídia de forma mais robusta
+            if (msg.hasMedia || msg.type === 'image' || msg.type === 'audio' || msg.type === 'ptt' || msg.type === 'video' || msg.type === 'sticker' || msg.type === 'document') {
+                hasMedia = true;
+                // Mapear ptt (Push-to-Talk) para audio
+                mediaType = msg.type === 'ptt' ? 'audio' : msg.type;
+                
+                console.log(`📎 MÍDIA DETECTADA:`, {
+                    originalType: msg.type,
+                    mappedType: mediaType,
+                    hasMedia: msg.hasMedia
+                });
+                
+                // VERIFICAÇÃO ESPECIAL: Se é documento mas pode ser áudio
+                if (msg.type === 'document' && msg.body) {
+                    const body = msg.body.toLowerCase();
+                    if (body.includes('.wav') || body.includes('.mp3') || body.includes('.ogg') || body.includes('audio')) {
+                        mediaType = 'audio';
+                        console.log(`🎵 Documento detectado como áudio: ${msg.body}`);
+                    }
+                }
+                
+                // SOLUÇÃO ALTERNATIVA: Usar msg._data para áudios
                 try {
-                    const media = await msg.downloadMedia();
-                    mediaUrl = `data:${media.mimetype};base64,${media.data}`;
-                    mediaType = msg.type;
+                    // Para áudios (ptt), tentar acessar dados diretamente
+                    if (msg.type === 'ptt' || mediaType === 'audio') {
+                        console.log(`🎵 Tentando método alternativo para áudio...`);
+                        console.log(`🎵 Dados da mensagem:`, {
+                            hasData: !!msg._data,
+                            hasMediaData: !!(msg._data && msg._data.mediaData),
+                            dataKeys: msg._data ? Object.keys(msg._data) : 'null'
+                        });
+                        
+                        // Verificar se tem dados de mídia no objeto da mensagem
+                        if (msg._data && msg._data.mediaData) {
+                            const mediaData = msg._data.mediaData;
+                            console.log(`🎵 MediaData encontrado:`, {
+                                hasData: !!mediaData.data,
+                                mimetype: mediaData.mimetype,
+                                dataLength: mediaData.data ? mediaData.data.length : 0
+                            });
+                            
+                            if (mediaData.data) {
+                                mediaUrl = `data:${mediaData.mimetype || 'audio/ogg'};base64,${mediaData.data}`;
+                                console.log(`✅ Áudio baixado via _data: ${mediaData.mimetype || 'audio/ogg'}`);
+                            }
+                        }
+                        
+                        // Se não funcionou, tentar download normal
+                        if (!mediaUrl) {
+                            console.log(`🎵 Tentando downloadMedia normal...`);
+                            const media = await Promise.race([
+                                msg.downloadMedia(),
+                                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
+                            ]);
+                            
+                            if (media && media.data) {
+                                mediaUrl = `data:${media.mimetype};base64,${media.data}`;
+                                console.log(`✅ Áudio baixado via downloadMedia: ${media.mimetype}`);
+                            } else {
+                                console.log(`❌ downloadMedia retornou dados inválidos:`, {
+                                    hasMedia: !!media,
+                                    hasData: !!(media && media.data),
+                                    mimetype: media ? media.mimetype : 'null'
+                                });
+                            }
+                        }
+                    } else {
+                        // Para outros tipos de mídia, usar download normal
+                        console.log(`📎 Baixando mídia normal: ${msg.type}`);
+                        const media = await Promise.race([
+                            msg.downloadMedia(),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+                        ]);
+                        
+                        if (media && media.data) {
+                            mediaUrl = `data:${media.mimetype};base64,${media.data}`;
+                            console.log(`✅ Mídia baixada com sucesso: ${msg.type} - ${media.mimetype}`);
+                        } else {
+                            console.log(`❌ Falha no download de mídia normal:`, {
+                                hasMedia: !!media,
+                                hasData: !!(media && media.data),
+                                mimetype: media ? media.mimetype : 'null'
+                            });
+                        }
+                    }
                 } catch (e) {
-                    console.log('Falha ao baixar mídia da mensagem:', e?.message);
+                    console.log(`❌ Falha no download: ${e?.message}`);
+                    console.log(`❌ Stack trace:`, e.stack);
+                    
+                    // FALLBACK: Para áudios, criar URL placeholder
+                    if (msg.type === 'ptt' || mediaType === 'audio') {
+                        console.log(`🎵 Criando placeholder para áudio...`);
+                        // Marcar como áudio mesmo sem URL para o frontend renderizar
+                        hasMedia = true;
+                        mediaType = 'audio';
+                        // Não definir mediaUrl - frontend vai renderizar placeholder
+                    }
                 }
             }
-            return {
+            
+            const result = {
                 id: msg.id._serialized,
                 content: msg.body || '',
                 sender: msg.fromMe ? 'user' : 'contact',
                 timestamp: new Date((msg.timestamp || Math.floor(Date.now()/1000)) * 1000),
                 status: typeof msg.ack === 'number' ? msg.ack : 'unknown',
                 mediaUrl,
-                mediaType
+                mediaType,
+                hasMedia
             };
+            
+            console.log(`📤 RESULTADO FINAL DA MENSAGEM:`, {
+                id: result.id,
+                content: result.content,
+                mediaType: result.mediaType,
+                hasMedia: result.hasMedia,
+                hasMediaUrl: !!result.mediaUrl,
+                mediaUrlPreview: result.mediaUrl ? result.mediaUrl.substring(0, 50) + '...' : 'null'
+            });
+            
+            return result;
         }));
 
         console.log(`Encontradas ${formattedMessages.length} mensagens para ${chatId}`);

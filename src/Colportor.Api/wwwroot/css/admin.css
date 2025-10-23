@@ -2922,3 +2922,118 @@ body.modal-open {
         min-width: auto;
     }
 }
+
+/* ===== MESSAGE MEDIA PLACEHOLDERS ===== */
+.message-media {
+    margin: 8px 0;
+}
+
+.image-placeholder,
+.media-placeholder,
+.sticker-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    text-align: center;
+}
+
+.image-placeholder:hover,
+.media-placeholder:hover,
+.sticker-placeholder:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.image-icon,
+.media-icon,
+.sticker-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: 0.8;
+}
+
+.image-text,
+.media-text,
+.sticker-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.image-subtitle,
+.media-subtitle {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+}
+
+/* Estilos específicos para cada tipo de mídia */
+.image-placeholder {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.media-placeholder {
+    border-color: rgba(59, 130, 246, 0.3);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.audio-placeholder {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.05);
+    cursor: pointer;
+}
+
+.audio-placeholder:hover {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.sticker-placeholder {
+    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.media-note {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin-top: 4px;
+}
+
+/* Estilos para elementos de mídia reais */
+.message-image,
+.message-video,
+.message-audio {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.message-image {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.message-image:hover {
+    transform: scale(1.02);
+}
+
+.message-audio {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.message-video {
+    background: rgba(0, 0, 0, 0.8);
+}

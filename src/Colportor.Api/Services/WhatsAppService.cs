@@ -289,8 +289,58 @@ namespace Colportor.Api.Services
                                     Content = item.TryGetProperty("content", out var contentEl) ? contentEl.GetString() ?? string.Empty : string.Empty,
                                     Sender = item.TryGetProperty("sender", out var senderEl) ? senderEl.GetString() ?? string.Empty : string.Empty,
                                     MediaUrl = item.TryGetProperty("mediaUrl", out var mediaUrlEl) && mediaUrlEl.ValueKind != JsonValueKind.Null ? mediaUrlEl.GetString() : null,
-                                    MediaType = item.TryGetProperty("mediaType", out var mediaTypeEl) && mediaTypeEl.ValueKind != JsonValueKind.Null ? mediaTypeEl.GetString() : null
+                                    MediaType = item.TryGetProperty("mediaType", out var mediaTypeEl) && mediaTypeEl.ValueKind != JsonValueKind.Null ? mediaTypeEl.GetString() : null,
+                                    HasMedia = item.TryGetProperty("hasMedia", out var hasMediaEl) && hasMediaEl.ValueKind == JsonValueKind.True
                                 };
+                                
+                                // Detectar tipo de mídia baseado no conteúdo se MediaType for null
+                                if (string.IsNullOrEmpty(dto.MediaType) && !string.IsNullOrEmpty(dto.Content))
+                                {
+                                    // Verificar se é uma mensagem de fallback (texto com emoji)
+                                    if (dto.Content.Contains("🖼️") && (dto.Content.Contains(".jpg") || dto.Content.Contains(".png") || dto.Content.Contains(".jpeg")))
+                                    {
+                                        dto.MediaType = "image";
+                                        // Para mensagens de imagem de fallback, não definir MediaUrl
+                                    }
+                                    else if (dto.Content.Contains("🎥") && (dto.Content.Contains(".mp4") || dto.Content.Contains(".avi") || dto.Content.Contains(".mov")))
+                                    {
+                                        dto.MediaType = "video";
+                                        // Para mensagens de vídeo de fallback, não definir MediaUrl
+                                    }
+                                    // Detectar por extensão de arquivo sem emoji
+                                    else if (dto.Content.Contains(".wav") || dto.Content.Contains(".mp3") || dto.Content.Contains(".ogg"))
+                                    {
+                                        dto.MediaType = "audio";
+                                    }
+                                    else if (dto.Content.Contains(".jpg") || dto.Content.Contains(".jpeg") || dto.Content.Contains(".png") || dto.Content.Contains(".gif"))
+                                    {
+                                        dto.MediaType = "image";
+                                    }
+                                    else if (dto.Content.Contains(".mp4") || dto.Content.Contains(".avi") || dto.Content.Contains(".mov"))
+                                    {
+                                        dto.MediaType = "video";
+                                    }
+                                }
+                                
+                                // Se tem MediaUrl mas não tem MediaType, tentar detectar pelo conteúdo da URL
+                                if (!string.IsNullOrEmpty(dto.MediaUrl) && string.IsNullOrEmpty(dto.MediaType))
+                                {
+                                    if (dto.MediaUrl.StartsWith("data:audio/"))
+                                    {
+                                        dto.MediaType = "audio";
+                                    }
+                                    else if (dto.MediaUrl.StartsWith("data:image/"))
+                                    {
+                                        dto.MediaType = "image";
+                                    }
+                                    else if (dto.MediaUrl.StartsWith("data:video/"))
+                                    {
+                                        dto.MediaType = "video";
+                                    }
+                                }
+                                
+                                _logger.LogInformation("🔍 Debug mensagem do WhatsApp Service - ID: {Id}, Content: {Content}, MediaType: {MediaType}, MediaUrl: {MediaUrl}", 
+                                    dto.Id, dto.Content, dto.MediaType, dto.MediaUrl);
 
                                 // Timestamp pode vir como string ISO ou número
                                 if (item.TryGetProperty("timestamp", out var tsEl))
@@ -330,7 +380,8 @@ namespace Colportor.Api.Services
                         Timestamp = m.Timestamp,
                         Status = m.Status?.ToString() ?? "unknown",
                         MediaUrl = m.MediaUrl,
-                        MediaType = m.MediaType
+                        MediaType = m.MediaType,
+                        HasMedia = m.HasMedia || !string.IsNullOrEmpty(m.MediaUrl) || !string.IsNullOrEmpty(m.MediaType)
                     }).ToList() ?? new List<WhatsAppMessageResponseDto>();
 
                     return ApiResponse<IEnumerable<WhatsAppMessageResponseDto>>.SuccessResponse(messages);

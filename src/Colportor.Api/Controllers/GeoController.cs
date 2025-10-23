@@ -43,19 +43,27 @@ public class GeoController : BaseController
     }
 
     /// <summary>
-    /// Lista regiões por país (público)
+    /// Lista todas as regiões (público)
     /// </summary>
     [HttpGet("regions")]
-    public async Task<IActionResult> GetRegionsByCountry([FromQuery] int countryId)
+    public async Task<IActionResult> GetRegions([FromQuery] int? countryId = null)
     {
         try
         {
-            var regions = await _regionService.GetRegionsByCountryAsync(countryId);
-            return Ok(regions);
+            if (countryId.HasValue)
+            {
+                var regions = await _regionService.GetRegionsByCountryAsync(countryId.Value);
+                return Ok(regions);
+            }
+            else
+            {
+                var regions = await _regionService.GetAllAsync();
+                return Ok(regions);
+            }
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Erro ao listar regiões por país {CountryId}", countryId);
+            Logger.LogError(ex, "Erro ao listar regiões {CountryId}", countryId);
             return StatusCode(500, new { message = "Erro interno do servidor" });
         }
     }

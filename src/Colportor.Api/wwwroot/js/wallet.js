@@ -2,7 +2,7 @@
 const $ = (q) => document.querySelector(q);
 const api = (path, opts = {}) => {
     const token = localStorage.getItem("token");
-    console.log("API call to:", path, "Token exists:", !!token);
+    console.log("API call to:", path, "Token exists:", !!token, "Token preview:", token ? token.substring(0, 20) + "..." : "none");
     return fetch(path, {
         ...opts,
         headers: {
@@ -347,8 +347,12 @@ async function renderWallet() {
         }
         $("#age").textContent = age;
         
-        $("#place").textContent = [colportor.city || x.city, region.name].filter(Boolean).join(" / ") || "—";
-        $("#leader").textContent = colportor.leaderName ?? "—";
+        // Corrigir exibição de região e líder
+        const regionName = region?.name || "Região não informada";
+        const leaderName = colportor?.leaderName || "Líder não informado";
+        
+        $("#place").textContent = [colportor.city || x.city, regionName].filter(Boolean).join(" / ") || "—";
+        $("#leader").textContent = leaderName;
         $("#lastVisit").textContent = colportor.lastVisitDate ? new Date(colportor.lastVisitDate).toLocaleDateString("pt-BR") : "—";
         $("#due").textContent = colportor.dueDate ? new Date(colportor.dueDate).toLocaleDateString("pt-BR") : "—";
 

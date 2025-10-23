@@ -164,8 +164,8 @@ namespace Colportor.Api.Controllers
                 {
                     ContactId = int.Parse(contactId),
                     PhoneNumber = phoneNumber,
-                    Content = file.FileName,
-                    MediaType = file.ContentType.Split('/')[0], // image, video, audio
+                    Content = "", // Para mídia, enviar conteúdo vazio
+                    MediaType = file.ContentType.Split('/')[0], // image, video
                     MediaFile = file
                 };
 
