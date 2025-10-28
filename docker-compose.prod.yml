@@ -55,5 +55,19 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  whatsapp:
+    build:
+      context: ./whatsapp-service
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+    ports:
+      - "3001:3001"
+    volumes:
+      - whatsapp_data:/app/.wwebjs_auth
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  whatsapp_data:
