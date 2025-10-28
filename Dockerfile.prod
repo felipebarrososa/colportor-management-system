@@ -72,4 +72,5 @@ ENV WHATSAPP_SERVICE_URL=http://localhost:3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-ENTRYPOINT ["/app/start.sh"]
+# Usar CMD em vez de ENTRYPOINT para Railway
+CMD ["/app/start.sh"]
