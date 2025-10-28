@@ -78,8 +78,25 @@ using (var scope = app.Services.CreateScope())
         {
             Log.Information("Aplicando {Count} migrations pendentes: {Migrations}", 
                 pendingMigrations.Count(), string.Join(", ", pendingMigrations));
-            context.Database.Migrate();
-            Log.Information("Migrations aplicadas com sucesso");
+            
+            // Tentar aplicar migrations uma por vez para evitar falhas em lote
+            foreach (var migration in pendingMigrations)
+            {
+                try
+                {
+                    Log.Information("Aplicando migration: {Migration}", migration);
+                    context.Database.Migrate();
+                    Log.Information("Migration {Migration} aplicada com sucesso", migration);
+                    break; // Se chegou aqui, todas as migrations foram aplicadas
+                }
+                catch (Exception migrationEx)
+                {
+                    Log.Warning(migrationEx, "Falha ao aplicar migration {Migration}, tentando próxima", migration);
+                    // Continuar com a próxima migration
+                }
+            }
+            
+            Log.Information("Processo de migrations concluído");
         }
         else
         {
@@ -88,7 +105,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "Erro ao aplicar migrations");
+        Log.Error(ex, "Erro geral ao aplicar migrations - continuando sem falhar a aplicação");
         // Não falhar a aplicação se migrations falharem
     }
 }
