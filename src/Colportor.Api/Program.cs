@@ -98,20 +98,21 @@ _ = Task.Run(async () =>
             var nodeVersion = await nodeProcess.StandardOutput.ReadToEndAsync();
             Log.Information("Node.js versão: {Version}", nodeVersion.Trim());
             
-            // Iniciar WhatsApp
-            var whatsappProcess = new System.Diagnostics.Process
+        // Iniciar WhatsApp com porta específica
+        var whatsappProcess = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "npm",
-                    Arguments = "start",
-                    WorkingDirectory = whatsappDir,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
+                FileName = "npm",
+                Arguments = "start",
+                WorkingDirectory = whatsappDir,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                Environment = { ["PORT"] = "3001" } // Forçar porta 3001
+            }
+        };
             
             whatsappProcess.Start();
             Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
