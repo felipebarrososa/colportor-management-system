@@ -72,63 +72,52 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        // Verificar se há migrations pendentes antes de aplicar
+        // Primeiro, marcar migrations existentes como aplicadas para evitar conflitos
+        Log.Information("Verificando e corrigindo histórico de migrations");
+        
+        var migrationsToMark = new[]
+        {
+            "202409290001_Initial",
+            "20251001124027_AddLeaderPersonalData", 
+            "20251001193944_AddPacEnrollmentsToColportor",
+            "20251001212504_FixColportorLeaderRelationship",
+            "20251001213603_RemoveColportorCountryProperties",
+            "20251002124656_AddGenderAndBirthDateToColportors",
+            "20251002130658_AddGenderBirthDateSimple",
+            "20251013220000_AddPhotosTable",
+            "20251020134639_AddMissionContacts"
+        };
+        
+        foreach (var migration in migrationsToMark)
+        {
+            try
+            {
+                Log.Information("Marcando migration {Migration} como aplicada", migration);
+                context.Database.ExecuteSqlRaw(
+                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                    migration, "8.0.8");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
+            }
+        }
+        
+        // Agora aplicar migrations pendentes (só WhatsApp e Reminders)
         var pendingMigrations = context.Database.GetPendingMigrations();
         if (pendingMigrations.Any())
         {
             Log.Information("Aplicando {Count} migrations pendentes: {Migrations}", 
                 pendingMigrations.Count(), string.Join(", ", pendingMigrations));
             
-            // Tentar aplicar migrations normalmente primeiro
             try
             {
                 context.Database.Migrate();
-                Log.Information("Todas as migrations aplicadas com sucesso");
+                Log.Information("Migrations aplicadas com sucesso");
             }
             catch (Exception migrationEx)
             {
-                Log.Warning(migrationEx, "Falha ao aplicar migrations automaticamente, marcando migrations existentes como aplicadas");
-                
-                // Marcar todas as migrations antigas como aplicadas (exceto WhatsApp e Reminders)
-                var migrationsToMark = new[]
-                {
-                    "202409290001_Initial",
-                    "20251001124027_AddLeaderPersonalData", 
-                    "20251001193944_AddPacEnrollmentsToColportor",
-                    "20251001212504_FixColportorLeaderRelationship",
-                    "20251001213603_RemoveColportorCountryProperties",
-                    "20251002124656_AddGenderAndBirthDateToColportors",
-                    "20251002130658_AddGenderBirthDateSimple",
-                    "20251013220000_AddPhotosTable",
-                    "20251020134639_AddMissionContacts"
-                };
-                
-                foreach (var migration in migrationsToMark)
-                {
-                    try
-                    {
-                        Log.Information("Marcando migration {Migration} como aplicada", migration);
-                        context.Database.ExecuteSqlRaw(
-                            "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                            migration, "8.0.8");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
-                    }
-                }
-                
-                // Tentar aplicar migrations novamente (agora só WhatsApp e Reminders)
-                try
-                {
-                    Log.Information("Tentando aplicar migrations restantes após correção");
-                    context.Database.Migrate();
-                    Log.Information("Migrations aplicadas com sucesso após correção");
-                }
-                catch (Exception finalEx)
-                {
-                    Log.Error(finalEx, "Ainda há problemas com migrations, mas continuando");
-                }
+                Log.Error(migrationEx, "Erro ao aplicar migrations pendentes, mas continuando");
             }
         }
         else
