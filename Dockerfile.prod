@@ -63,7 +63,7 @@ sleep 30\n\
 echo "Verificando se WhatsApp está rodando..."\n\
 curl -f http://localhost:3001/status || echo "WhatsApp ainda não está pronto"\n\
 echo "Iniciando API..."\n\
-cd /app && dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start.sh
+cd /app && exec dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start.sh
 
 # Configurações de produção
 ENV ASPNETCORE_ENVIRONMENT=Production
@@ -72,5 +72,5 @@ ENV WHATSAPP_SERVICE_URL=http://localhost:3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-# Usar CMD em vez de ENTRYPOINT para Railway
-CMD ["/app/start.sh"]
+# Usar ENTRYPOINT com exec para Railway
+ENTRYPOINT ["/app/start.sh"]
