@@ -8,6 +8,7 @@ using Colportor.Api.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using AspNetCoreRateLimit;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
