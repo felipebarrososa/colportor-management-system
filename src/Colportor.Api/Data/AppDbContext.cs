@@ -28,6 +28,7 @@ namespace Colportor.Api.Data
         public DbSet<Colportor.Api.Models.WhatsAppMessage> WhatsAppMessages => Set<Colportor.Api.Models.WhatsAppMessage>();
         public DbSet<Colportor.Api.Models.WhatsAppTemplate> WhatsAppTemplates => Set<Colportor.Api.Models.WhatsAppTemplate>();
         public DbSet<Colportor.Api.Models.WhatsAppConnection> WhatsAppConnections => Set<Colportor.Api.Models.WhatsAppConnection>();
+        public DbSet<Colportor.Api.Models.Reminder> Reminders => Set<Colportor.Api.Models.Reminder>();
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -257,6 +258,29 @@ namespace Colportor.Api.Data
 
                 e.HasIndex(x => x.Status);
                 e.HasIndex(x => x.PhoneNumber);
+                e.HasIndex(x => x.CreatedAt);
+            });
+
+            // ===== Reminders =====
+            mb.Entity<Colportor.Api.Models.Reminder>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Title).IsRequired().HasMaxLength(200);
+                e.Property(x => x.Description).HasMaxLength(1000);
+                e.Property(x => x.DateTime).IsRequired();
+                e.Property(x => x.Priority).IsRequired().HasMaxLength(20);
+                e.Property(x => x.Completed).IsRequired();
+                e.Property(x => x.CreatedAt).IsRequired();
+                e.Property(x => x.CreatedBy).HasMaxLength(50);
+
+                e.HasOne(x => x.Contact)
+                    .WithMany()
+                    .HasForeignKey(x => x.ContactId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => x.ContactId);
+                e.HasIndex(x => x.DateTime);
+                e.HasIndex(x => x.Completed);
                 e.HasIndex(x => x.CreatedAt);
             });
 

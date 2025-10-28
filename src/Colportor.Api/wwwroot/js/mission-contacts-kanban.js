@@ -13,6 +13,7 @@
   let observations = {}; // Armazenar observações por contato
   let isEditing = false;
   let originalContactData = null;
+  let reminders = []; // Sistema de lembretes
   
   
   // Variáveis do WhatsApp melhorado
@@ -260,11 +261,14 @@
 
   // Função para requisições autenticadas (igual ao admin.js)
   async function authFetch(path, init = {}) {
+    // Buscar token dinamicamente
+    const currentToken = sessionStorage.getItem("token") || localStorage.getItem("token") || "";
+    
     const res = await fetch(path, {
       ...init,
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
+        Authorization: "Bearer " + currentToken,
         ...(init.headers || {}),
       },
     });
@@ -560,6 +564,27 @@
     editBtn.style.display = 'block';
     editActions.style.display = 'none';
     
+    // Atualizar o header do modal com dados reais do contato
+    const contactTitle = document.getElementById('contactTitle');
+    const contactSubtitle = document.getElementById('contactSubtitle');
+    const contactStatusModern = document.getElementById('contactStatusModern');
+    
+    if (contactTitle) {
+      contactTitle.textContent = contact.fullName || 'Sem nome';
+    }
+    
+    if (contactSubtitle) {
+      contactSubtitle.textContent = contact.phone || 'Sem telefone';
+    }
+    
+    if (contactStatusModern) {
+      // Por enquanto, sempre "online" (pode ser melhorado depois com status real)
+      const statusText = contactStatusModern.querySelector('.status-text');
+      if (statusText) {
+        statusText.textContent = 'Online agora';
+      }
+    }
+    
     renderContactInfo(contact, false);
     
     // Carregar observações da API e renderizar timeline
@@ -574,230 +599,280 @@
     }, 100);
   };
 
-  // Renderizar informações do contato (modo visualização ou edição)
+  // Renderizar informações do contato (modo visualização ou edição) - DESIGN MODERNO
   function renderContactInfo(contact, editing = false) {
     const contactInfoGrid = document.getElementById('contactInfoGrid');
     
     if (editing) {
       contactInfoGrid.innerHTML = `
-        <div class="info-item">
-          <div class="info-label">Nome completo</div>
-          <div class="info-value editable">
-            <input type="text" id="editFullName" value="${esc(contact.fullName)}" />
+        <div class="info-card-modern">
+          <h4>👤 Dados Pessoais</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nome completo</div>
+            <div class="info-value-modern">
+              <input type="text" id="editFullName" value="${esc(contact.fullName)}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Gênero</div>
+            <div class="info-value-modern">
+              <select id="editGender" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="">Selecione...</option>
+                <option value="Masculino" ${contact.gender === 'Masculino' ? 'selected' : ''}>Masculino</option>
+                <option value="Feminino" ${contact.gender === 'Feminino' ? 'selected' : ''}>Feminino</option>
+                <option value="Outro" ${contact.gender === 'Outro' ? 'selected' : ''}>Outro</option>
+              </select>
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Data de nascimento</div>
+            <div class="info-value-modern">
+              <input type="date" id="editBirthDate" value="${contact.birthDate ? contact.birthDate.split('T')[0] : ''}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Estado civil</div>
+            <div class="info-value-modern">
+              <select id="editMaritalStatus" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="">Selecione...</option>
+                <option value="Solteiro(a)" ${contact.maritalStatus === 'Solteiro(a)' ? 'selected' : ''}>Solteiro(a)</option>
+                <option value="Casado(a)" ${contact.maritalStatus === 'Casado(a)' ? 'selected' : ''}>Casado(a)</option>
+                <option value="Divorciado(a)" ${contact.maritalStatus === 'Divorciado(a)' ? 'selected' : ''}>Divorciado(a)</option>
+                <option value="Viúvo(a)" ${contact.maritalStatus === 'Viúvo(a)' ? 'selected' : ''}>Viúvo(a)</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Gênero</div>
-          <div class="info-value editable">
-            <select id="editGender">
-              <option value="">Selecione...</option>
-              <option value="Masculino" ${contact.gender === 'Masculino' ? 'selected' : ''}>Masculino</option>
-              <option value="Feminino" ${contact.gender === 'Feminino' ? 'selected' : ''}>Feminino</option>
-              <option value="Outro" ${contact.gender === 'Outro' ? 'selected' : ''}>Outro</option>
-            </select>
+        
+        <div class="info-card-modern">
+          <h4>🌍 Localização</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nacionalidade</div>
+            <div class="info-value-modern">
+              <input type="text" id="editNationality" value="${esc(contact.nationality || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Cidade</div>
+            <div class="info-value-modern">
+              <input type="text" id="editCity" value="${esc(contact.city || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Estado</div>
+            <div class="info-value-modern">
+              <input type="text" id="editState" value="${esc(contact.state || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Data de nascimento</div>
-          <div class="info-value editable">
-            <input type="date" id="editBirthDate" value="${contact.birthDate ? contact.birthDate.split('T')[0] : ''}" />
+        
+        <div class="info-card-modern">
+          <h4>📞 Contato</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Telefone</div>
+            <div class="info-value-modern">
+              <input type="tel" id="editPhone" value="${esc(contact.phone || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">E-mail</div>
+            <div class="info-value-modern">
+              <input type="email" id="editEmail" value="${esc(contact.email || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Estado civil</div>
-          <div class="info-value editable">
-            <select id="editMaritalStatus">
-              <option value="">Selecione...</option>
-              <option value="Solteiro(a)" ${contact.maritalStatus === 'Solteiro(a)' ? 'selected' : ''}>Solteiro(a)</option>
-              <option value="Casado(a)" ${contact.maritalStatus === 'Casado(a)' ? 'selected' : ''}>Casado(a)</option>
-              <option value="Divorciado(a)" ${contact.maritalStatus === 'Divorciado(a)' ? 'selected' : ''}>Divorciado(a)</option>
-              <option value="Viúvo(a)" ${contact.maritalStatus === 'Viúvo(a)' ? 'selected' : ''}>Viúvo(a)</option>
-            </select>
+        
+        <div class="info-card-modern">
+          <h4>💼 Profissional</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Profissão</div>
+            <div class="info-value-modern">
+              <input type="text" id="editProfession" value="${esc(contact.profession || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Outros idiomas</div>
+            <div class="info-value-modern">
+              <input type="text" id="editOtherLanguages" value="${esc(contact.otherLanguages || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nível de fluência</div>
+            <div class="info-value-modern">
+              <select id="editFluencyLevel" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="">Selecione...</option>
+                <option value="Básico" ${contact.fluencyLevel === 'Básico' ? 'selected' : ''}>Básico</option>
+                <option value="Intermediário" ${contact.fluencyLevel === 'Intermediário' ? 'selected' : ''}>Intermediário</option>
+                <option value="Avançado" ${contact.fluencyLevel === 'Avançado' ? 'selected' : ''}>Avançado</option>
+                <option value="Fluente" ${contact.fluencyLevel === 'Fluente' ? 'selected' : ''}>Fluente</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Nacionalidade</div>
-          <div class="info-value editable">
-            <input type="text" id="editNationality" value="${esc(contact.nationality || '')}" />
+        
+        <div class="info-card-modern">
+          <h4>⛪ Espiritual</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Igreja</div>
+            <div class="info-value-modern">
+              <input type="text" id="editChurch" value="${esc(contact.church || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Tempo de conversão</div>
+            <div class="info-value-modern">
+              <input type="text" id="editConversionTime" value="${esc(contact.conversionTime || '')}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Plano de dedicação missionária</div>
+            <div class="info-value-modern">
+              <textarea id="editMissionsDedicationPlan" rows="3" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 100%; resize: vertical;">${esc(contact.missionsDedicationPlan || '')}</textarea>
+            </div>
           </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Cidade</div>
-          <div class="info-value editable">
-            <input type="text" id="editCity" value="${esc(contact.city || '')}" />
+        
+        <div class="info-card-modern">
+          <h4>✈️ Missão</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Tem passaporte</div>
+            <div class="info-value-modern">
+              <select id="editHasPassport" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="false" ${!contact.hasPassport ? 'selected' : ''}>Não</option>
+                <option value="true" ${contact.hasPassport ? 'selected' : ''}>Sim</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Estado</div>
-          <div class="info-value editable">
-            <input type="text" id="editState" value="${esc(contact.state || '')}" />
+          <div class="info-item-modern">
+            <div class="info-label-modern">Data disponível</div>
+            <div class="info-value-modern">
+              <input type="date" id="editAvailableDate" value="${contact.availableDate ? contact.availableDate.split('T')[0] : ''}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;" />
+            </div>
           </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Telefone</div>
-          <div class="info-value editable">
-            <input type="tel" id="editPhone" value="${esc(contact.phone || '')}" />
+          <div class="info-item-modern">
+            <div class="info-label-modern">Região</div>
+            <div class="info-value-modern">
+              <select id="editRegionId" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="">Selecione uma região...</option>
+                ${regions.map(r => `<option value="${r.id}" ${contact.regionId == r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">E-mail</div>
-          <div class="info-value editable">
-            <input type="email" id="editEmail" value="${esc(contact.email || '')}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Profissão</div>
-          <div class="info-value editable">
-            <input type="text" id="editProfession" value="${esc(contact.profession || '')}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Outros idiomas</div>
-          <div class="info-value editable">
-            <input type="text" id="editOtherLanguages" value="${esc(contact.otherLanguages || '')}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Nível de fluência</div>
-          <div class="info-value editable">
-            <select id="editFluencyLevel">
-              <option value="">Selecione...</option>
-              <option value="Básico" ${contact.fluencyLevel === 'Básico' ? 'selected' : ''}>Básico</option>
-              <option value="Intermediário" ${contact.fluencyLevel === 'Intermediário' ? 'selected' : ''}>Intermediário</option>
-              <option value="Avançado" ${contact.fluencyLevel === 'Avançado' ? 'selected' : ''}>Avançado</option>
-              <option value="Fluente" ${contact.fluencyLevel === 'Fluente' ? 'selected' : ''}>Fluente</option>
-            </select>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Igreja</div>
-          <div class="info-value editable">
-            <input type="text" id="editChurch" value="${esc(contact.church || '')}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Tempo de conversão</div>
-          <div class="info-value editable">
-            <input type="text" id="editConversionTime" value="${esc(contact.conversionTime || '')}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Plano de dedicação missionária</div>
-          <div class="info-value editable">
-            <textarea id="editMissionsDedicationPlan" rows="3">${esc(contact.missionsDedicationPlan || '')}</textarea>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Tem passaporte</div>
-          <div class="info-value editable">
-            <select id="editHasPassport">
-              <option value="false" ${!contact.hasPassport ? 'selected' : ''}>Não</option>
-              <option value="true" ${contact.hasPassport ? 'selected' : ''}>Sim</option>
-            </select>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Data disponível</div>
-          <div class="info-value editable">
-            <input type="date" id="editAvailableDate" value="${contact.availableDate ? contact.availableDate.split('T')[0] : ''}" />
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Região</div>
-          <div class="info-value editable">
-            <select id="editRegionId">
-              <option value="">Selecione uma região...</option>
-              ${regions.map(r => `<option value="${r.id}" ${contact.regionId == r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}
-            </select>
-          </div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Líder</div>
-          <div class="info-value editable">
-            <select id="editLeaderId">
-              <option value="">Selecione um líder...</option>
-              ${leaders.map(l => `<option value="${l.id}" ${contact.leaderId == l.id ? 'selected' : ''}>${esc(l.fullName || l.email)}</option>`).join('')}
-            </select>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Líder</div>
+            <div class="info-value-modern">
+              <select id="editLeaderId" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; color: #fff; width: 200px;">
+                <option value="">Selecione um líder...</option>
+                ${leaders.map(l => `<option value="${l.id}" ${contact.leaderId == l.id ? 'selected' : ''}>${esc(l.fullName || l.email)}</option>`).join('')}
+              </select>
+            </div>
           </div>
         </div>
       `;
     } else {
       contactInfoGrid.innerHTML = `
-        <div class="info-item">
-          <div class="info-label">Nome completo</div>
-          <div class="info-value">${esc(contact.fullName)}</div>
+        <div class="info-card-modern">
+          <h4>👤 Dados Pessoais</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nome completo</div>
+            <div class="info-value-modern">${esc(contact.fullName)}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Gênero</div>
+            <div class="info-value-modern">${contact.gender ? esc(contact.gender) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Idade</div>
+            <div class="info-value-modern">${contact.birthDate ? Math.floor((new Date() - new Date(contact.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) + ' anos' : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Estado civil</div>
+            <div class="info-value-modern">${contact.maritalStatus ? esc(contact.maritalStatus) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Data de nascimento</div>
+            <div class="info-value-modern">${contact.birthDate ? new Date(contact.birthDate).toLocaleDateString('pt-BR') : '—'}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Gênero</div>
-          <div class="info-value">${contact.gender ? esc(contact.gender) : '—'}</div>
+        
+        <div class="info-card-modern">
+          <h4>🌍 Localização</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nacionalidade</div>
+            <div class="info-value-modern">${contact.nationality ? esc(contact.nationality) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Cidade</div>
+            <div class="info-value-modern">${contact.city ? esc(contact.city) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Estado</div>
+            <div class="info-value-modern">${contact.state ? esc(contact.state) : '—'}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Idade</div>
-          <div class="info-value">${contact.birthDate ? Math.floor((new Date() - new Date(contact.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) : '—'}</div>
+        
+        <div class="info-card-modern">
+          <h4>📞 Contato</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Telefone</div>
+            <div class="info-value-modern">${contact.phone ? esc(contact.phone) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">E-mail</div>
+            <div class="info-value-modern">${contact.email ? esc(contact.email) : '—'}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Estado civil</div>
-          <div class="info-value">${contact.maritalStatus ? esc(contact.maritalStatus) : '—'}</div>
+        
+        <div class="info-card-modern">
+          <h4>💼 Profissional</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Profissão</div>
+            <div class="info-value-modern">${contact.profession ? esc(contact.profession) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Outros idiomas</div>
+            <div class="info-value-modern">${contact.otherLanguages ? esc(contact.otherLanguages) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Nível de fluência</div>
+            <div class="info-value-modern">${contact.fluencyLevel ? esc(contact.fluencyLevel) : '—'}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Data de nascimento</div>
-          <div class="info-value">${contact.birthDate ? new Date(contact.birthDate).toLocaleDateString('pt-BR') : '—'}</div>
+        
+        <div class="info-card-modern">
+          <h4>⛪ Espiritual</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Igreja</div>
+            <div class="info-value-modern">${contact.church ? esc(contact.church) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Tempo de conversão</div>
+            <div class="info-value-modern">${contact.conversionTime ? esc(contact.conversionTime) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Plano de dedicação missionária</div>
+            <div class="info-value-modern">${contact.missionsDedicationPlan ? esc(contact.missionsDedicationPlan) : '—'}</div>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Nacionalidade</div>
-          <div class="info-value">${contact.nationality ? esc(contact.nationality) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Cidade/Estado</div>
-          <div class="info-value">${contact.city ? esc(contact.city) : '—'}${contact.state ? `, ${esc(contact.state)}` : ''}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Telefone</div>
-          <div class="info-value">${contact.phone ? esc(contact.phone) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">E-mail</div>
-          <div class="info-value">${contact.email ? esc(contact.email) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Profissão</div>
-          <div class="info-value">${contact.profession ? esc(contact.profession) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Outros idiomas</div>
-          <div class="info-value">${contact.otherLanguages ? esc(contact.otherLanguages) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Nível de fluência</div>
-          <div class="info-value">${contact.fluencyLevel ? esc(contact.fluencyLevel) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Igreja</div>
-          <div class="info-value">${contact.church ? esc(contact.church) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Tempo de conversão</div>
-          <div class="info-value">${contact.conversionTime ? esc(contact.conversionTime) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Plano de dedicação missionária</div>
-          <div class="info-value">${contact.missionsDedicationPlan ? esc(contact.missionsDedicationPlan) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Tem passaporte</div>
-          <div class="info-value">${contact.hasPassport ? 'Sim' : 'Não'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Data disponível</div>
-          <div class="info-value">${contact.availableDate ? new Date(contact.availableDate).toLocaleDateString('pt-BR') : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Região</div>
-          <div class="info-value">${contact.regionName ? esc(contact.regionName) : '—'}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Líder</div>
-          <div class="info-value">${contact.leaderName ? esc(contact.leaderName) : '—'}</div>
+        
+        <div class="info-card-modern">
+          <h4>✈️ Missão</h4>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Tem passaporte</div>
+            <div class="info-value-modern">${contact.hasPassport ? '✅ Sim' : '❌ Não'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Data disponível</div>
+            <div class="info-value-modern">${contact.availableDate ? new Date(contact.availableDate).toLocaleDateString('pt-BR') : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Região</div>
+            <div class="info-value-modern">${contact.regionName ? esc(contact.regionName) : '—'}</div>
+          </div>
+          <div class="info-item-modern">
+            <div class="info-label-modern">Líder</div>
+            <div class="info-value-modern">${contact.leaderName ? esc(contact.leaderName) : '—'}</div>
+          </div>
         </div>
       `;
     }
@@ -852,17 +927,21 @@
     }
     
     timelineContainer.innerHTML = timelineData.map(item => `
-      <div class="timeline-item">
-        <div class="timeline-card">
-          <div class="timeline-card-header">
-            <span class="timeline-type ${item.type}">${getTypeLabel(item.type)}</span>
-            <span class="timeline-date">${new Date(item.date).toLocaleDateString('pt-BR')} às ${new Date(item.date).toLocaleTimeString('pt-BR')}</span>
+      <div class="timeline-item-modern">
+        <div class="timeline-icon-modern">
+          ${item.type === 'system' ? '⚙️' : 
+            item.type === 'status-change' ? '🔄' : 
+            item.type === 'observation' ? '📝' : 
+            item.type === 'call' ? '📞' : 
+            item.type === 'whatsapp' ? '📱' : 
+            item.type === 'meeting' ? '🤝' : '📋'}
+        </div>
+        <div class="timeline-content-modern">
+          <h5>${esc(item.title)}</h5>
+          <p>${esc(item.content)}</p>
+          <div class="timeline-date-modern">
+            ${esc(item.author)} • ${new Date(item.date).toLocaleDateString('pt-BR')} às ${new Date(item.date).toLocaleTimeString('pt-BR')}
           </div>
-          <div class="timeline-content">
-            <strong>${esc(item.title)}</strong><br>
-            ${esc(item.content)}
-          </div>
-          <div class="timeline-author">por ${esc(item.author)}</div>
         </div>
       </div>
     `).join('');
@@ -925,6 +1004,7 @@
   document.getElementById('closeNewContactModal')?.addEventListener('click', () => {
     document.getElementById('newContactModal').setAttribute('aria-hidden', 'true');
   });
+  
 
   // Event listeners para observações
   document.getElementById('addObservationBtn')?.addEventListener('click', () => {
@@ -1216,9 +1296,9 @@
 
   // Função para alternar entre abas
   function switchTab(tabName) {
-    // Remover active de todas as abas
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    // Remover active de todas as abas (classes modernas)
+    document.querySelectorAll('.modern-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content-modern').forEach(content => content.classList.remove('active'));
     
     // Ativar aba selecionada
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
@@ -1265,26 +1345,10 @@
                 try {
                   const data = await res.json();
                   console.log(`✅ Mensagens reais carregadas:`, data);
-                  console.log(`🔍 Tipo de data:`, typeof data);
-                  console.log(`🔍 É array?:`, Array.isArray(data));
-                  console.log(`🔍 Propriedades:`, Object.keys(data || {}));
                   
                   // A API retorna um array direto de mensagens
                   const messages = Array.isArray(data) ? data : [];
                   console.log(`📊 Total de mensagens recebidas:`, messages.length);
-                  console.log(`📊 Primeira mensagem:`, messages[0]);
-                  
-                  // Log detalhado de cada mensagem antes do mapeamento
-                  messages.forEach((msg, index) => {
-                    console.log(`📋 MENSAGEM ${index}:`, {
-                      id: msg.id,
-                      content: msg.content,
-                      mediaType: msg.mediaType,
-                      mediaUrl: msg.mediaUrl ? 'presente' : 'ausente',
-                      hasMedia: msg.hasMedia,
-                      sender: msg.sender
-                    });
-                  });
                   
                   chatMessages[contactId] = messages.map(msg => ({
                     id: msg.id !== undefined ? String(msg.id) : (msg.Id !== undefined ? String(msg.Id) : ''),
@@ -1296,14 +1360,6 @@
                     mediaType: msg.mediaType || msg.MediaType || null,
                     hasMedia: !!(msg.hasMedia || msg.MediaUrl || msg.mediaUrl)
                   }));
-                  
-                  // Log detalhado após o mapeamento
-                  console.log(`📋 MENSAGENS MAPEADAS:`, chatMessages[contactId]);
-                  
-                  console.log(`🔍 Estrutura da primeira mensagem carregada:`, messages[0]);
-                  console.log(`🔍 ID mapeado da primeira mensagem:`, chatMessages[contactId][0]?.id);
-                  console.log(`🔍 Propriedades disponíveis na mensagem:`, Object.keys(messages[0] || {}));
-                  console.log(`💾 Mensagens processadas:`, chatMessages[contactId]);
                   renderChatMessages(chatMessages[contactId]);
                 } catch (jsonError) {
                   console.error('💥 Erro ao processar JSON da resposta:', jsonError);
@@ -1326,8 +1382,9 @@
           renderChatMessages(chatMessages[contactId]);
           
           // Iniciar polling para mensagens em tempo real
-          if (phoneNumber) {
-            startMessageStream(contactId, phoneNumber);
+          const currentPhoneNumber = contact.phone || contact.cellPhone;
+          if (currentPhoneNumber) {
+            startMessageStream(contactId, currentPhoneNumber);
           } else {
             console.log('⚠️ phoneNumber não definido, pulando startMessageStream');
           }
@@ -1556,6 +1613,11 @@
     console.log('🎨 Tipo de messages:', typeof messages);
     console.log('🎨 Length de messages:', messages?.length);
     
+    if (!container) {
+      console.error('❌ Container chatMessages não encontrado!');
+      return;
+    }
+    
     if (!messages || messages.length === 0) {
       console.log('📭 Nenhuma mensagem para renderizar');
       container.innerHTML = `
@@ -1650,21 +1712,15 @@
     let isVideo = false;
     let isDocument = false;
     
-    // Detectar áudio de forma ULTRA ROBUSTA
-    if (message.mediaType === 'audio' || 
-        (message.mediaUrl && message.mediaUrl.includes('audio/')) ||
-        (message.content && message.content.includes('🎵')) ||
-        (message.content && message.content.includes('audio-')) ||
-        (message.hasMedia && !message.mediaType && !message.mediaUrl && !message.content) || // Fallback para áudios sem dados
-        (message.hasMedia && message.mediaType === null && message.mediaUrl === null)) { // Fallback para áudios com hasMedia=true mas sem tipo
-      isAudio = true;
-      console.log('🎵 ÁUDIO DETECTADO!', { 
-        mediaType: message.mediaType, 
-        hasMediaUrl: !!message.mediaUrl, 
-        hasMedia: message.hasMedia,
-        content: message.content 
-      });
-    }
+         // Detectar áudio de forma ULTRA ROBUSTA
+         if (message.mediaType === 'audio' || 
+             (message.mediaUrl && message.mediaUrl.includes('audio/')) ||
+             (message.content && message.content.includes('🎵')) ||
+             (message.content && message.content.includes('audio-')) ||
+             (message.hasMedia && !message.mediaType && !message.mediaUrl && !message.content) || // Fallback para áudios sem dados
+             (message.hasMedia && message.mediaType === null && message.mediaUrl === null)) { // Fallback para áudios com hasMedia=true mas sem tipo
+           isAudio = true;
+         }
     // Detectar imagem
     else if (message.mediaType === 'image' || 
              (message.mediaUrl && message.mediaUrl.includes('image/'))) {
@@ -1683,11 +1739,8 @@
     
     // RENDERIZAÇÃO SIMPLES E BONITA DE ÁUDIO
     if (isAudio) {
-      console.log('🎵 RENDERIZANDO ÁUDIO:', { hasMediaUrl: !!message.mediaUrl, mediaUrlType: message.mediaUrl ? message.mediaUrl.substring(0, 20) : 'null' });
-      
       if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
         // Player simples e funcional quando tem URL
-        console.log('🎵 Criando player simples com mediaUrl');
         const uniqueId = 'audio_' + message.id + '_' + Date.now();
         mediaContent = `
           <div class="message-media" style="margin: 8px 0;">
@@ -1738,10 +1791,8 @@
             </div>
           </div>
         `;
-        console.log('🎵 ✅ Player simples criado');
       } else {
         // Placeholder simples quando não tem URL
-        console.log('🎵 Criando placeholder simples (sem mediaUrl)');
         const fileName = message.content ? message.content.replace('🎵', '').trim() : 'Áudio';
         mediaContent = `
           <div class="message-media" style="margin: 8px 0;">
@@ -1784,10 +1835,8 @@
             </div>
           </div>
         `;
-        console.log('🎵 ✅ Placeholder simples criado');
       }
     } else if (isImage) {
-      console.log('🖼️ RENDERIZANDO IMAGEM');
       
       if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
         mediaContent = `<div class="message-media"><img src="${message.mediaUrl}" alt="Imagem" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;" /></div>`;
@@ -1795,7 +1844,6 @@
         mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">📷</div><div style="color: #f9fafb;">Imagem</div></div></div>`;
       }
     } else if (isVideo) {
-      console.log('🎥 RENDERIZANDO VÍDEO');
       
       if (message.mediaUrl && message.mediaUrl.startsWith('data:')) {
         mediaContent = `<div class="message-media"><video src="${message.mediaUrl}" controls style="max-width: 200px; max-height: 200px; border-radius: 8px;"></video></div>`;
@@ -1803,7 +1851,6 @@
         mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">🎥</div><div style="color: #f9fafb;">Vídeo</div></div></div>`;
       }
     } else if (isDocument) {
-      console.log('📎 RENDERIZANDO DOCUMENTO');
       mediaContent = `<div class="message-media"><div style="background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 12px; text-align: center;"><div style="font-size: 24px;">📎</div><div style="color: #f9fafb;">Documento</div></div></div>`;
     }
 
@@ -1811,7 +1858,7 @@
       <div class="message ${isSent ? 'sent' : 'received'}">
         ${!isSent ? `
           <div class="message-header">
-            <span class="message-sender">${isSent ? 'Você' : 'Felipe S. B.'}</span>
+            <span class="message-sender">${isSent ? 'Você' : 'Contato'}</span>
             <span class="message-time">${timeStr}</span>
           </div>
         ` : ''}
@@ -1911,8 +1958,17 @@
 
   // Event listeners para o chat
   document.addEventListener('DOMContentLoaded', function() {
+    // Carregar lembretes salvos
+    loadReminders();
+    
+    // Botão de notificações
+    document.getElementById('notificationsBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleNotificationsBalloon();
+    });
+    
     // Abas
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.modern-tab').forEach(btn => {
       btn.addEventListener('click', () => {
         const tabName = btn.dataset.tab;
         switchTab(tabName);
@@ -1923,7 +1979,15 @@
     document.getElementById('sendMessageBtn')?.addEventListener('click', sendMessage);
     
     // Ações rápidas
-    document.getElementById('quickActionsBtn')?.addEventListener('click', toggleQuickActions);
+    const quickActionsBtn = document.getElementById('quickActionsBtn');
+    console.log('🔄 Botão de ações rápidas encontrado:', !!quickActionsBtn);
+    if (quickActionsBtn) {
+      quickActionsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('🔄 Botão de ações rápidas clicado!');
+        window.toggleQuickActions();
+      });
+    }
     
     // Enter para enviar mensagem
     document.getElementById('chatMessageInput')?.addEventListener('keypress', (e) => {
@@ -2406,10 +2470,12 @@
   };
   
   // Função para alternar ações rápidas
-  function toggleQuickActions() {
+  window.toggleQuickActions = function() {
     const quickActions = document.getElementById('quickActions');
     if (quickActions) {
-      quickActions.style.display = quickActions.style.display === 'none' ? 'flex' : 'none';
+      const isVisible = quickActions.style.display === 'flex';
+      quickActions.style.display = isVisible ? 'none' : 'flex';
+      console.log('🔄 Ações rápidas:', isVisible ? 'ocultas' : 'visíveis');
     }
   }
   
@@ -2616,9 +2682,383 @@
   
   // Função para mostrar modal de templates
   window.showTemplatesModal = function() {
-    document.getElementById('templatesModal').style.display = 'flex';
-    loadTemplates();
+    console.log('📝 Abrindo modal de templates...');
+    const modal = document.getElementById('templatesModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      loadTemplates();
+    } else {
+      console.error('❌ Modal de templates não encontrado');
+    }
   };
+
+  // ===========================
+  // NOVAS FUNCIONALIDADES DE AÇÕES RÁPIDAS
+  // ===========================
+
+  // Função para mostrar modal de lembretes
+  window.showReminderModal = function() {
+    console.log('🔔 Abrindo modal de lembretes...');
+    const modal = document.getElementById('reminderModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      // Definir data/hora padrão para 1 hora no futuro
+      const now = new Date();
+      now.setHours(now.getHours() + 1);
+      document.getElementById('reminderDateTime').value = now.toISOString().slice(0, 16);
+    }
+  };
+
+  // Função para fechar modal de lembretes
+  window.closeReminderModal = function() {
+    const modal = document.getElementById('reminderModal');
+    if (modal) {
+      modal.style.display = 'none';
+      // Limpar formulário
+      document.getElementById('reminderForm').reset();
+    }
+  };
+
+  // Função para mostrar modal de agendamento
+  window.showScheduleModal = function() {
+    console.log('📅 Abrindo modal de agendamento...');
+    const modal = document.getElementById('scheduleModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      // Definir data/hora padrão para amanhã às 9h
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+      document.getElementById('scheduleDateTime').value = tomorrow.toISOString().slice(0, 16);
+    }
+  };
+
+  // Função para fechar modal de agendamento
+  window.closeScheduleModal = function() {
+    const modal = document.getElementById('scheduleModal');
+    if (modal) {
+      modal.style.display = 'none';
+      // Limpar formulário
+      document.getElementById('scheduleForm').reset();
+    }
+  };
+
+
+  // ===========================
+  // SISTEMA DE LEMBRETES
+  // ===========================
+
+        // Função para criar lembrete
+        async function createReminder(reminderData) {
+            const reminder = {
+                contactId: currentContactId,
+                title: reminderData.title,
+                description: reminderData.description,
+                dateTime: reminderData.dateTime,
+                priority: reminderData.priority
+            };
+
+            try {
+                // Salvar no backend
+                const response = await authFetch('/api/reminders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(reminder)
+                });
+
+                if (response.ok) {
+                    const savedReminder = await response.json();
+                    reminders.push(savedReminder);
+                    console.log('🔔 Lembrete criado:', savedReminder);
+                    
+                    // Atualizar indicadores visuais
+                    updateReminderIndicators();
+                    
+                    // Configurar notificação
+                    scheduleReminderNotification(savedReminder);
+                    
+                    return savedReminder;
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao salvar lembrete');
+                }
+            } catch (error) {
+                console.error('Erro ao criar lembrete:', error);
+                showNotification('Erro ao criar lembrete: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+  // Função para atualizar indicadores visuais de lembretes
+  function updateReminderIndicators() {
+    // Atualizar indicador no card do contato
+    updateContactCardReminderIndicator();
+    
+    // Atualizar indicador na coluna
+    updateColumnReminderIndicator();
+    
+    // Atualizar badge de notificações se estiver no chat
+    if (currentChatContactId) {
+      loadNotificationsForCurrentContact();
+    }
+  }
+
+        // Função para atualizar indicador no card do contato
+        function updateContactCardReminderIndicator() {
+            // Atualizar todos os cards de contato
+            const contactCards = document.querySelectorAll('[data-contact-id]');
+            contactCards.forEach(contactCard => {
+                const contactId = parseInt(contactCard.dataset.contactId);
+                const activeReminders = reminders.filter(r => 
+                    r.contactId === contactId && 
+                    !r.completed
+                );
+                
+                const overdueReminders = activeReminders.filter(r => 
+                    new Date(r.dateTime) < new Date()
+                );
+                
+                const todayReminders = activeReminders.filter(r => {
+                    const today = new Date();
+                    const reminderDate = new Date(r.dateTime);
+                    return reminderDate.toDateString() === today.toDateString();
+                });
+                
+                let indicator = contactCard.querySelector('.reminder-indicator');
+                
+                if (activeReminders.length > 0) {
+                    if (!indicator) {
+                        indicator = document.createElement('div');
+                        indicator.className = 'reminder-indicator';
+                        contactCard.style.position = 'relative';
+                        contactCard.appendChild(indicator);
+                    }
+                    
+                    // Definir cor e ícone baseado na prioridade
+                    let color = '#3b82f6'; // Azul para lembretes futuros
+                    let icon = '🔔';
+                    
+                    if (overdueReminders.length > 0) {
+                        color = '#ef4444'; // Vermelho para atrasados
+                        icon = '⚠️';
+                    } else if (todayReminders.length > 0) {
+                        color = '#f59e0b'; // Amarelo para hoje
+                        icon = '⏰';
+                    }
+                    
+                    indicator.innerHTML = icon;
+                    indicator.style.cssText = `
+                        position: absolute;
+                        top: 8px;
+                        right: 8px;
+                        background: ${color};
+                        color: white;
+                        border-radius: 50%;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 12px;
+                        z-index: 10;
+                        animation: pulse 2s infinite;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    `;
+                    
+                    // Tooltip com informações dos lembretes
+                    indicator.title = `Lembretes: ${activeReminders.length} (${overdueReminders.length} atrasados, ${todayReminders.length} hoje)`;
+                } else if (indicator) {
+                    indicator.remove();
+                }
+            });
+        }
+
+        // Função para atualizar indicador na coluna
+        function updateColumnReminderIndicator() {
+            // Implementar indicador na coluna do Kanban
+            const columns = document.querySelectorAll('.kanban-column');
+            columns.forEach(column => {
+                const columnContacts = contacts.filter(c => c.status === column.dataset.status);
+                const columnReminders = reminders.filter(r => 
+                    !r.completed && 
+                    columnContacts.some(c => c.id === r.contactId)
+                );
+                
+                const overdueReminders = columnReminders.filter(r => 
+                    new Date(r.dateTime) < new Date()
+                );
+                
+                let indicator = column.querySelector('.column-reminder-indicator');
+                if (columnReminders.length > 0) {
+                    if (!indicator) {
+                        indicator = document.createElement('div');
+                        indicator.className = 'column-reminder-indicator';
+                        column.style.position = 'relative';
+                        column.appendChild(indicator);
+                    }
+                    
+                    // Definir cor baseada na prioridade
+                    let color = '#3b82f6'; // Azul para lembretes futuros
+                    if (overdueReminders.length > 0) {
+                        color = '#ef4444'; // Vermelho para atrasados
+                    }
+                    
+                    indicator.innerHTML = `🔔 ${columnReminders.length}`;
+                    indicator.style.cssText = `
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: ${color};
+                        color: white;
+                        padding: 4px 8px;
+                        border-radius: 12px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        z-index: 10;
+                        animation: pulse 2s infinite;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    `;
+                } else if (indicator) {
+                    indicator.remove();
+                }
+            });
+        }
+
+  // Função para agendar notificação do lembrete
+  function scheduleReminderNotification(reminder) {
+    const now = new Date();
+    const reminderTime = new Date(reminder.dateTime);
+    const timeUntilReminder = reminderTime.getTime() - now.getTime();
+    
+    if (timeUntilReminder > 0) {
+      setTimeout(() => {
+        showReminderNotification(reminder);
+      }, timeUntilReminder);
+    }
+  }
+
+        // Função para mostrar notificação do lembrete
+        function showReminderNotification(reminder) {
+            // Verificar se o lembrete ainda não foi completado
+            const currentReminder = reminders.find(r => r.id === reminder.id);
+            if (!currentReminder || currentReminder.completed) return;
+            
+            // Criar notificação
+            const notification = document.createElement('div');
+            notification.className = 'reminder-notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(255, 107, 107, 0.3);
+                z-index: 10000;
+                max-width: 350px;
+                animation: slideInRight 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 24px;">🔔</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold; margin-bottom: 4px;">${reminder.title}</div>
+                        <div style="font-size: 14px; opacity: 0.9;">${reminder.contactName || 'Contato'}</div>
+                        ${reminder.description ? `<div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">${reminder.description}</div>` : ''}
+                    </div>
+                    <button onclick="markReminderComplete(${reminder.id})" style="
+                        background: rgba(255,255,255,0.2);
+                        border: none;
+                        color: white;
+                        border-radius: 6px;
+                        padding: 4px 8px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    ">✓</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remover após 10 segundos
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 10000);
+        }
+
+        // Função para marcar lembrete como completo
+        window.markReminderComplete = async function(reminderId) {
+            try {
+                const response = await authFetch(`/api/reminders/${reminderId}/complete`, {
+                    method: 'PUT'
+                });
+
+                if (response.ok) {
+                    const reminder = reminders.find(r => r.id === reminderId);
+                    if (reminder) {
+                        reminder.completed = true;
+                        reminder.completedAt = new Date();
+                        updateReminderIndicators();
+                        
+                        // Remover notificação
+                        const notification = document.querySelector('.reminder-notification');
+                        if (notification) {
+                            notification.remove();
+                        }
+                        
+                        showNotification('Lembrete marcado como completo!', 'success');
+                    }
+                } else {
+                    const errorData = await response.json();
+                    showNotification('Erro ao marcar lembrete: ' + errorData.message, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao marcar lembrete como completo:', error);
+                showNotification('Erro ao marcar lembrete como completo', 'error');
+            }
+        };
+
+        // Função para carregar lembretes
+        async function loadReminders() {
+            try {
+                // Buscar do backend
+                const response = await authFetch('/api/reminders/my-reminders');
+                if (response.ok) {
+                    const savedReminders = await response.json();
+                    reminders = savedReminders.map(r => ({
+                        ...r,
+                        dateTime: new Date(r.dateTime),
+                        createdAt: new Date(r.createdAt)
+                    }));
+                    updateReminderIndicators();
+                    console.log('🔔 Lembretes carregados:', reminders.length);
+                    return;
+                } else {
+                    console.warn('Erro ao carregar lembretes do backend:', response.status);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar lembretes do backend:', error);
+            }
+
+            // Fallback para localStorage
+            const savedReminders = localStorage.getItem('reminders');
+            if (savedReminders) {
+                reminders = JSON.parse(savedReminders).map(r => ({
+                    ...r,
+                    dateTime: new Date(r.dateTime),
+                    createdAt: new Date(r.createdAt)
+                }));
+                updateReminderIndicators();
+                console.log('🔔 Lembretes carregados do localStorage:', reminders.length);
+            }
+        }
+
   
   // Função para carregar templates
   async function loadTemplates() {
@@ -2800,6 +3240,79 @@
   document.getElementById('closeNewTemplateModal')?.addEventListener('click', () => {
     document.getElementById('newTemplateModal').style.display = 'none';
   });
+
+  // Event listeners para novos modais
+  document.getElementById('closeReminderModal')?.addEventListener('click', closeReminderModal);
+  document.getElementById('closeScheduleModal')?.addEventListener('click', closeScheduleModal);
+
+  // Event listeners para formulários
+        document.getElementById('reminderForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = {
+                title: document.getElementById('reminderTitle').value,
+                description: document.getElementById('reminderDescription').value,
+                dateTime: document.getElementById('reminderDateTime').value,
+                priority: document.getElementById('reminderPriority').value
+            };
+            
+            try {
+                await createReminder(formData);
+                closeReminderModal();
+                showNotification('Lembrete criado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao criar lembrete:', error);
+                // O erro já foi mostrado na função createReminder
+            }
+        });
+
+  // Fechar modais clicando fora
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('observation-modal')) {
+      e.target.style.display = 'none';
+    }
+  });
+
+  document.getElementById('scheduleForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const scheduleType = document.getElementById('scheduleType').value;
+    const scheduleDateTime = document.getElementById('scheduleDateTime').value;
+    const scheduleDuration = document.getElementById('scheduleDuration').value;
+    const scheduleNotes = document.getElementById('scheduleNotes').value;
+    
+    // Mapear tipo de compromisso para título
+    const typeLabels = {
+      'meeting': 'Reunião',
+      'call': 'Ligação',
+      'visit': 'Visita',
+      'training': 'Treinamento',
+      'other': 'Outro'
+    };
+    
+    const title = typeLabels[scheduleType] || 'Agendamento';
+    const description = scheduleNotes ? `Duração: ${scheduleDuration} min\n\n${scheduleNotes}` : `Duração: ${scheduleDuration} min`;
+    
+    try {
+      console.log('📅 Criando agendamento...');
+      
+      // Por enquanto, salvar como lembrete também (backend de agendamento ainda não existe)
+      // TODO: Criar endpoint separado para agendamentos quando backend estiver pronto
+      await createReminder({
+        contactId: currentChatContactId,
+        title: title,
+        description: description,
+        dateTime: scheduleDateTime,
+        priority: 'medium'
+      });
+      
+      showNotification('Compromisso agendado com sucesso!', 'success');
+      closeScheduleModal();
+      await loadReminders();
+    } catch (error) {
+      console.error('Erro ao criar agendamento:', error);
+      showNotification('Erro ao criar agendamento.', 'error');
+    }
+  });
   
   document.getElementById('cancelTemplate')?.addEventListener('click', () => {
     document.getElementById('newTemplateModal').style.display = 'none';
@@ -2821,6 +3334,301 @@
       currentTemplateCategory = e.target.dataset.category;
       renderTemplates();
     });
+  });
+
+  // ===== SISTEMA DE NOTIFICAÇÕES =====
+  
+  // Função para alternar o balão de notificações
+  function toggleNotificationsBalloon() {
+    const balloon = document.getElementById('notificationsBalloon');
+    
+    if (balloon) {
+      const wasShowing = balloon.classList.contains('show');
+      
+      balloon.classList.toggle('show');
+      
+      const isShowing = balloon.classList.contains('show');
+      
+      // Se estiver fechando, remover CSS inline
+      if (!isShowing) {
+        balloon.style.cssText = '';
+        return;
+      }
+      
+      // Se estiver abrindo, carregar notificações
+      if (isShowing) {
+        // CSS de debug temporário - animação saindo de baixo do sino
+        const btn = document.getElementById('notificationsBtn');
+        const btnRect = btn.getBoundingClientRect();
+        
+        // Posição final (debaixo do sino)
+        const finalTop = btnRect.bottom + 8;
+        // Garantir que não corte na direita (mobile)
+        const balloonWidth = 320;
+        const rightEdge = window.innerWidth - btnRect.right;
+        const padding = 16; // padding do mobile
+        // Calcular a posição right final: se o balão ultrapassar a tela, ajustar
+        let finalRight = rightEdge;
+        if (rightEdge + balloonWidth > window.innerWidth - padding) {
+          finalRight = window.innerWidth - balloonWidth - padding;
+        }
+        
+        // Primeiro: posicionar pequeno e invisível na posição do sino
+        balloon.style.cssText = `
+          position: fixed !important;
+          top: ${btnRect.top + (btnRect.height / 2)}px !important;
+          right: ${finalRight}px !important;
+          width: 320px !important;
+          max-height: 400px !important;
+          background: #1a1a1a !important;
+          border: 2px solid #14b86a !important;
+          border-radius: 12px !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+          z-index: 10000 !important;
+          opacity: 0 !important;
+          transform: scale(0.1) translateY(-10px) !important;
+          transform-origin: top center !important;
+          pointer-events: all !important;
+          visibility: visible !important;
+          display: block !important;
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        `;
+        
+        // Animar para a posição final (crescendo de baixo do sino)
+        setTimeout(() => {
+          balloon.style.cssText = `
+            position: fixed !important;
+            top: ${finalTop}px !important;
+            right: ${finalRight}px !important;
+            width: 320px !important;
+            max-height: 400px !important;
+            background: #1a1a1a !important;
+            border: 2px solid #14b86a !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+            z-index: 10000 !important;
+            opacity: 1 !important;
+            transform: scale(1) translateY(0) !important;
+            transform-origin: top center !important;
+            pointer-events: all !important;
+            visibility: visible !important;
+            display: block !important;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          `;
+        }, 50);
+        loadNotificationsForCurrentContact();
+      }
+    } else {
+      console.error('🔔 Balão de notificações não encontrado!');
+    }
+  }
+  
+  // Função para carregar notificações do contato atual
+  async function loadNotificationsForCurrentContact() {
+    if (!currentChatContactId) {
+      return;
+    }
+    
+    try {
+      // Carregar lembretes do contato
+      const reminders = await loadRemindersForContact(currentChatContactId);
+      
+      // Carregar agendamentos (filtrar por data: hoje e amanhã)
+      const schedules = await loadSchedulesForContact(currentChatContactId);
+      
+      // Renderizar notificações
+      renderNotifications(reminders, schedules);
+      
+      // Atualizar badge
+      updateNotificationBadge(reminders.length + schedules.length);
+      
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    }
+  }
+  
+  // Função para carregar agendamentos de um contato específico
+  async function loadSchedulesForContact(contactId) {
+    try {
+      // Por enquanto, retornar lembretes que sejam agendamentos
+      // (títulos que começam com "Reunião", "Ligação", "Visita", "Treinamento")
+      const reminders = await loadRemindersForContact(contactId);
+      const schedules = reminders.filter(r => {
+        const title = r.title?.toLowerCase() || '';
+        return title.includes('reunião') || title.includes('ligação') || 
+               title.includes('visita') || title.includes('treinamento') ||
+               title.includes('outro');
+      });
+      console.log(`📅 Agendamentos encontrados: ${schedules.length}`);
+      return schedules;
+    } catch (error) {
+      console.error('Erro ao carregar agendamentos do contato:', error);
+      return [];
+    }
+  }
+  
+  // Função para carregar lembretes de um contato específico
+  async function loadRemindersForContact(contactId) {
+    try {
+      const response = await authFetch(`/api/reminders/contact/${contactId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.data || [];
+      } else {
+        console.error('Erro na API de lembretes:', response.status, response.statusText);
+        return [];
+      }
+    } catch (error) {
+      console.error('Erro ao carregar lembretes do contato:', error);
+      return [];
+    }
+  }
+  
+  // Função para renderizar notificações no balão
+  function renderNotifications(reminders, schedules) {
+    const content = document.getElementById('notificationsContent');
+    if (!content) return;
+    
+    // Remover duplicatas: criar um Set com IDs únicos
+    const allNotificationsMap = new Map();
+    
+    // Adicionar lembretes
+    reminders.forEach(r => {
+      allNotificationsMap.set(r.id || r.Id, r);
+    });
+    
+    // Adicionar agendamentos (que são lembretes filtrados)
+    schedules.forEach(s => {
+      if (!allNotificationsMap.has(s.id || s.Id)) {
+        allNotificationsMap.set(s.id || s.Id, s);
+      }
+    });
+    
+    const allNotifications = Array.from(allNotificationsMap.values());
+    
+    if (allNotifications.length === 0) {
+      content.innerHTML = `
+        <div class="notifications-empty">
+          <div class="notifications-empty-icon">🔔</div>
+          <p>Nenhum lembrete ou agendamento para este contato</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Ordenar por data (mais recentes primeiro)
+    allNotifications.sort((a, b) => new Date(b.DateTime || b.date) - new Date(a.DateTime || a.date));
+    
+    content.innerHTML = allNotifications.map(notification => {
+      const isReminder = notification.title !== undefined;
+      const isSchedule = ['reunião', 'ligação', 'visita', 'treinamento', 'outro'].some(
+        type => (notification.title || '').toLowerCase().includes(type)
+      );
+      const isOverdue = isReminder && new Date(notification.dateTime) < new Date() && !notification.completed;
+      
+      const dateTime = notification.dateTime || notification.DateTime || notification.date;
+      const formattedTime = formatNotificationTime(dateTime);
+      
+      // Ícones: 🔔 para lembrete, 📅 para agendamento/schedule
+      const iconText = isSchedule ? '📅' : '🔔';
+      
+      const escapedTitle = (notification.title || notification.Title || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+      const escapedDesc = (notification.description || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+      const escapedDate = (notification.dateTime || notification.DateTime || notification.date || '');
+      
+      return `
+        <div class="notification-item" onclick="window.handleNotificationClick(${notification.id || notification.Id}, '${escapedTitle}', '${escapedDesc}', '${escapedDate}')">
+          <div class="notification-icon ${isReminder ? (isOverdue ? 'overdue' : 'reminder') : 'schedule'}">
+            ${iconText}
+          </div>
+          <div class="notification-details">
+            <h4 class="notification-title">${notification.title || notification.Title}</h4>
+            <p class="notification-time">${formattedTime}</p>
+            ${isReminder ? `<span class="notification-priority ${(notification.priority || notification.Priority || 'medium').toLowerCase()}">${notification.priority || notification.Priority || 'Média'}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Função para formatar tempo da notificação
+  function formatNotificationTime(dateTime) {
+    try {
+      const date = new Date(dateTime);
+      const now = new Date();
+      
+      // Validar se a data é válida
+      if (isNaN(date.getTime())) {
+        return 'Data inválida';
+      }
+      
+      const diff = date - now;
+      
+      if (diff < 0) {
+        const daysAgo = Math.floor(Math.abs(diff) / (1000 * 60 * 60 * 24));
+        if (daysAgo === 0) return 'Hoje';
+        if (daysAgo === 1) return 'Ontem';
+        return `${daysAgo} dias atrás`;
+      } else {
+        const daysUntil = Math.floor(diff / (1000 * 60 * 60 * 24));
+        if (daysUntil === 0) return 'Hoje';
+        if (daysUntil === 1) return 'Amanhã';
+        return `Em ${daysUntil} dias`;
+      }
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return 'Data inválida';
+    }
+  }
+  
+  // Função para atualizar badge de notificações
+  function updateNotificationBadge(count) {
+    const badge = document.getElementById('notificationBadge');
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  }
+  
+  // Função para lidar com clique em notificação (global)
+  window.handleNotificationClick = function(notificationId, title, description, dateTime) {
+    // Fechar o balão de notificações
+    const balloon = document.getElementById('notificationsBalloon');
+    if (balloon) {
+      balloon.classList.remove('show');
+    }
+    
+    // Exibir detalhes da notificação
+    const descriptionText = description || 'Nenhuma descrição disponível.';
+    const formattedDate = formatNotificationTime(dateTime);
+    
+    showNotification(
+      `<strong>${title}</strong><br>
+       ${descriptionText}<br>
+       <small style="opacity: 0.7;">${formattedDate}</small>`,
+      'info'
+    );
+  }
+  
+  // Fechar balão ao clicar fora
+  document.addEventListener('click', (e) => {
+    const balloon = document.getElementById('notificationsBalloon');
+    const btn = document.getElementById('notificationsBtn');
+    
+    // Não fechar se clicar no botão (o botão já tem seu próprio handler)
+    if (btn && btn.contains(e.target)) {
+      return;
+    }
+    
+    // Fechar apenas se clicar fora do balão e do botão
+    if (balloon && balloon.classList.contains('show') && !balloon.contains(e.target)) {
+      balloon.classList.remove('show');
+    }
   });
 
   // Inicializar

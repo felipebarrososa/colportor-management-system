@@ -1564,6 +1564,1084 @@
                 padding: 12px 16px;
             }
         }
+
+        /* ===========================
+           MODAL MODERNO - DESIGN COMPLETO
+           =========================== */
+        
+        /* Modal Principal */
+        .modern-contact-modal {
+            max-width: 1200px;
+            width: 95vw;
+            max-height: 90vh;
+            background: linear-gradient(135deg, #0f1115 0%, #1a1a1a 50%, #0f1115 100%);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Header Moderno */
+        .modern-modal-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            border-bottom: 2px solid rgba(34, 197, 94, 0.3);
+            padding: 24px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-modal-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(74, 222, 128, 0.1) 50%, rgba(34, 197, 94, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .contact-avatar-large {
+            position: relative;
+        }
+
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .avatar-icon {
+            font-size: 32px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            background: #22c55e;
+            border: 3px solid #1a1a1a;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .contact-title-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .contact-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 50%, #16a34a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .contact-subtitle {
+            font-size: 16px;
+            color: #9ca3af;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .contact-status-modern {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .edit-actions-modern {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Botões Modernos */
+        .btn-modern {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-modern:hover::before {
+            left: 100%;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+        }
+
+        .btn-cancel {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-edit, .btn-close {
+            background: rgba(255, 255, 255, 0.05);
+            color: #9ca3af;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .btn-edit:hover, .btn-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            color: #9ca3af;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #000;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.4);
+        }
+
+        /* Navegação de Abas Moderna */
+        .modern-tab-navigation {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 32px;
+        }
+
+        .tab-list {
+            display: flex;
+            gap: 0;
+        }
+
+        .modern-tab {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            border-bottom: 3px solid transparent;
+        }
+
+        .modern-tab:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modern-tab.active {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+            border-bottom-color: #4ade80;
+        }
+
+        .tab-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tab-label {
+            font-weight: 600;
+        }
+
+        /* Corpo do Modal */
+        .modern-modal-body {
+            padding: 32px;
+            max-height: 60vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4ade80 #1a1a1a;
+        }
+
+        .modern-modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modern-modal-body::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+
+        .modern-modal-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border-radius: 4px;
+            border: 1px solid #1a1a1a;
+        }
+
+        .modern-modal-body::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        /* Conteúdo das Abas */
+        .tab-content-modern {
+            display: none;
+        }
+
+        .tab-content-modern.active {
+            display: block;
+        }
+
+        /* Grid de Informações Moderno */
+        .info-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .info-card-modern {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card-modern::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .info-card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(74, 222, 128, 0.3);
+        }
+
+        .info-card-modern:hover::before {
+            opacity: 1;
+        }
+
+        .info-card-modern h4 {
+            color: #4ade80;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item-modern {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item-modern:last-child {
+            border-bottom: none;
+        }
+
+        .info-label-modern {
+            color: #9ca3af;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .info-value-modern {
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        /* Timeline Moderna */
+        .timeline-modern {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .timeline-header-modern {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .timeline-title {
+            color: #4ade80;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .timeline-container-modern {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .timeline-item-modern {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid #4ade80;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item-modern:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .timeline-icon-modern {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #000;
+            flex-shrink: 0;
+        }
+
+        .timeline-content-modern {
+            flex: 1;
+        }
+
+        .timeline-content-modern h5 {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        .timeline-content-modern p {
+            color: #9ca3af;
+            font-size: 14px;
+            margin: 0 0 8px 0;
+            line-height: 1.5;
+        }
+
+        .timeline-date-modern {
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* WhatsApp Moderno */
+        .whatsapp-modern {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header-modern {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-contact-info-modern {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .chat-avatar-modern {
+            position: relative;
+        }
+
+        .avatar-circle-small {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .online-indicator-small {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background: #22c55e;
+            border: 2px solid #1a1a1a;
+            border-radius: 50%;
+        }
+
+        .chat-details-modern h4 {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
+
+        .chat-details-modern p {
+            color: #9ca3af;
+            font-size: 14px;
+            margin: 0 0 4px 0;
+        }
+
+        .chat-status-modern {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot-small {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .status-text-small {
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .chat-actions-modern {
+            display: flex;
+            gap: 8px;
+            position: relative;
+        }
+        
+        /* Botão de Notificações */
+        .notifications-btn {
+            position: relative;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--panel);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Balão de Notificações */
+        .notifications-balloon {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            width: 320px;
+            max-height: 400px;
+            background: var(--card);
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            visibility: hidden;
+        }
+        
+        /* Ajustes para mobile */
+        @media (max-width: 768px) {
+            .notifications-balloon {
+                width: calc(100vw - 32px);
+                max-width: 320px;
+                right: 16px !important;
+                left: auto;
+            }
+        }
+        
+        .notifications-balloon.show {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: all !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+        
+        .notifications-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            color: white;
+        }
+        
+        .notifications-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .notifications-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 8px 0;
+        }
+        
+        .notification-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--stroke);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .notification-item:hover {
+            background: var(--hover);
+        }
+        
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+        
+        .notification-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .notification-icon.reminder {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+        
+        .notification-icon.schedule {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        
+        .notification-icon.overdue {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .notification-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: var(--txt);
+            margin: 0 0 4px 0;
+            font-size: 14px;
+        }
+        
+        .notification-time {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0;
+        }
+        
+        .notification-priority {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .notification-priority.high {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .notification-priority.medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .notification-priority.low {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+        
+        .notifications-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+        
+        .notifications-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .chat-messages-modern {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #0f1115 0%, #1a1a1a 100%);
+            scrollbar-width: thin;
+            scrollbar-color: #4ade80 #1a1a1a;
+        }
+
+        .chat-messages-modern::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages-modern::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .chat-messages-modern::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border-radius: 3px;
+        }
+
+        .quick-actions-modern {
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.05) 0%, rgba(34, 197, 94, 0.08) 100%);
+            border-top: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 12px;
+            margin: 12px 16px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.1);
+            transition: all 0.3s ease;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .quick-actions-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
+        .quick-action-modern {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            min-height: 80px;
+        }
+
+        .quick-action-modern:hover {
+            background: linear-gradient(135deg, rgba(74, 222, 128, 0.15) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border-color: rgba(74, 222, 128, 0.4);
+            color: #4ade80;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.2);
+        }
+
+        .quick-icon {
+            font-size: 20px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Animações para lembretes */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Estilos para indicadores de lembrete */
+        .reminder-indicator {
+            animation: pulse 2s infinite;
+        }
+
+        .column-reminder-indicator {
+            animation: pulse 2s infinite;
+        }
+
+        /* Estilos para os novos modais */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #e5e7eb;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4ade80;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e5e7eb;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border: 1px solid #22c55e;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+        }
+
+        .chat-input-modern {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-actions-modern {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-field-modern {
+            flex: 1;
+        }
+
+        .input-field-modern textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 14px;
+            resize: none;
+            min-height: 44px;
+            max-height: 120px;
+        }
+
+        .input-field-modern textarea:focus {
+            outline: none;
+            border-color: #4ade80;
+            box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.1);
+        }
+
+        .input-field-modern textarea::placeholder {
+            color: #6b7280;
+        }
+
+        .emoji-picker-modern {
+            position: absolute;
+            bottom: 80px;
+            left: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            display: none;
+        }
+
+        .emoji-picker-modern.show {
+            display: block;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .modern-contact-modal {
+                width: 100vw;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+
+            .modern-modal-header {
+                padding: 16px 20px;
+            }
+
+            .header-left {
+                gap: 12px;
+            }
+
+            .avatar-circle {
+                width: 60px;
+                height: 60px;
+            }
+
+            .avatar-icon {
+                font-size: 24px;
+            }
+
+            .contact-title {
+                font-size: 20px;
+            }
+
+            .modern-modal-body {
+                padding: 20px;
+                max-height: calc(100vh - 200px);
+            }
+
+            .info-grid-modern {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .modern-tab-navigation {
+                padding: 0 20px;
+            }
+
+            .modern-tab {
+                padding: 16px 20px;
+                font-size: 14px;
+            }
+
+            .tab-icon {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body class="bg">
@@ -1654,115 +2732,247 @@
         </div>
     </div>
 
-    <!-- Modal de Detalhes/Edição -->
-        <div class="modal" id="contactModal" aria-hidden="true">
-            <div class="modal-dialog contact-details-modal" style="max-width: 1000px;">
-                <header class="modal-header">
-                    <h3 class="title">Detalhes do Contato</h3>
-                    <div class="modal-actions">
-                        <div class="edit-actions" id="editActions" style="display: none;">
-                            <button class="btn btn-sm primary" id="saveContactBtn">💾 Salvar</button>
-                            <button class="btn btn-sm subtle" id="cancelEditBtn">❌ Cancelar</button>
+    <!-- Modal de Detalhes/Edição - DESIGN MODERNO -->
+    <div class="modal" id="contactModal" aria-hidden="true">
+        <div class="modal-dialog modern-contact-modal">
+            <!-- Header Moderno -->
+            <header class="modern-modal-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="contact-avatar-large">
+                            <div class="avatar-circle" id="contactAvatarLarge">
+                                <span class="avatar-icon">👤</span>
+                            </div>
+                            <div class="online-indicator" id="onlineIndicator"></div>
                         </div>
-                        <button class="icon edit" id="editContactBtn" title="Editar contato">✏️</button>
-                        <button class="icon close" id="closeContactModal">✕</button>
+                        <div class="contact-title-section">
+                            <h2 class="contact-title" id="contactTitle">Nome do Contato</h2>
+                            <p class="contact-subtitle" id="contactSubtitle">+55 85 99999-9999</p>
+                            <div class="contact-status-modern" id="contactStatusModern">
+                                <span class="status-dot"></span>
+                                <span class="status-text">Online agora</span>
+                            </div>
+                        </div>
                     </div>
-                </header>
-            <section class="modal-body">
-                <!-- Abas de Navegação -->
-                <div class="modal-tabs">
-                    <button class="tab-btn active" data-tab="info">📋 Informações</button>
-                    <button class="tab-btn" data-tab="timeline">📅 Histórico</button>
-                    <button class="tab-btn" data-tab="whatsapp">💬 WhatsApp</button>
+                    <div class="header-actions">
+                        <div class="edit-actions-modern" id="editActions" style="display: none;">
+                            <button class="btn-modern btn-save" id="saveContactBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                                    <polyline points="7,3 7,8 15,8"></polyline>
+                                </svg>
+                                Salvar
+                            </button>
+                            <button class="btn-modern btn-cancel" id="cancelEditBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                                Cancelar
+                            </button>
+                        </div>
+                        <button class="btn-modern btn-edit" id="editContactBtn" title="Editar contato">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="btn-modern btn-close" id="closeContactModal">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
+            </header>
 
-                <div class="contact-details-container">
-                    <!-- Aba Informações -->
-                    <div class="tab-content active" id="tab-info">
-                        <div class="contact-info-section">
-                            <div class="contact-info-grid" id="contactInfoGrid">
-                                <!-- Informações serão carregadas aqui -->
-                            </div>
+            <!-- Navegação Moderna -->
+            <nav class="modern-tab-navigation">
+                <div class="tab-list">
+                    <button class="modern-tab active" data-tab="info">
+                        <div class="tab-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Informações</span>
+                    </button>
+                    <button class="modern-tab" data-tab="timeline">
+                        <div class="tab-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12,6 12,12 16,14"></polyline>
+                            </svg>
+                        </div>
+                        <span class="tab-label">Histórico</span>
+                    </button>
+                    <button class="modern-tab" data-tab="whatsapp">
+                        <div class="tab-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </div>
+                        <span class="tab-label">WhatsApp</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Conteúdo do Modal -->
+            <section class="modern-modal-body">
+                <!-- Aba Informações -->
+                <div class="tab-content-modern active" id="tab-info">
+                    <div class="info-grid-modern" id="contactInfoGrid">
+                        <!-- Informações serão carregadas aqui -->
+                    </div>
+                </div>
+                
+                <!-- Aba Timeline -->
+                <div class="tab-content-modern" id="tab-timeline">
+                    <div class="timeline-modern">
+                        <div class="timeline-header-modern">
+                            <h3 class="timeline-title">Histórico de Contato</h3>
+                            <button class="btn-modern btn-primary" id="addObservationBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Nova Observação
+                            </button>
+                        </div>
+                        <div class="timeline-container-modern" id="timelineContainer">
+                            <!-- Timeline será carregada aqui -->
                         </div>
                     </div>
-                    
-                    <!-- Aba Timeline -->
-                    <div class="tab-content" id="tab-timeline">
-                        <div class="timeline-section">
-                            <div class="timeline-header">
-                                <h3>Histórico de Contato</h3>
-                                <button class="btn btn-sm" id="addObservationBtn">+ Nova Observação</button>
-                            </div>
-                            <div class="timeline-container" id="timelineContainer">
-                                <!-- Timeline será carregada aqui -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Aba WhatsApp Chat -->
-                    <div class="tab-content" id="tab-whatsapp">
-                        <div class="whatsapp-chat-container">
-                            <!-- Header do Chat -->
-                            <div class="chat-header">
-                                <div class="chat-contact-info">
-                                    <div class="contact-avatar">📱</div>
-                                    <div class="contact-details">
-                                        <div class="contact-name" id="chatContactName">FELIPE SANTOS BARROSO</div>
-                                        <div class="contact-phone" id="chatContactPhone">+55 85 99999-9999</div>
-                                        <div class="contact-status" id="chatContactStatus">🟢 Online agora</div>
+                </div>
+                
+                <!-- Aba WhatsApp Chat -->
+                <div class="tab-content-modern" id="tab-whatsapp">
+                    <div class="whatsapp-modern">
+                        <!-- Header do Chat Moderno -->
+                        <div class="chat-header-modern">
+                            <div class="chat-contact-info-modern">
+                                <div class="chat-avatar-modern">
+                                    <div class="avatar-circle-small" id="chatContactAvatar">
+                                        <span class="avatar-icon">📱</span>
+                                    </div>
+                                    <div class="online-indicator-small" id="chatOnlineIndicator"></div>
+                                </div>
+                                <div class="chat-details-modern">
+                                    <h4 class="chat-name-modern" id="chatContactName">FELIPE SANTOS BARROSO</h4>
+                                    <p class="chat-phone-modern" id="chatContactPhone">+55 85 99999-9999</p>
+                                    <div class="chat-status-modern" id="chatContactStatus">
+                                        <span class="status-dot-small"></span>
+                                        <span class="status-text-small">Online agora</span>
                                     </div>
                                 </div>
-                                <div class="chat-actions">
-                                    <button class="btn btn-sm" id="refreshChatBtn">🔄</button>
-                                    <button class="btn btn-sm" id="chatSettingsBtn">⚙️</button>
+                            </div>
+                            <div class="chat-actions-modern">
+                                <button class="btn-modern btn-icon" id="refreshChatBtn" title="Atualizar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="23,4 23,10 17,10"></polyline>
+                                        <polyline points="1,20 1,14 7,14"></polyline>
+                                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                    </svg>
+                                </button>
+                                <button class="btn-modern btn-icon notifications-btn" id="notificationsBtn" title="Lembretes e Agendamentos">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                    </svg>
+                                    <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                                </button>
+                                <button class="btn-modern btn-icon" id="chatSettingsBtn" title="Configurações">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Balão de Notificações -->
+                            <div class="notifications-balloon" id="notificationsBalloon">
+                                <div class="notifications-header">
+                                    <h3 class="notifications-title">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                        </svg>
+                                        Lembretes e Agendamentos
+                                    </h3>
+                                </div>
+                                <div class="notifications-content" id="notificationsContent">
+                                    <div class="notifications-empty">
+                                        <div class="notifications-empty-icon">🔔</div>
+                                        <p>Nenhum lembrete ou agendamento para este contato</p>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            
-                            <!-- Área de Mensagens -->
-                            <div class="chat-messages" id="chatMessages">
-                                <!-- Mensagens serão carregadas aqui -->
+                        </div>
+                        
+                        <!-- Área de Mensagens Moderna -->
+                        <div class="chat-messages-modern" id="chatMessages">
+                            <!-- Mensagens serão carregadas aqui -->
+                        </div>
+                        
+                        <!-- Botões de Ação Rápida Modernos -->
+                        <div class="quick-actions-modern" id="quickActions" style="display: none;">
+                            <div class="quick-actions-header">
+                                <h4 style="margin: 0; color: #4ade80; font-size: 14px; font-weight: 600;">Ações Rápidas</h4>
                             </div>
-                            
-                            <!-- Botões de Ação Rápida -->
-                            <div class="quick-actions" id="quickActions" style="display: none;">
-                                <button class="quick-action-btn" onclick="sendQuickMessage('Olá! Como posso ajudá-lo?')">
-                                    👋 Saudação
+                            <div class="quick-actions-grid">
+                                <button class="quick-action-modern" onclick="showReminderModal()">
+                                    <div class="quick-icon">🔔</div>
+                                    <span>Lembrete</span>
                                 </button>
-                                <button class="quick-action-btn" onclick="sendQuickMessage('Obrigado pelo seu interesse!')">
-                                    🙏 Agradecimento
-                                </button>
-                                <button class="quick-action-btn" onclick="sendQuickMessage('Vou verificar e retorno em breve.')">
-                                    ⏰ Retorno
-                                </button>
-                                <button class="quick-action-btn" onclick="sendQuickMessage('Posso agendar uma conversa?')">
-                                    📅 Agendamento
-                                </button>
-                                <button class="quick-action-btn" onclick="showTemplatesModal()">
-                                    📝 Templates
+                                <button class="quick-action-modern" onclick="showScheduleModal()">
+                                    <div class="quick-icon">📅</div>
+                                    <span>Agendar</span>
                                 </button>
                             </div>
-                            
-                            <!-- Input de arquivo oculto -->
-                            <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx" style="display: none;" multiple>
-                            
-                            <!-- Campo de Digitação -->
-                            <div class="chat-input-container">
-                                <div class="chat-input-actions">
-                                    <button class="btn btn-sm" id="attachBtn" title="Anexar">📎</button>
-                                    <button class="btn btn-sm" id="emojiBtn" title="Emoji">😊</button>
-                                    <button class="btn btn-sm" id="quickActionsBtn" title="Ações Rápidas">⚡</button>
-                                </div>
-                                <div class="chat-input-field">
-                                    <textarea id="chatMessageInput" placeholder="Digite sua mensagem..." rows="1"></textarea>
-                                </div>
-                                <button class="btn btn-sm primary" id="sendMessageBtn">📤</button>
+                        </div>
+                        
+                        <!-- Input de arquivo oculto -->
+                        <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx" style="display: none;" multiple>
+                        
+                        <!-- Campo de Digitação Moderno -->
+                        <div class="chat-input-modern">
+                            <div class="input-actions-modern">
+                                <button class="btn-modern btn-icon" id="attachBtn" title="Anexar">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.49"></path>
+                                    </svg>
+                                </button>
+                                <button class="btn-modern btn-icon" id="emojiBtn" title="Emoji">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                    </svg>
+                                </button>
+                                <button class="btn-modern btn-icon" id="quickActionsBtn" title="Ações Rápidas">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="13,2 3,14 12,14 11,22 21,10 12,10 13,2"></polygon>
+                                    </svg>
+                                </button>
                             </div>
-                            
-                            <!-- Seletor de Emojis -->
-                            <div class="emoji-picker" id="emojiPicker">
-                                <emoji-picker id="emojiPickerElement" style="width: 100%; height: 300px;"></emoji-picker>
+                            <div class="input-field-modern">
+                                <textarea id="chatMessageInput" placeholder="Digite sua mensagem..." rows="1"></textarea>
                             </div>
+                            <button class="btn-modern btn-send" id="sendMessageBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Seletor de Emojis -->
+                        <div class="emoji-picker-modern" id="emojiPicker">
+                            <emoji-picker id="emojiPickerElement" style="width: 100%; height: 300px;"></emoji-picker>
                         </div>
                     </div>
                 </div>
@@ -2008,6 +3218,91 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal de Lembretes -->
+    <div class="observation-modal" id="reminderModal" style="display: none;">
+        <div class="observation-modal-content" style="max-width: 500px;">
+            <div class="observation-modal-header">
+                <h3>🔔 Criar Lembrete</h3>
+                <button class="close" id="closeReminderModal">✕</button>
+            </div>
+            <div class="observation-modal-body">
+                <form id="reminderForm">
+                    <div class="form-group">
+                        <label>Título do Lembrete</label>
+                        <input type="text" id="reminderTitle" placeholder="Ex: Ligar para João sobre missão" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Data e Hora</label>
+                        <input type="datetime-local" id="reminderDateTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="reminderDescription" rows="3" placeholder="Detalhes do lembrete..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridade</label>
+                        <select id="reminderPriority">
+                            <option value="low">Baixa</option>
+                            <option value="medium" selected>Média</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="closeReminderModal()">Cancelar</button>
+                        <button type="submit" class="btn primary">Criar Lembrete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Agendamento -->
+    <div class="observation-modal" id="scheduleModal" style="display: none;">
+        <div class="observation-modal-content" style="max-width: 500px;">
+            <div class="observation-modal-header">
+                <h3>📅 Agendar Compromisso</h3>
+                <button class="close" id="closeScheduleModal">✕</button>
+            </div>
+            <div class="observation-modal-body">
+                <form id="scheduleForm">
+                    <div class="form-group">
+                        <label>Tipo de Compromisso</label>
+                        <select id="scheduleType">
+                            <option value="meeting">Reunião</option>
+                            <option value="call">Ligação</option>
+                            <option value="visit">Visita</option>
+                            <option value="training">Treinamento</option>
+                            <option value="other">Outro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data e Hora</label>
+                        <input type="datetime-local" id="scheduleDateTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Duração (minutos)</label>
+                        <select id="scheduleDuration">
+                            <option value="15">15 min</option>
+                            <option value="30" selected>30 min</option>
+                            <option value="60">1 hora</option>
+                            <option value="90">1h 30min</option>
+                            <option value="120">2 horas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <textarea id="scheduleNotes" rows="3" placeholder="Detalhes do compromisso..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="closeScheduleModal()">Cancelar</button>
+                        <button type="submit" class="btn primary">Agendar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Biblioteca de Emojis -->
     <script src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.12.0/index.js" type="module"></script>

@@ -69,6 +69,12 @@ public class AutoMapperProfile : Profile
         CreateMap<WhatsAppTemplate, WhatsAppTemplateDto>();
         CreateMap<WhatsAppTemplateCreateDto, WhatsAppTemplate>();
         CreateMap<WhatsAppConnection, WhatsAppConnectionStatusDto>();
+
+        // Reminder mappings
+        CreateMap<CreateReminderDto, Reminder>();
+        CreateMap<UpdateReminderDto, Reminder>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+        CreateMap<Reminder, ReminderResponseDto>();
     }
 
     /// <summary>

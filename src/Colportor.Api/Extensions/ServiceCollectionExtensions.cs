@@ -38,12 +38,13 @@ public static class ServiceCollectionExtensions
         // Configurar repositórios
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IColportorRepository, ColportorRepository>();
-                    services.AddScoped<IRegionRepository, RegionRepository>();
-                    services.AddScoped<IMissionContactRepository, MissionContactRepository>();
-                    services.AddScoped<IContactObservationRepository, ContactObservationRepository>();
-                    services.AddScoped<IWhatsAppMessageRepository, WhatsAppMessageRepository>();
-                    services.AddScoped<IWhatsAppTemplateRepository, WhatsAppTemplateRepository>();
-                    services.AddScoped<IWhatsAppConnectionRepository, WhatsAppConnectionRepository>();
+        services.AddScoped<IRegionRepository, RegionRepository>();
+        services.AddScoped<IMissionContactRepository, MissionContactRepository>();
+        services.AddScoped<IContactObservationRepository, ContactObservationRepository>();
+        services.AddScoped<IWhatsAppMessageRepository, WhatsAppMessageRepository>();
+        services.AddScoped<IWhatsAppTemplateRepository, WhatsAppTemplateRepository>();
+        services.AddScoped<IWhatsAppConnectionRepository, WhatsAppConnectionRepository>();
+        services.AddScoped<IReminderRepository, ReminderRepository>();
 
         return services;
     }
@@ -63,6 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRegionService, RegionService>();
         services.AddScoped<IMissionContactService, MissionContactService>();
         services.AddScoped<IContactObservationService, ContactObservationService>();
+        services.AddScoped<IReminderService, ReminderService>();
 
         // Serviços de infraestrutura
         services.AddScoped<IJwtService, JwtService>();
