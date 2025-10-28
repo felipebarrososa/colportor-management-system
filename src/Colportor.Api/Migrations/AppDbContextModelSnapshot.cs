@@ -73,7 +73,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("RegionId");
 
-                    b.ToTable("Colportors");
+                    b.ToTable("Colportors", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.ContactObservation", b =>
@@ -115,7 +115,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("MissionContactId");
 
-                    b.ToTable("ContactObservations");
+                    b.ToTable("ContactObservations", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.ContactStatusHistory", b =>
@@ -156,7 +156,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("MissionContactId");
 
-                    b.ToTable("ContactStatusHistories");
+                    b.ToTable("ContactStatusHistories", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Country", b =>
@@ -176,7 +176,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.MissionContact", b =>
@@ -288,7 +288,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("MissionContacts");
+                    b.ToTable("MissionContacts", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.NotificationLog", b =>
@@ -315,7 +315,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NotificationLogs");
+                    b.ToTable("NotificationLogs", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.PacEnrollment", b =>
@@ -351,7 +351,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("ColportorId", "StartDate", "EndDate");
 
-                    b.ToTable("PacEnrollments");
+                    b.ToTable("PacEnrollments", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Region", b =>
@@ -374,7 +374,7 @@ namespace Colportor.Api.Migrations
                     b.HasIndex("CountryId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Regions");
+                    b.ToTable("Regions", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Reminder", b =>
@@ -428,7 +428,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("DateTime");
 
-                    b.ToTable("Reminders");
+                    b.ToTable("Reminders", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.User", b =>
@@ -475,7 +475,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("RegionId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Visit", b =>
@@ -496,7 +496,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("ColportorId");
 
-                    b.ToTable("Visits");
+                    b.ToTable("Visits", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.WhatsAppConnection", b =>
@@ -560,7 +560,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("WhatsAppConnections");
+                    b.ToTable("WhatsAppConnections", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.WhatsAppMessage", b =>
@@ -617,7 +617,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("Timestamp");
 
-                    b.ToTable("WhatsAppMessages");
+                    b.ToTable("WhatsAppMessages", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.WhatsAppTemplate", b =>
@@ -669,7 +669,7 @@ namespace Colportor.Api.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("WhatsAppTemplates");
+                    b.ToTable("WhatsAppTemplates", (string)null);
                 });
 
             modelBuilder.Entity("Colportor.Api.Models.Colportor", b =>
