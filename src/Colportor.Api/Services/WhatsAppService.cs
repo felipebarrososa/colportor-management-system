@@ -110,12 +110,12 @@ namespace Colportor.Api.Services
                 _logger.LogWarning("Erro ao conectar WhatsApp - Status: {StatusCode}, Content: {Content}", 
                     response.StatusCode, errorContent);
                 
-                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse($"Erro ao conectar com WhatsApp Service: {response.StatusCode}");
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse($"WhatsApp service não está disponível. Status: {response.StatusCode}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao conectar WhatsApp - URL: {Url}", _whatsappServiceUrl);
-                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse($"Erro interno ao conectar WhatsApp: {ex.Message}");
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse("WhatsApp service não está rodando. Verifique se o serviço foi iniciado.");
             }
         }
 
