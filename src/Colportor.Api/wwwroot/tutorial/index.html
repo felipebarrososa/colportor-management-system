@@ -8,68 +8,54 @@
     <link rel="stylesheet" href="/tutorial/css/tutorial.css">
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body class="bg">
     <div class="tutorial-container">
         <header class="tutorial-header">
-            <h1>📚 Guia Rápido do Colportor ID</h1>
-            <p>Aprenda em poucos passos. Conteúdo simples para quem nunca usou o sistema.</p>
+            <h1>📚 Guia Rápido Colportor ID</h1>
+            <p>Bem-vindo ao sistema! Escolha seu perfil para começar.</p>
             <div class="header-actions">
-                <button id="darkModeToggle" class="btn btn-outline">🌙 Modo Escuro</button>
-                <button id="printButton" class="btn btn-outline">🖨️ Imprimir</button>
+                <button id="darkModeToggle" class="btn">🌙 Modo Escuro</button>
+                <button id="printButton" class="btn">🖨️ Imprimir</button>
             </div>
         </header>
 
+        <nav class="tutorial-nav">
+            <a href="/tutorial/admin" class="nav-card">
+                <div class="nav-icon">👨‍💼</div>
+                <h3>Líder</h3>
+                <p>Gerencie sua equipe, contatos e PACs.</p>
+            </a>
+
+            <a href="/tutorial/colportor" class="nav-card">
+                <div class="nav-icon">👤</div>
+                <h3>Colportor</h3>
+                <p>Acesse sua carteira digital e perfil.</p>
+            </a>
+        </nav>
+
         <div class="tutorial-content">
-            <section id="primeiros-passos" class="tutorial-section">
-                <h2>🚀 Primeiros passos</h2>
-                <div class="step-card">
-                    <span class="step-number">1</span>
-                    <strong>Escolha o seu perfil</strong>
-                    <p>Se você é responsável por pessoas/relatórios, use Admin/Líder. Se é colportor, use Colportor.</p>
-                </div>
-                <div class="step-card">
-                    <span class="step-number">2</span>
-                    <strong>Acesse a página correta</strong>
-                    <p>Admin/Líder: <code>/admin/login</code> — Colportor: <code>/colportor</code>.</p>
-                </div>
-                <div class="step-card">
-                    <span class="step-number">3</span>
-                    <strong>Use seu e-mail e senha</strong>
-                    <p>Se não tiver acesso, veja no tutorial como se cadastrar.</p>
-                </div>
+            <section class="tutorial-section">
+                <h2>O que é o Colportor ID?</h2>
+                <p>É um sistema para ajudar líderes e colportores a organizar o trabalho missionário. Ele facilita o registro de visitas, o acompanhamento de contatos e a gestão de equipes.</p>
             </section>
 
             <section class="tutorial-section">
-                <h2>👨‍💼 Sou Admin/Líder</h2>
-                <ol>
-                    <li>Entre em <code>/admin/login</code> com seu e-mail e senha.</li>
-                    <li>No painel, veja colportores, calendário e relatórios.</li>
-                    <li>Cadastre/edite colportores quando necessário.</li>
-                    <li>Gerencie contatos missionários e crie lembretes.</li>
-                    <li>Baixe relatórios quando precisar.</li>
-                </ol>
-                <p><a class="back-button" href="/tutorial/admin">Abrir tutorial passo a passo (Admin/Líder)</a></p>
-            </section>
-
-            <section class="tutorial-section">
-                <h2>👤 Sou Colportor</h2>
-                <ol>
-                    <li>Entre em <code>/colportor</code> com seu e-mail e senha.</li>
-                    <li>Veja sua carteira digital (foto, dados e status).</li>
-                    <li>Atualize seu perfil quando necessário.</li>
-                    <li>Solicite PAC se indicado pelo seu líder.</li>
-                </ol>
-                <p><a class="back-button" href="/tutorial/colportor">Abrir tutorial passo a passo (Colportor)</a></p>
-            </section>
-
-            <section class="tutorial-section">
-                <h2>🆘 Precisa de ajuda?</h2>
+                <h2>Como funciona?</h2>
+                <p>O sistema tem duas partes principais:</p>
                 <ul>
-                    <li>Se você não consegue entrar, fale com seu líder/administrador.</li>
-                    <li>Se esqueceu a senha, solicite ao líder a redefinição.</li>
-                    <li>Problemas técnicos: tente atualizar a página ou trocar de navegador.</li>
+                    <li><strong>Para Líderes:</strong> Você gerencia seus colportores, acompanha o progresso, e organiza os contatos missionários.</li>
+                    <li><strong>Para Colportores:</strong> Você tem uma "carteira digital" com seu perfil, status e informações importantes.</li>
                 </ul>
             </section>
+
+            <section class="tutorial-section">
+                <h2>Próximos Passos:</h2>
+                <p>Clique em um dos botões acima para ver o tutorial específico do seu perfil.</p>
+            </section>
+        </div>
+
+        <div class="tutorial-actions">
+            <a href="/admin/login" class="back-button">🏠 Voltar ao Login</a>
         </div>
     </div>
 
