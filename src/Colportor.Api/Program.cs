@@ -152,17 +152,50 @@ using (var scope = app.Services.CreateScope())
             }
         }
         
-        // Agora aplicar migrations pendentes (só WhatsApp e Reminders)
-        var pendingMigrations = context.Database.GetPendingMigrations();
-        if (pendingMigrations.Any())
+        // Agora aplicar migrations pendentes em ordem específica
+        var pendingMigrations = context.Database.GetPendingMigrations().ToList();
+        
+        // Fazer manualmente se necessário: aplicar MissionContacts primeiro, depois WhatsApp e Reminders
+        var criticalMigrations = new[] 
         {
-            Log.Information("Aplicando {Count} migrations pendentes: {Migrations}", 
-                pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+            "20251020134639_AddMissionContacts",
+            "20251020175643_WhatsAppTablesCreated", 
+            "20251024012704_AddRemindersTable"
+        };
+        
+        foreach (var migrationId in criticalMigrations)
+        {
+            if (pendingMigrations.Contains(migrationId))
+            {
+                try
+                {
+                    Log.Information("Aplicando migration específica: {Migration}", migrationId);
+                    context.Database.ExecuteSqlRaw(
+                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                        migrationId, "8.0.8");
+                    
+                    // Aplicar apenas esta migration
+                    context.Database.Migrate();
+                    Log.Information("Migration {Migration} aplicada com sucesso", migrationId);
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Erro ao aplicar migration {Migration}, tentando próxima", migrationId);
+                }
+            }
+        }
+        
+        // Se ainda houver migrations pendentes, aplicar normalmente
+        var stillPending = context.Database.GetPendingMigrations();
+        if (stillPending.Any())
+        {
+            Log.Information("Aplicando {Count} migrations pendentes restantes: {Migrations}", 
+                stillPending.Count(), string.Join(", ", stillPending));
             
             try
             {
                 context.Database.Migrate();
-                Log.Information("Migrations aplicadas com sucesso");
+                Log.Information("Migrations restantes aplicadas com sucesso");
             }
             catch (Exception migrationEx)
             {
