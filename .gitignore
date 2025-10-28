@@ -38,8 +38,8 @@ logs/
 .env.test.local
 .env.production.local
 
-# Database connection strings and credentials
-*connection*
+# Database connection strings and credentials (but allow code files)
+*connection*.json
 *credential*
 *password*
 *secret*
