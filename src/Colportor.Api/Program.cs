@@ -87,40 +87,41 @@ using (var scope = app.Services.CreateScope())
             }
             catch (Exception migrationEx)
             {
-                Log.Warning(migrationEx, "Falha ao aplicar migrations automaticamente, tentando marcar como aplicadas");
+                Log.Warning(migrationEx, "Falha ao aplicar migrations automaticamente, marcando migrations existentes como aplicadas");
                 
-                // Se falhar, marcar migrations existentes como aplicadas manualmente
-                var appliedMigrations = context.Database.GetAppliedMigrations();
-                var allMigrations = context.Database.GetMigrations();
-                
-                foreach (var migration in allMigrations)
+                // Marcar todas as migrations antigas como aplicadas (exceto WhatsApp e Reminders)
+                var migrationsToMark = new[]
                 {
-                    if (!appliedMigrations.Contains(migration))
+                    "202409290001_Initial",
+                    "20251001124027_AddLeaderPersonalData", 
+                    "20251001193944_AddPacEnrollmentsToColportor",
+                    "20251001212504_FixColportorLeaderRelationship",
+                    "20251001213603_RemoveColportorCountryProperties",
+                    "20251002124656_AddGenderAndBirthDateToColportors",
+                    "20251002130658_AddGenderBirthDateSimple",
+                    "20251013220000_AddPhotosTable",
+                    "20251020134639_AddMissionContacts"
+                };
+                
+                foreach (var migration in migrationsToMark)
+                {
+                    try
                     {
-                        try
-                        {
-                            // Verificar se a tabela principal da migration já existe
-                            var tableExists = context.Database.ExecuteSqlRaw(
-                                "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Countries')") > 0;
-                            
-                            if (tableExists && migration.Contains("AddLeaderPersonalData"))
-                            {
-                                Log.Information("Marcando migration {Migration} como aplicada (tabela já existe)", migration);
-                                context.Database.ExecuteSqlRaw(
-                                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                                    migration, "8.0.8");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
-                        }
+                        Log.Information("Marcando migration {Migration} como aplicada", migration);
+                        context.Database.ExecuteSqlRaw(
+                            "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                            migration, "8.0.8");
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
                     }
                 }
                 
-                // Tentar aplicar migrations novamente após marcar as existentes
+                // Tentar aplicar migrations novamente (agora só WhatsApp e Reminders)
                 try
                 {
+                    Log.Information("Tentando aplicar migrations restantes após correção");
                     context.Database.Migrate();
                     Log.Information("Migrations aplicadas com sucesso após correção");
                 }
