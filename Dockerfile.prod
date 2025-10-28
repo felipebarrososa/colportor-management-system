@@ -51,17 +51,31 @@ WORKDIR /app
 # Criar diretório para sessão do WhatsApp
 RUN mkdir -p /app/whatsapp/.wwebjs_auth
 
-# Script de inicialização
+# Script de inicialização melhorado
 RUN echo '#!/bin/bash\n\
 echo "=== INICIANDO CONTAINER ===="\n\
+echo "Verificando Node.js..."\n\
+node --version\n\
+echo "Verificando npm..."\n\
+npm --version\n\
+echo "Verificando diretório WhatsApp..."\n\
+ls -la /app/whatsapp/\n\
+echo "Verificando package.json..."\n\
+cat /app/whatsapp/package.json\n\
 echo "Iniciando WhatsApp service..."\n\
-cd /app/whatsapp && npm start &\n\
+cd /app/whatsapp\n\
+echo "Diretório atual: $(pwd)"\n\
+echo "Iniciando npm start em background..."\n\
+npm start > /app/whatsapp.log 2>&1 &\n\
 WHATSAPP_PID=$!\n\
 echo "WhatsApp PID: $WHATSAPP_PID"\n\
 echo "Aguardando WhatsApp inicializar..."\n\
-sleep 30\n\
+sleep 45\n\
 echo "Verificando se WhatsApp está rodando..."\n\
+ps aux | grep node\n\
 curl -f http://localhost:3001/status || echo "WhatsApp ainda não está pronto"\n\
+echo "Logs do WhatsApp:"\n\
+tail -20 /app/whatsapp.log\n\
 echo "Iniciando API..."\n\
 cd /app && exec dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start.sh
 
