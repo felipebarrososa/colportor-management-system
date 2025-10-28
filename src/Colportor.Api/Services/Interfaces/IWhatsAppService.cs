@@ -5,6 +5,7 @@ namespace Colportor.Api.Services.Interfaces
 {
     public interface IWhatsAppService
     {
+        Task<ApiResponse> StartServiceAsync();
         Task<WhatsAppConnectionStatusDto> GetConnectionStatusAsync();
         Task<ApiResponse<WhatsAppConnectionStatusDto>> ConnectAsync();
         Task<ApiResponse> DisconnectAsync();

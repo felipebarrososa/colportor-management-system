@@ -24,6 +24,24 @@ namespace Colportor.Api.Controllers
             _whatsAppService = whatsAppService;
         }
 
+        [HttpPost("start")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> StartService()
+        {
+            try
+            {
+                var result = await _whatsAppService.StartServiceAsync();
+                if (result.Success)
+                    return Ok(new { message = "WhatsApp service iniciado com sucesso" });
+                return BadRequest(new { message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Erro ao iniciar WhatsApp service");
+                return StatusCode(500, new { message = "Erro interno do servidor" });
+            }
+        }
+
         [HttpGet("status")]
         [AllowAnonymous]
         public async Task<IActionResult> GetStatus()

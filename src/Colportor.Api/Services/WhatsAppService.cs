@@ -49,6 +49,68 @@ namespace Colportor.Api.Services
             _whatsappServiceUrl = Environment.GetEnvironmentVariable("WHATSAPP_SERVICE_URL") ?? "http://whatsapp:3001";
         }
 
+        public async Task<ApiResponse> StartServiceAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Verificando se WhatsApp service está rodando...");
+                
+                // Verificar se já está rodando
+                using var checkHttp = new HttpClient();
+                try
+                {
+                    var response = await checkHttp.GetAsync($"{_whatsappServiceUrl}/status");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation("WhatsApp service já está rodando");
+                        return ApiResponse.SuccessResponse();
+                    }
+                }
+                catch
+                {
+                    // Service não está rodando, continuar
+                }
+                
+                _logger.LogInformation("WhatsApp service não está rodando. Iniciando...");
+                
+                // Verificar se o diretório existe
+                var whatsappDir = "/app/whatsapp";
+                if (!System.IO.Directory.Exists(whatsappDir))
+                {
+                    return ApiResponse.ErrorResponse("Diretório WhatsApp não encontrado");
+                }
+                
+                // Iniciar WhatsApp em background
+                var whatsappProcess = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "npm",
+                        Arguments = "start",
+                        WorkingDirectory = whatsappDir,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        Environment = { ["PORT"] = "3001" }
+                    }
+                };
+                
+                whatsappProcess.Start();
+                _logger.LogInformation("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
+                
+                // Aguardar um pouco para inicializar
+                await Task.Delay(5000);
+                
+                return ApiResponse.SuccessResponse();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao iniciar WhatsApp service");
+                return ApiResponse.ErrorResponse($"Erro ao iniciar WhatsApp service: {ex.Message}");
+            }
+        }
+
         public async Task<WhatsAppConnectionStatusDto> GetConnectionStatusAsync()
         {
             try
