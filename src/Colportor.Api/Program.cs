@@ -67,36 +67,66 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
-// TEMPORÁRIO: Comentado para debug - WhatsApp service
-// try
-// {
-//     Log.Information("Iniciando WhatsApp service em background...");
-//     
-//     var whatsappProcess = new System.Diagnostics.Process
-//     {
-//         StartInfo = new System.Diagnostics.ProcessStartInfo
-//         {
-//             FileName = "npm",
-//             Arguments = "start",
-//             WorkingDirectory = "/app/whatsapp",
-//             UseShellExecute = false,
-//             RedirectStandardOutput = true,
-//             RedirectStandardError = true,
-//             CreateNoWindow = true
-//         }
-//     };
-//     
-//     whatsappProcess.Start();
-//     Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
-//     
-//     // Aguardar um pouco para o WhatsApp inicializar
-//     await Task.Delay(10000);
-//     Log.Information("WhatsApp service deve estar pronto");
-// }
-// catch (Exception ex)
-// {
-//     Log.Error(ex, "Erro ao iniciar WhatsApp service, mas continuando");
-// }
+// Iniciar WhatsApp service automaticamente
+try
+{
+    Log.Information("=== INICIANDO WHATSAPP SERVICE ===");
+    
+    // Verificar se o diretório existe
+    var whatsappDir = "/app/whatsapp";
+    if (Directory.Exists(whatsappDir))
+    {
+        Log.Information("Diretório WhatsApp encontrado: {Dir}", whatsappDir);
+        
+        // Verificar Node.js
+        var nodeProcess = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "node",
+                Arguments = "--version",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            }
+        };
+        
+        nodeProcess.Start();
+        var nodeVersion = await nodeProcess.StandardOutput.ReadToEndAsync();
+        Log.Information("Node.js versão: {Version}", nodeVersion.Trim());
+        
+        // Iniciar WhatsApp
+        var whatsappProcess = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "npm",
+                Arguments = "start",
+                WorkingDirectory = whatsappDir,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            }
+        };
+        
+        whatsappProcess.Start();
+        Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
+        
+        // Aguardar inicialização
+        await Task.Delay(30000);
+        Log.Information("WhatsApp service deve estar pronto");
+    }
+    else
+    {
+        Log.Warning("Diretório WhatsApp não encontrado: {Dir}", whatsappDir);
+    }
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Erro ao iniciar WhatsApp service, mas continuando");
+}
 
 // TEMPORÁRIO: Criar tabelas faltantes usando Entity Framework
 try
