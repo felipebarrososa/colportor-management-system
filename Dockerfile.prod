@@ -53,11 +53,16 @@ RUN mkdir -p /app/whatsapp/.wwebjs_auth
 
 # Script de inicialização
 RUN echo '#!/bin/bash\n\
-# Iniciar WhatsApp em background\n\
+echo "=== INICIANDO CONTAINER ===="\n\
+echo "Iniciando WhatsApp service..."\n\
 cd /app/whatsapp && npm start &\n\
-# Aguardar WhatsApp inicializar\n\
-sleep 10\n\
-# Iniciar API\n\
+WHATSAPP_PID=$!\n\
+echo "WhatsApp PID: $WHATSAPP_PID"\n\
+echo "Aguardando WhatsApp inicializar..."\n\
+sleep 30\n\
+echo "Verificando se WhatsApp está rodando..."\n\
+curl -f http://localhost:3001/status || echo "WhatsApp ainda não está pronto"\n\
+echo "Iniciando API..."\n\
 cd /app && dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start.sh
 
 # Configurações de produção

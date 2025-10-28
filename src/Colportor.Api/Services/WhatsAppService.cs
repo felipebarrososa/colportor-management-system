@@ -84,10 +84,16 @@ namespace Colportor.Api.Services
         {
             try
             {
+                _logger.LogInformation("Tentando conectar WhatsApp - URL: {Url}", _whatsappServiceUrl);
+                
                 var response = await _httpClient.PostAsync($"{_whatsappServiceUrl}/connect", null);
+                _logger.LogInformation("Resposta do WhatsApp Service - Status: {StatusCode}", response.StatusCode);
+                
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation("Resposta JSON do WhatsApp: {Json}", json);
+                    
                     var status = JsonSerializer.Deserialize<WhatsAppConnectionStatusDto>(json, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
@@ -95,16 +101,21 @@ namespace Colportor.Api.Services
                     
                     if (status != null)
                     {
+                        _logger.LogInformation("WhatsApp conectado com sucesso - Status: {Status}", status.Status);
                         return ApiResponse<WhatsAppConnectionStatusDto>.SuccessResponse(status);
                     }
                 }
                 
-                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse("Erro ao conectar com WhatsApp Service");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Erro ao conectar WhatsApp - Status: {StatusCode}, Content: {Content}", 
+                    response.StatusCode, errorContent);
+                
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse($"Erro ao conectar com WhatsApp Service: {response.StatusCode}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao conectar WhatsApp");
-                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse("Erro interno ao conectar WhatsApp");
+                _logger.LogError(ex, "Erro ao conectar WhatsApp - URL: {Url}", _whatsappServiceUrl);
+                return ApiResponse<WhatsAppConnectionStatusDto>.ErrorResponse($"Erro interno ao conectar WhatsApp: {ex.Message}");
             }
         }
 
