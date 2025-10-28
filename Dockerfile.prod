@@ -83,7 +83,7 @@ cd /app && exec dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 ENV WHATSAPP_SERVICE_URL=http://localhost:3001
-ENV PORT=3001
+ENV WHATSAPP_PORT=3001
 ENV NODE_ENV=production
 
 # Usar ENTRYPOINT com exec para Railway
