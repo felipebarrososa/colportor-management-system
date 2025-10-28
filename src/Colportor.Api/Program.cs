@@ -72,34 +72,83 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        // Primeiro, marcar migrations existentes como aplicadas para evitar conflitos
-        Log.Information("Verificando e corrigindo histórico de migrations");
+        // Primeiro, verificar quais tabelas existem e marcar migrations correspondentes
+        Log.Information("Verificando tabelas existentes e corrigindo histórico de migrations");
         
-        var migrationsToMark = new[]
+        // Verificar tabelas existentes
+        var existingTables = new List<string>();
+        try
         {
-            "202409290001_Initial",
-            "20251001124027_AddLeaderPersonalData", 
-            "20251001193944_AddPacEnrollmentsToColportor",
-            "20251001212504_FixColportorLeaderRelationship",
-            "20251001213603_RemoveColportorCountryProperties",
-            "20251002124656_AddGenderAndBirthDateToColportors",
-            "20251002130658_AddGenderBirthDateSimple",
-            "20251013220000_AddPhotosTable",
-            "20251020134639_AddMissionContacts"
+            var tables = context.Database.ExecuteSqlRaw(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
+            
+            // Verificar tabelas específicas
+            var tableChecks = new[]
+            {
+                "Countries", "Leaders", "Colportors", "Regions", "Photos", 
+                "MissionContacts", "ContactObservations", "WhatsAppConnections", 
+                "WhatsAppMessages", "WhatsAppTemplates", "Reminders"
+            };
+            
+            foreach (var table in tableChecks)
+            {
+                try
+                {
+                    var exists = context.Database.ExecuteSqlRaw(
+                        "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = {0})", table) > 0;
+                    if (exists)
+                    {
+                        existingTables.Add(table);
+                        Log.Information("Tabela {Table} existe", table);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, "Erro ao verificar tabela {Table}", table);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warning(ex, "Erro ao verificar tabelas existentes");
+        }
+        
+        // Marcar migrations baseado nas tabelas existentes
+        var migrationsToMark = new Dictionary<string, string[]>
+        {
+            ["202409290001_Initial"] = new[] { "Countries", "Leaders", "Colportors", "Regions" },
+            ["20251001124027_AddLeaderPersonalData"] = new[] { "Countries" },
+            ["20251001193944_AddPacEnrollmentsToColportor"] = new[] { "Colportors" },
+            ["20251001212504_FixColportorLeaderRelationship"] = new[] { "Colportors", "Leaders" },
+            ["20251001213603_RemoveColportorCountryProperties"] = new[] { "Colportors" },
+            ["20251002124656_AddGenderAndBirthDateToColportors"] = new[] { "Colportors" },
+            ["20251002130658_AddGenderBirthDateSimple"] = new[] { "Colportors" },
+            ["20251013220000_AddPhotosTable"] = new[] { "Photos" },
+            ["20251020134639_AddMissionContacts"] = new[] { "MissionContacts", "ContactObservations" }
         };
         
         foreach (var migration in migrationsToMark)
         {
             try
             {
-                Log.Information("Marcando migration {Migration} como aplicada", migration);
-                context.Database.ExecuteSqlRaw(
-                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                    migration, "8.0.8");
+                // Verificar se todas as tabelas da migration existem
+                var allTablesExist = migration.Value.All(table => existingTables.Contains(table));
+                
+                if (allTablesExist)
+                {
+                    Log.Information("Marcando migration {Migration} como aplicada (todas as tabelas existem)", migration.Key);
+                    context.Database.ExecuteSqlRaw(
+                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                        migration.Key, "8.0.8");
+                }
+                else
+                {
+                    Log.Information("Migration {Migration} não será marcada como aplicada (faltam tabelas)", migration.Key);
+                }
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
+                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration.Key);
             }
         }
         
