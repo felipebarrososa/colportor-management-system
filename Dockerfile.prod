@@ -1,7 +1,28 @@
-# Multi-stage build para produção
+# Multi-stage build para produção com Node.js e WhatsApp
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
+EXPOSE 3001
+
+# Instalar Node.js 18
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Instalar dependências do sistema para Puppeteer
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
+    git \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -19,8 +40,31 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Copiar e instalar serviço WhatsApp
+COPY whatsapp-service/ /app/whatsapp/
+WORKDIR /app/whatsapp
+RUN npm install --production
+
+# Voltar para diretório principal
+WORKDIR /app
+
+# Criar diretório para sessão do WhatsApp
+RUN mkdir -p /app/whatsapp/.wwebjs_auth
+
+# Script de inicialização
+RUN echo '#!/bin/bash\n\
+# Iniciar WhatsApp em background\n\
+cd /app/whatsapp && npm start &\n\
+# Aguardar WhatsApp inicializar\n\
+sleep 10\n\
+# Iniciar API\n\
+cd /app && dotnet Colportor.Api.dll' > /app/start.sh && chmod +x /app/start.sh
+
 # Configurações de produção
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
+ENV WHATSAPP_SERVICE_URL=http://localhost:3001
+ENV PORT=3001
+ENV NODE_ENV=production
 
-ENTRYPOINT ["dotnet", "Colportor.Api.dll"]
+ENTRYPOINT ["/app/start.sh"]
