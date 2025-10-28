@@ -67,9 +67,73 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
-// TODO: Iniciar WhatsApp automaticamente em startup
-// Por enquanto, o WhatsApp será iniciado sob demanda via endpoint
-Log.Information("WhatsApp service será iniciado sob demanda quando necessário");
+// Iniciar WhatsApp service automaticamente em background
+_ = Task.Run(async () =>
+{
+    try
+    {
+        Log.Information("=== INICIANDO WHATSAPP SERVICE AUTOMATICAMENTE ===");
+        
+        // Aguardar um pouco para a API estabilizar
+        await Task.Delay(10000);
+        
+        // Verificar se o diretório existe
+        var whatsappDir = "/app/whatsapp";
+        if (Directory.Exists(whatsappDir))
+        {
+            Log.Information("Diretório WhatsApp encontrado: {Dir}", whatsappDir);
+            
+            // Verificar Node.js
+            var nodeProcess = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "node",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+            
+            nodeProcess.Start();
+            var nodeVersion = await nodeProcess.StandardOutput.ReadToEndAsync();
+            Log.Information("Node.js versão: {Version}", nodeVersion.Trim());
+            
+            // Iniciar WhatsApp com porta específica
+            var whatsappProcess = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "npm",
+                    Arguments = "start",
+                    WorkingDirectory = whatsappDir,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    Environment = { ["PORT"] = "3001" } // Forçar porta 3001
+                }
+            };
+            
+            whatsappProcess.Start();
+            Log.Information("WhatsApp service iniciado automaticamente com PID: {PID}", whatsappProcess.Id);
+            
+            // Aguardar inicialização
+            await Task.Delay(30000);
+            Log.Information("WhatsApp service deve estar pronto");
+        }
+        else
+        {
+            Log.Warning("Diretório WhatsApp não encontrado: {Dir}", whatsappDir);
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Erro ao iniciar WhatsApp service automaticamente");
+    }
+});
 
 // TEMPORÁRIO: Criar tabelas faltantes usando Entity Framework
 try
