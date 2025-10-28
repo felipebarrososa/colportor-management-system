@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial Líder - Colportor ID</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/tutorial/css/tutorial.css">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="tutorial-container">
+        <header class="tutorial-header">
+            <h1>👨‍💼 Tutorial para Líderes</h1>
+            <p>Guia passo a passo para usar o sistema Colportor ID.</p>
+            <div class="header-actions">
+                <button id="darkModeToggle" class="btn btn-outline">🌙 Modo Escuro</button>
+                <button id="printButton" class="btn btn-outline">🖨️ Imprimir</button>
+            </div>
+        </header>
+
+        <div class="tutorial-content">
+            <div class="search-section">
+                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Buscar no tutorial...">
+                <div id="searchResults"></div>
+            </div>
+
+            <div class="toc">
+                <h3>📋 Índice Rápido</h3>
+                <ul>
+                    <li><a href="#login-acesso">1) Login e Acesso</a></li>
+                    <li><a href="#visao-geral">2) O que você verá como Líder</a></li>
+                    <li><a href="#selecionar-pac">3) Selecionar PAC</a></li>
+                    <li><a href="#contatos">4) Contatos Missionários</a></li>
+                    <li><a href="#whatsapp-config">5) Configurações WhatsApp</a></li>
+                </ul>
+            </div>
+
+            <section class="tutorial-section" id="login-acesso">
+                <h2>1) Login e Acesso</h2>
+                <p>Para começar a usar o sistema como Líder:</p>
+                <ol>
+                    <li>Acesse a tela de login em <code>/admin/login</code>.</li>
+                    <li>Entre com seu e-mail e senha.</li>
+                    <li>Se ainda não tem acesso, clique em "Cadastrar Líder (Admin)" e aguarde aprovação do administrador.</li>
+                </ol>
+            </section>
+
+            <section class="tutorial-section" id="visao-geral">
+                <h2>2) O que você verá como Líder</h2>
+                <p>Após o login, você verá o <strong>Painel</strong> com:</p>
+                <ul>
+                    <li><strong>Minhas solicitações PAC</strong>: Aguardando, Aprovadas, Rejeitadas.</li>
+                    <li><strong>Status Colportores</strong>: lista dos colportores da sua região com filtros por cidade, CPF e status.</li>
+                    <li><strong>Resumo</strong>: Total, Em dia, Aviso, Vencido.</li>
+                    <li><strong>Tabela de colportores</strong>: com foto, nome, CPF, região, última visita e status.</li>
+                </ul>
+                <p>No menu lateral você terá acesso a:</p>
+                <ul>
+                    <li><strong>Selecionar PAC (Líder)</strong>: para enviar colportores ao programa de acompanhamento.</li>
+                    <li><strong>Contatos Missionários</strong>: gestão de contatos da sua região.</li>
+                    <li><strong>Configurações WhatsApp</strong>: configuração da integração WhatsApp.</li>
+                </ul>
+            </section>
+
+            <section class="tutorial-section" id="selecionar-pac">
+                <h2>3) Selecionar PAC</h2>
+                <p>Como Líder, você <strong>seleciona colportores</strong> para PAC em um período específico. A aprovação é feita pelo <strong>Administrador</strong>.</p>
+                <ol>
+                    <li>Clique em <strong>"Selecionar PAC (Líder)"</strong> no menu.</li>
+                    <li>Defina o <strong>período</strong> (data início e fim) para envio dos colportores.</li>
+                    <li>Use a <strong>busca</strong> para filtrar colportores por nome/CPF.</li>
+                    <li><strong>Selecione</strong> os colportores que irão no PAC (pode usar "Selecionar todos" ou escolher individualmente).</li>
+                    <li>Clique em <strong>"Enviar seleção para aprovação"</strong>.</li>
+                    <li>Acompanhe o status (Pendente, Aprovado, Rejeitado).</li>
+                </ol>
+            </section>
+
+            <section class="tutorial-section" id="contatos">
+                <h2>4) Contatos Missionários</h2>
+                <p>Gerencie os contatos da sua região:</p>
+                <ol>
+                    <li>Clique em <strong>"Contatos Missionários"</strong> no menu.</li>
+                    <li><strong>Os contatos vêm de duas fontes:</strong>
+                        <ul>
+                            <li><strong>Cadastro manual:</strong> contatos que você cadastra diretamente na tela.</li>
+                            <li><strong>Colportores da região:</strong> contatos associados aos colportores da sua região.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Para enviar mensagens:</strong> você precisa estar conectado ao WhatsApp (veja seção 5).</li>
+                    <li><strong>Gerencie os contatos:</strong> registre observações, atualize o status (ex.: Novo → Contatado → Interessado → Convertido) e use filtros/busca.</li>
+                    <li><strong>Crie lembretes:</strong> para follow-up (ex.: ligar amanhã), e marque como concluído quando finalizar.</li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ Importante:</strong> Para que os contatos carreguem e você possa enviar mensagens, é necessário estar conectado ao WhatsApp primeiro. Sem conexão, a funcionalidade ficará limitada.
+                </div>
+            </section>
+
+            <section class="tutorial-section" id="whatsapp-config">
+                <h2>5) Configurações WhatsApp</h2>
+                <ol>
+                    <li>Clique em <strong>"Configurações WhatsApp"</strong> no menu.</li>
+                    <li>Clique em <strong>"Conectar WhatsApp"</strong> para gerar o QR Code.</li>
+                    <li><strong>Aguarde o carregamento completo</strong> do QR Code na tela.</li>
+                    <li>Abra o <strong>WhatsApp no seu celular</strong> e vá em "Dispositivos conectados".</li>
+                    <li><strong>Escaneie o QR Code</strong> com seu celular.</li>
+                    <li><strong>Aguarde a conexão</strong> ser estabelecida completamente no celular.</li>
+                    <li>Clique em <strong>"Atualizar"</strong> na página para confirmar que conectou.</li>
+                    <li>Verifique as <strong>Estatísticas</strong> (Mensagens Enviadas, Entregues, Lidas, Falhas).</li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ Importante:</strong> Só clique em "Atualizar" após confirmar que o WhatsApp conectou completamente no seu celular. Se não conectar, clique em "Limpar Sessão" e tente novamente.
+                </div>
+            </section>
+
+            <div class="tutorial-actions">
+                <a href="/tutorial" class="back-button">📚 Voltar ao Guia Rápido</a>
+                <a href="/admin/login" class="back-button">🏠 Ir para o Login Líder</a>
+            </div>
+        </div>
+
+        <script src="/tutorial/js/tutorial.js"></script>
+    </body>
+    </html>

@@ -34,6 +34,7 @@
             <div class="aux">
                 <span>Não tem conta?</span>
                 <button id="btnOpenRegister" class="link">Cadastrar</button>
+                <button id="btnOpenTutorial" class="link">📚 Tutorial</button>
             </div>
         </section>
     </main>
@@ -225,6 +226,13 @@
     </main>
 
     <div id="toast" class="toast"></div>
+
+    <!-- Script para botão do tutorial -->
+    <script>
+        document.getElementById('btnOpenTutorial').addEventListener('click', function() {
+            window.open('/tutorial/colportor', '_blank');
+        });
+    </script>
 
     <script src="/js/wallet.js"></script>
     <script src="/js/mission-contacts-wallet.js"></script>

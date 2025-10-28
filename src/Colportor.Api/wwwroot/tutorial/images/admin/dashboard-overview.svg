@@ -1,0 +1,173 @@
+<svg width="600" height="400" viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="400" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="300" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333">
+    Dashboard Admin/Líder
+  </text>
+  
+  <!-- Header -->
+  <rect x="20" y="50" width="560" height="50" rx="5" fill="#667eea" stroke="#5a67d8" stroke-width="1"/>
+  <text x="30" y="75" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    Colportor ID - Dashboard
+  </text>
+  <text x="500" y="75" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Admin/Líder
+  </text>
+  
+  <!-- Sidebar -->
+  <rect x="20" y="110" width="120" height="250" rx="5" fill="#e2e8f0" stroke="#cbd5e0" stroke-width="1"/>
+  <text x="30" y="135" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">
+    Menu
+  </text>
+  
+  <!-- Menu items -->
+  <rect x="30" y="145" width="100" height="25" rx="3" fill="#667eea" stroke="#5a67d8" stroke-width="1"/>
+  <text x="80" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    👥 Colportores
+  </text>
+  
+  <rect x="30" y="175" width="100" height="25" rx="3" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">
+    📅 Calendário
+  </text>
+  
+  <rect x="30" y="205" width="100" height="25" rx="3" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">
+    📊 Relatórios
+  </text>
+  
+  <rect x="30" y="235" width="100" height="25" rx="3" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">
+    📞 Contatos
+  </text>
+  
+  <rect x="30" y="265" width="100" height="25" rx="3" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">
+    🎯 PACs
+  </text>
+  
+  <rect x="30" y="295" width="100" height="25" rx="3" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="80" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333">
+    📱 WhatsApp
+  </text>
+  
+  <!-- Main content area -->
+  <rect x="150" y="110" width="430" height="250" rx="5" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <!-- Stats cards -->
+  <rect x="170" y="130" width="100" height="60" rx="5" fill="#48bb78" stroke="#38a169" stroke-width="1"/>
+  <text x="220" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">
+    25
+  </text>
+  <text x="220" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Colportores
+  </text>
+  <text x="220" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Ativos
+  </text>
+  
+  <rect x="290" y="130" width="100" height="60" rx="5" fill="#ed8936" stroke="#dd6b20" stroke-width="1"/>
+  <text x="340" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">
+    3
+  </text>
+  <text x="340" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Alertas
+  </text>
+  <text x="340" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Pendentes
+  </text>
+  
+  <rect x="410" y="130" width="100" height="60" rx="5" fill="#9f7aea" stroke="#805ad5" stroke-width="1"/>
+  <text x="460" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">
+    156
+  </text>
+  <text x="460" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Visitas
+  </text>
+  <text x="460" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Este Mês
+  </text>
+  
+  <!-- Table area -->
+  <rect x="170" y="210" width="340" height="120" rx="5" fill="#f7fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="180" y="230" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">
+    Colportores Recentes
+  </text>
+  
+  <!-- Table headers -->
+  <text x="180" y="250" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    Nome
+  </text>
+  <text x="250" y="250" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    Status
+  </text>
+  <text x="320" y="250" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    Última Visita
+  </text>
+  <text x="420" y="250" font-family="Arial, sans-serif" font-size="10" fill="#666">
+    Ações
+  </text>
+  
+  <!-- Table rows -->
+  <rect x="180" y="255" width="320" height="1" fill="#e2e8f0"/>
+  
+  <text x="180" y="270" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    João Silva
+  </text>
+  <rect x="250" y="265" width="40" height="12" rx="6" fill="#48bb78"/>
+  <text x="270" y="273" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="white">
+    Ativo
+  </text>
+  <text x="320" y="270" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    15/01/2025
+  </text>
+  <text x="420" y="270" font-family="Arial, sans-serif" font-size="9" fill="#667eea">
+    Editar
+  </text>
+  
+  <text x="180" y="285" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    Maria Santos
+  </text>
+  <rect x="250" y="280" width="40" height="12" rx="6" fill="#ed8936"/>
+  <text x="270" y="288" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="white">
+    Alerta
+  </text>
+  <text x="320" y="285" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    10/01/2025
+  </text>
+  <text x="420" y="285" font-family="Arial, sans-serif" font-size="9" fill="#667eea">
+    Editar
+  </text>
+  
+  <text x="180" y="300" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    Pedro Costa
+  </text>
+  <rect x="250" y="295" width="40" height="12" rx="6" fill="#48bb78"/>
+  <text x="270" y="303" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="white">
+    Ativo
+  </text>
+  <text x="320" y="300" font-family="Arial, sans-serif" font-size="9" fill="#333">
+    18/01/2025
+  </text>
+  <text x="420" y="300" font-family="Arial, sans-serif" font-size="9" fill="#667eea">
+    Editar
+  </text>
+  
+  <!-- Action buttons -->
+  <rect x="170" y="340" width="80" height="25" rx="5" fill="#667eea" stroke="#5a67d8" stroke-width="1"/>
+  <text x="210" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Novo Colportor
+  </text>
+  
+  <rect x="260" y="340" width="80" height="25" rx="5" fill="#48bb78" stroke="#38a169" stroke-width="1"/>
+  <text x="300" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Relatório
+  </text>
+  
+  <rect x="350" y="340" width="80" height="25" rx="5" fill="#ed8936" stroke="#dd6b20" stroke-width="1"/>
+  <text x="390" y="355" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    Exportar
+  </text>
+</svg>

@@ -39,6 +39,7 @@
             <div class="alt-actions">
                 <!-- Somente cadastro de líder aqui -->
                 <button class="btn link" id="openLeader" type="button">Cadastrar Líder (Admin)</button>
+                <button class="btn link" id="openTutorial" type="button">📚 Ver Tutorial</button>
             </div>
         </section>
     </main>
@@ -103,6 +104,13 @@
         </div>
         <div class="modal-backdrop" aria-hidden="true"></div>
     </div>
+
+    <!-- Script para botão do tutorial -->
+    <script>
+        document.getElementById('openTutorial').addEventListener('click', function() {
+            window.open('/tutorial', '_blank');
+        });
+    </script>
 
     <!-- ÚNICO script: o login universal (ESM) -->
     <script type="module" src="/js/login.js"></script>

@@ -1,0 +1,101 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333">
+    Fluxo do Sistema Colportor ID
+  </text>
+  
+  <!-- Admin Box -->
+  <rect x="50" y="100" width="150" height="80" rx="10" fill="#667eea" stroke="#5a67d8" stroke-width="2"/>
+  <text x="125" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    Admin
+  </text>
+  <text x="125" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Cria usuários
+  </text>
+  <text x="125" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Registra visitas
+  </text>
+  
+  <!-- Leader Box -->
+  <rect x="300" y="100" width="150" height="80" rx="10" fill="#48bb78" stroke="#38a169" stroke-width="2"/>
+  <text x="375" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    Líder
+  </text>
+  <text x="375" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Gerencia região
+  </text>
+  <text x="375" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Aprova PACs
+  </text>
+  
+  <!-- Colportor Box -->
+  <rect x="550" y="100" width="150" height="80" rx="10" fill="#ed8936" stroke="#dd6b20" stroke-width="2"/>
+  <text x="625" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    Colportor
+  </text>
+  <text x="625" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Carteira digital
+  </text>
+  <text x="625" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Solicita PAC
+  </text>
+  
+  <!-- Arrows -->
+  <path d="M 200 140 L 300 140" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 450 140 L 550 140" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- System Process -->
+  <rect x="200" y="250" width="400" height="120" rx="10" fill="#e2e8f0" stroke="#cbd5e0" stroke-width="2"/>
+  <text x="400" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">
+    Sistema Automático
+  </text>
+  <text x="400" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    • Calcula status dos colportores
+  </text>
+  <text x="400" y="325" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    • Envia notificações por email
+  </text>
+  <text x="400" y="345" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#666">
+    • Gera relatórios e estatísticas
+  </text>
+  
+  <!-- Database -->
+  <rect x="300" y="420" width="200" height="80" rx="10" fill="#9f7aea" stroke="#805ad5" stroke-width="2"/>
+  <text x="400" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    Banco de Dados
+  </text>
+  <text x="400" y="470" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    PostgreSQL
+  </text>
+  <text x="400" y="485" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Dados seguros
+  </text>
+  
+  <!-- Arrow to Database -->
+  <path d="M 400 370 L 400 420" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- WhatsApp Integration -->
+  <rect x="50" y="420" width="150" height="80" rx="10" fill="#25d366" stroke="#128c7e" stroke-width="2"/>
+  <text x="125" y="450" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white">
+    WhatsApp
+  </text>
+  <text x="125" y="470" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    Comunicação
+  </text>
+  <text x="125" y="485" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    com contatos
+  </text>
+  
+  <!-- Arrow to WhatsApp -->
+  <path d="M 200 460 L 50 460" stroke="#333" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+</svg>

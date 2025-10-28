@@ -1,0 +1,66 @@
+<svg width="500" height="350" viewBox="0 0 500 350" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="500" height="350" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="250" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333">
+    Carteira Digital - Colportor
+  </text>
+  
+  <!-- Card background -->
+  <rect x="50" y="50" width="400" height="250" rx="15" fill="#2d3748" stroke="#4a5568" stroke-width="2"/>
+  
+  <!-- Profile picture -->
+  <circle cx="120" cy="150" r="40" fill="#e2e8f0" stroke="#cbd5e0" stroke-width="2"/>
+  <text x="120" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#666">
+    👤
+  </text>
+  
+  <!-- Name -->
+  <text x="200" y="130" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white">
+    JOÃO CARLOS SILVA
+  </text>
+  
+  <!-- Left column info -->
+  <text x="200" y="150" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    CPF: 12345678901
+  </text>
+  <text x="200" y="165" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Local: SÃO PAULO / R1
+  </text>
+  <text x="200" y="180" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Vence em: 15/12/2025
+  </text>
+  
+  <!-- Right column info -->
+  <text x="320" y="150" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Sexo: Masculino
+  </text>
+  <text x="320" y="165" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Líder: Carlos Silva
+  </text>
+  <text x="320" y="180" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Idade: 32
+  </text>
+  <text x="320" y="195" font-family="Arial, sans-serif" font-size="12" fill="#a0aec0">
+    Última visita: 10/01/2025
+  </text>
+  
+  <!-- COLPORTOR badge -->
+  <rect x="350" y="100" width="80" height="25" rx="12" fill="#667eea"/>
+  <text x="390" y="115" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    COLPORTOR
+  </text>
+  
+  <!-- EM DIA status -->
+  <rect x="200" y="220" width="60" height="20" rx="10" fill="#48bb78"/>
+  <text x="230" y="233" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">
+    EM DIA
+  </text>
+  
+  <!-- Edit button -->
+  <circle cx="380" cy="250" r="15" fill="#48bb78"/>
+  <text x="380" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">
+    ✏️
+  </text>
+</svg>
