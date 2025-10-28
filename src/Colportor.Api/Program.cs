@@ -67,36 +67,36 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
-// TEMPORÁRIO: Iniciar WhatsApp service em background
-try
-{
-    Log.Information("Iniciando WhatsApp service em background...");
-    
-    var whatsappProcess = new System.Diagnostics.Process
-    {
-        StartInfo = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = "npm",
-            Arguments = "start",
-            WorkingDirectory = "/app/whatsapp",
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        }
-    };
-    
-    whatsappProcess.Start();
-    Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
-    
-    // Aguardar um pouco para o WhatsApp inicializar
-    await Task.Delay(10000);
-    Log.Information("WhatsApp service deve estar pronto");
-}
-catch (Exception ex)
-{
-    Log.Error(ex, "Erro ao iniciar WhatsApp service, mas continuando");
-}
+// TEMPORÁRIO: Comentado para debug - WhatsApp service
+// try
+// {
+//     Log.Information("Iniciando WhatsApp service em background...");
+//     
+//     var whatsappProcess = new System.Diagnostics.Process
+//     {
+//         StartInfo = new System.Diagnostics.ProcessStartInfo
+//         {
+//             FileName = "npm",
+//             Arguments = "start",
+//             WorkingDirectory = "/app/whatsapp",
+//             UseShellExecute = false,
+//             RedirectStandardOutput = true,
+//             RedirectStandardError = true,
+//             CreateNoWindow = true
+//         }
+//     };
+//     
+//     whatsappProcess.Start();
+//     Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
+//     
+//     // Aguardar um pouco para o WhatsApp inicializar
+//     await Task.Delay(10000);
+//     Log.Information("WhatsApp service deve estar pronto");
+// }
+// catch (Exception ex)
+// {
+//     Log.Error(ex, "Erro ao iniciar WhatsApp service, mas continuando");
+// }
 
 // TEMPORÁRIO: Criar tabelas faltantes usando Entity Framework
 try
