@@ -67,66 +67,69 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
-// Iniciar WhatsApp service automaticamente
-try
+// Iniciar WhatsApp service em background (não bloqueia)
+_ = Task.Run(async () =>
 {
-    Log.Information("=== INICIANDO WHATSAPP SERVICE ===");
-    
-    // Verificar se o diretório existe
-    var whatsappDir = "/app/whatsapp";
-    if (Directory.Exists(whatsappDir))
+    try
     {
-        Log.Information("Diretório WhatsApp encontrado: {Dir}", whatsappDir);
+        Log.Information("=== INICIANDO WHATSAPP SERVICE EM BACKGROUND ===");
         
-        // Verificar Node.js
-        var nodeProcess = new System.Diagnostics.Process
+        // Verificar se o diretório existe
+        var whatsappDir = "/app/whatsapp";
+        if (Directory.Exists(whatsappDir))
         {
-            StartInfo = new System.Diagnostics.ProcessStartInfo
+            Log.Information("Diretório WhatsApp encontrado: {Dir}", whatsappDir);
+            
+            // Verificar Node.js
+            var nodeProcess = new System.Diagnostics.Process
             {
-                FileName = "node",
-                Arguments = "--version",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            }
-        };
-        
-        nodeProcess.Start();
-        var nodeVersion = await nodeProcess.StandardOutput.ReadToEndAsync();
-        Log.Information("Node.js versão: {Version}", nodeVersion.Trim());
-        
-        // Iniciar WhatsApp
-        var whatsappProcess = new System.Diagnostics.Process
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "node",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+            
+            nodeProcess.Start();
+            var nodeVersion = await nodeProcess.StandardOutput.ReadToEndAsync();
+            Log.Information("Node.js versão: {Version}", nodeVersion.Trim());
+            
+            // Iniciar WhatsApp
+            var whatsappProcess = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "npm",
+                    Arguments = "start",
+                    WorkingDirectory = whatsappDir,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+            
+            whatsappProcess.Start();
+            Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
+            
+            // Aguardar inicialização
+            await Task.Delay(30000);
+            Log.Information("WhatsApp service deve estar pronto");
+        }
+        else
         {
-            StartInfo = new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "npm",
-                Arguments = "start",
-                WorkingDirectory = whatsappDir,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            }
-        };
-        
-        whatsappProcess.Start();
-        Log.Information("WhatsApp service iniciado com PID: {PID}", whatsappProcess.Id);
-        
-        // Aguardar inicialização
-        await Task.Delay(30000);
-        Log.Information("WhatsApp service deve estar pronto");
+            Log.Warning("Diretório WhatsApp não encontrado: {Dir}", whatsappDir);
+        }
     }
-    else
+    catch (Exception ex)
     {
-        Log.Warning("Diretório WhatsApp não encontrado: {Dir}", whatsappDir);
+        Log.Error(ex, "Erro ao iniciar WhatsApp service em background");
     }
-}
-catch (Exception ex)
-{
-    Log.Error(ex, "Erro ao iniciar WhatsApp service, mas continuando");
-}
+});
 
 // TEMPORÁRIO: Criar tabelas faltantes usando Entity Framework
 try
