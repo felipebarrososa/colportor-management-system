@@ -72,40 +72,53 @@ try
 {
     Log.Information("Verificando se tabelas faltantes precisam ser criadas...");
     
-    using var connection = new NpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
-    await connection.OpenAsync();
+    // Pegar connection string do banco configurado
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? builder.Configuration["ConnectionStrings:DefaultConnection"]
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+        ?? builder.Configuration.GetConnectionString("Default");
     
-    // Verificar se MissionContacts existe
-    var checkTableSql = @"SELECT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_name = 'MissionContacts'
-    )";
-    
-    using var checkCmd = new NpgsqlCommand(checkTableSql, connection);
-    var exists = (bool)(await checkCmd.ExecuteScalarAsync() ?? false);
-    
-    if (!exists)
+    if (string.IsNullOrEmpty(connectionString))
     {
-        Log.Information("Criando tabelas faltantes via script SQL...");
-        
-        // Ler e executar o script SQL
-        var sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "create_missing_tables.sql");
-        if (File.Exists(sqlPath))
-        {
-            var sql = await File.ReadAllTextAsync(sqlPath);
-            using var command = new NpgsqlCommand(sql, connection);
-            command.CommandTimeout = 120; // 2 minutos
-            await command.ExecuteNonQueryAsync();
-            Log.Information("Tabelas criadas com sucesso via script SQL!");
-        }
-        else
-        {
-            Log.Warning("Arquivo create_missing_tables.sql não encontrado");
-        }
+        Log.Warning("ConnectionString não encontrada, pulando criação de tabelas via script");
     }
     else
     {
-        Log.Information("Tabelas já existem, pulando criação via script SQL");
+        using var connection = new NpgsqlConnection(connectionString);
+        await connection.OpenAsync();
+        
+        // Verificar se MissionContacts existe
+        var checkTableSql = @"SELECT EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_name = 'MissionContacts'
+        )";
+        
+        using var checkCmd = new NpgsqlCommand(checkTableSql, connection);
+        var exists = (bool)(await checkCmd.ExecuteScalarAsync() ?? false);
+        
+        if (!exists)
+        {
+            Log.Information("Criando tabelas faltantes via script SQL...");
+            
+            // Ler e executar o script SQL
+            var sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "create_missing_tables.sql");
+            if (File.Exists(sqlPath))
+            {
+                var sql = await File.ReadAllTextAsync(sqlPath);
+                using var command = new NpgsqlCommand(sql, connection);
+                command.CommandTimeout = 120; // 2 minutos
+                await command.ExecuteNonQueryAsync();
+                Log.Information("Tabelas criadas com sucesso via script SQL!");
+            }
+            else
+            {
+                Log.Warning("Arquivo create_missing_tables.sql não encontrado em: {Path}", sqlPath);
+            }
+        }
+        else
+        {
+            Log.Information("Tabelas já existem, pulando criação via script SQL");
+        }
     }
 }
 catch (Exception ex)
