@@ -72,130 +72,48 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        // Primeiro, verificar quais tabelas existem e marcar migrations correspondentes
-        Log.Information("Verificando tabelas existentes e corrigindo histórico de migrations");
+        // Primeiro, marcar migrations antigas como aplicadas para evitar conflitos
+        Log.Information("Marcando migrations antigas como aplicadas");
         
-        // Verificar tabelas existentes
-        var existingTables = new List<string>();
-        try
+        var migrationsToMark = new[]
         {
-            var tables = context.Database.ExecuteSqlRaw(
-                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'");
-            
-            // Verificar tabelas específicas
-            var tableChecks = new[]
-            {
-                "Countries", "Leaders", "Colportors", "Regions", "Photos", 
-                "MissionContacts", "ContactObservations", "WhatsAppConnections", 
-                "WhatsAppMessages", "WhatsAppTemplates", "Reminders"
-            };
-            
-            foreach (var table in tableChecks)
-            {
-                try
-                {
-                    var exists = context.Database.ExecuteSqlRaw(
-                        "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = {0})", table) > 0;
-                    if (exists)
-                    {
-                        existingTables.Add(table);
-                        Log.Information("Tabela {Table} existe", table);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Erro ao verificar tabela {Table}", table);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Log.Warning(ex, "Erro ao verificar tabelas existentes");
-        }
-        
-        // Marcar migrations baseado nas tabelas existentes
-        var migrationsToMark = new Dictionary<string, string[]>
-        {
-            ["202409290001_Initial"] = new[] { "Countries", "Leaders", "Colportors", "Regions" },
-            ["20251001124027_AddLeaderPersonalData"] = new[] { "Countries" },
-            ["20251001193944_AddPacEnrollmentsToColportor"] = new[] { "Colportors" },
-            ["20251001212504_FixColportorLeaderRelationship"] = new[] { "Colportors", "Leaders" },
-            ["20251001213603_RemoveColportorCountryProperties"] = new[] { "Colportors" },
-            ["20251002124656_AddGenderAndBirthDateToColportors"] = new[] { "Colportors" },
-            ["20251002130658_AddGenderBirthDateSimple"] = new[] { "Colportors" },
-            ["20251013220000_AddPhotosTable"] = new[] { "Photos" },
-            ["20251020134639_AddMissionContacts"] = new[] { "MissionContacts", "ContactObservations" }
+            "202409290001_Initial",
+            "20251001124027_AddLeaderPersonalData", 
+            "20251001193944_AddPacEnrollmentsToColportor",
+            "20251001212504_FixColportorLeaderRelationship",
+            "20251001213603_RemoveColportorCountryProperties",
+            "20251002124656_AddGenderAndBirthDateToColportors",
+            "20251002130658_AddGenderBirthDateSimple",
+            "20251013220000_AddPhotosTable",
+            "20251020134639_AddMissionContacts"
         };
         
         foreach (var migration in migrationsToMark)
         {
             try
             {
-                // Verificar se todas as tabelas da migration existem
-                var allTablesExist = migration.Value.All(table => existingTables.Contains(table));
-                
-                if (allTablesExist)
-                {
-                    Log.Information("Marcando migration {Migration} como aplicada (todas as tabelas existem)", migration.Key);
-                    context.Database.ExecuteSqlRaw(
-                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                        migration.Key, "8.0.8");
-                }
-                else
-                {
-                    Log.Information("Migration {Migration} não será marcada como aplicada (faltam tabelas)", migration.Key);
-                }
+                Log.Information("Marcando migration {Migration} como aplicada", migration);
+                context.Database.ExecuteSqlRaw(
+                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
+                    migration, "8.0.8");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration.Key);
+                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
             }
         }
         
-        // Agora aplicar migrations pendentes em ordem específica
-        var pendingMigrations = context.Database.GetPendingMigrations().ToList();
-        
-        // Fazer manualmente se necessário: aplicar MissionContacts primeiro, depois WhatsApp e Reminders
-        var criticalMigrations = new[] 
+        // Agora aplicar migrations pendentes
+        var pendingMigrations = context.Database.GetPendingMigrations();
+        if (pendingMigrations.Any())
         {
-            "20251020134639_AddMissionContacts",
-            "20251020175643_WhatsAppTablesCreated", 
-            "20251024012704_AddRemindersTable"
-        };
-        
-        foreach (var migrationId in criticalMigrations)
-        {
-            if (pendingMigrations.Contains(migrationId))
-            {
-                try
-                {
-                    Log.Information("Aplicando migration específica: {Migration}", migrationId);
-                    context.Database.ExecuteSqlRaw(
-                        "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                        migrationId, "8.0.8");
-                    
-                    // Aplicar apenas esta migration
-                    context.Database.Migrate();
-                    Log.Information("Migration {Migration} aplicada com sucesso", migrationId);
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "Erro ao aplicar migration {Migration}, tentando próxima", migrationId);
-                }
-            }
-        }
-        
-        // Se ainda houver migrations pendentes, aplicar normalmente
-        var stillPending = context.Database.GetPendingMigrations();
-        if (stillPending.Any())
-        {
-            Log.Information("Aplicando {Count} migrations pendentes restantes: {Migrations}", 
-                stillPending.Count(), string.Join(", ", stillPending));
+            Log.Information("Aplicando {Count} migrations pendentes: {Migrations}", 
+                pendingMigrations.Count(), string.Join(", ", pendingMigrations));
             
             try
             {
                 context.Database.Migrate();
-                Log.Information("Migrations restantes aplicadas com sucesso");
+                Log.Information("Migrations aplicadas com sucesso");
             }
             catch (Exception migrationEx)
             {
