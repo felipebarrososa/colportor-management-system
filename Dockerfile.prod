@@ -86,5 +86,5 @@ ENV WHATSAPP_SERVICE_URL=http://localhost:3001
 ENV WHATSAPP_PORT=3001
 ENV NODE_ENV=production
 
-# Usar ENTRYPOINT com exec para Railway
-ENTRYPOINT ["/app/start.sh"]
+# Usar CMD padrão para Railway (só API)
+CMD ["dotnet", "Colportor.Api.dll"]
