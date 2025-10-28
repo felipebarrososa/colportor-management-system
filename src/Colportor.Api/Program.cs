@@ -72,12 +72,24 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        context.Database.Migrate();
-        Log.Information("Migrations aplicadas com sucesso");
+        // Verificar se há migrations pendentes antes de aplicar
+        var pendingMigrations = context.Database.GetPendingMigrations();
+        if (pendingMigrations.Any())
+        {
+            Log.Information("Aplicando {Count} migrations pendentes: {Migrations}", 
+                pendingMigrations.Count(), string.Join(", ", pendingMigrations));
+            context.Database.Migrate();
+            Log.Information("Migrations aplicadas com sucesso");
+        }
+        else
+        {
+            Log.Information("Nenhuma migration pendente encontrada");
+        }
     }
     catch (Exception ex)
     {
         Log.Error(ex, "Erro ao aplicar migrations");
+        // Não falhar a aplicação se migrations falharem
     }
 }
 
