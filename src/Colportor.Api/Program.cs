@@ -66,44 +66,58 @@ builder.Services.Configure<IISServerOptions>(options =>
 
 var app = builder.Build();
 
+// TEMPORÁRIO: Executar script SQL para criar tabelas faltantes
+try
+{
+    Log.Information("Verificando se tabelas faltantes precisam ser criadas...");
+    
+    using var connection = new NpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
+    await connection.OpenAsync();
+    
+    // Verificar se MissionContacts existe
+    var checkTableSql = @"SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'MissionContacts'
+    )";
+    
+    using var checkCmd = new NpgsqlCommand(checkTableSql, connection);
+    var exists = (bool)(await checkCmd.ExecuteScalarAsync() ?? false);
+    
+    if (!exists)
+    {
+        Log.Information("Criando tabelas faltantes via script SQL...");
+        
+        // Ler e executar o script SQL
+        var sqlPath = Path.Combine(Directory.GetCurrentDirectory(), "create_missing_tables.sql");
+        if (File.Exists(sqlPath))
+        {
+            var sql = await File.ReadAllTextAsync(sqlPath);
+            using var command = new NpgsqlCommand(sql, connection);
+            command.CommandTimeout = 120; // 2 minutos
+            await command.ExecuteNonQueryAsync();
+            Log.Information("Tabelas criadas com sucesso via script SQL!");
+        }
+        else
+        {
+            Log.Warning("Arquivo create_missing_tables.sql não encontrado");
+        }
+    }
+    else
+    {
+        Log.Information("Tabelas já existem, pulando criação via script SQL");
+    }
+}
+catch (Exception ex)
+{
+    Log.Error(ex, "Erro ao executar script SQL para criar tabelas, mas continuando");
+}
+
 // Aplicar migrations automaticamente
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        // Primeiro, marcar migrations antigas como aplicadas para evitar conflitos
-        Log.Information("Marcando migrations antigas como aplicadas");
-        
-        var migrationsToMark = new[]
-        {
-            "202409290001_Initial",
-            "20251001124027_AddLeaderPersonalData", 
-            "20251001193944_AddPacEnrollmentsToColportor",
-            "20251001212504_FixColportorLeaderRelationship",
-            "20251001213603_RemoveColportorCountryProperties",
-            "20251002124656_AddGenderAndBirthDateToColportors",
-            "20251002130658_AddGenderBirthDateSimple",
-            "20251013220000_AddPhotosTable",
-            "20251020134639_AddMissionContacts"
-        };
-        
-        foreach (var migration in migrationsToMark)
-        {
-            try
-            {
-                Log.Information("Marcando migration {Migration} como aplicada", migration);
-                context.Database.ExecuteSqlRaw(
-                    "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ({0}, {1}) ON CONFLICT DO NOTHING",
-                    migration, "8.0.8");
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Erro ao marcar migration {Migration} como aplicada", migration);
-            }
-        }
-        
-        // Agora aplicar migrations pendentes
         var pendingMigrations = context.Database.GetPendingMigrations();
         if (pendingMigrations.Any())
         {
