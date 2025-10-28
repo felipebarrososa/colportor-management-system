@@ -1,0 +1,130 @@
+[1mdiff --git a/src/Colportor.Api/Migrations/AppDbContextModelSnapshot.cs b/src/Colportor.Api/Migrations/AppDbContextModelSnapshot.cs[m
+[1mindex 7c71c87..d1cc468 100644[m
+[1m--- a/src/Colportor.Api/Migrations/AppDbContextModelSnapshot.cs[m
+[1m+++ b/src/Colportor.Api/Migrations/AppDbContextModelSnapshot.cs[m
+[36m@@ -73,7 +73,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("RegionId");[m
+ [m
+[31m-                    b.ToTable("Colportors");[m
+[32m+[m[32m                    b.ToTable("Colportors", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.ContactObservation", b =>[m
+[36m@@ -115,7 +115,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("MissionContactId");[m
+ [m
+[31m-                    b.ToTable("ContactObservations");[m
+[32m+[m[32m                    b.ToTable("ContactObservations", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.ContactStatusHistory", b =>[m
+[36m@@ -156,7 +156,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("MissionContactId");[m
+ [m
+[31m-                    b.ToTable("ContactStatusHistories");[m
+[32m+[m[32m                    b.ToTable("ContactStatusHistories", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.Country", b =>[m
+[36m@@ -176,7 +176,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasKey("Id");[m
+ [m
+[31m-                    b.ToTable("Countries");[m
+[32m+[m[32m                    b.ToTable("Countries", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.MissionContact", b =>[m
+[36m@@ -288,7 +288,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("Status");[m
+ [m
+[31m-                    b.ToTable("MissionContacts");[m
+[32m+[m[32m                    b.ToTable("MissionContacts", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.NotificationLog", b =>[m
+[36m@@ -315,7 +315,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasKey("Id");[m
+ [m
+[31m-                    b.ToTable("NotificationLogs");[m
+[32m+[m[32m                    b.ToTable("NotificationLogs", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.PacEnrollment", b =>[m
+[36m@@ -351,7 +351,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("ColportorId", "StartDate", "EndDate");[m
+ [m
+[31m-                    b.ToTable("PacEnrollments");[m
+[32m+[m[32m                    b.ToTable("PacEnrollments", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.Region", b =>[m
+[36m@@ -374,7 +374,7 @@[m [mnamespace Colportor.Api.Migrations[m
+                     b.HasIndex("CountryId", "Name")[m
+                         .IsUnique();[m
+ [m
+[31m-                    b.ToTable("Regions");[m
+[32m+[m[32m                    b.ToTable("Regions", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.Reminder", b =>[m
+[36m@@ -428,7 +428,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("DateTime");[m
+ [m
+[31m-                    b.ToTable("Reminders");[m
+[32m+[m[32m                    b.ToTable("Reminders", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.User", b =>[m
+[36m@@ -475,7 +475,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("RegionId");[m
+ [m
+[31m-                    b.ToTable("Users");[m
+[32m+[m[32m                    b.ToTable("Users", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.Visit", b =>[m
+[36m@@ -496,7 +496,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("ColportorId");[m
+ [m
+[31m-                    b.ToTable("Visits");[m
+[32m+[m[32m                    b.ToTable("Visits", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.WhatsAppConnection", b =>[m
+[36m@@ -560,7 +560,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("Status");[m
+ [m
+[31m-                    b.ToTable("WhatsAppConnections");[m
+[32m+[m[32m                    b.ToTable("WhatsAppConnections", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.WhatsAppMessage", b =>[m
+[36m@@ -617,7 +617,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("Timestamp");[m
+ [m
+[31m-                    b.ToTable("WhatsAppMessages");[m
+[32m+[m[32m                    b.ToTable("WhatsAppMessages", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.WhatsAppTemplate", b =>[m
+[36m@@ -669,7 +669,7 @@[m [mnamespace Colportor.Api.Migrations[m
+ [m
+                     b.HasIndex("IsActive");[m
+ [m
+[31m-                    b.ToTable("WhatsAppTemplates");[m
+[32m+[m[32m                    b.ToTable("WhatsAppTemplates", (string)null);[m
+                 });[m
+ [m
+             modelBuilder.Entity("Colportor.Api.Models.Colportor", b =>[m
